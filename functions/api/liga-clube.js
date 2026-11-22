@@ -40,7 +40,7 @@ const diasEntre = (a, b) => Math.round((Date.parse(b + 'T12:00:00Z') - Date.pars
 const hhmmss = (min) => `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}:00`;
 const lote = async (db, sql, ids, extra = []) => { const out = []; for (let i = 0; i < ids.length; i += 80) { const p = ids.slice(i, i + 80); const { results } = await db.prepare(sql.replace('(?)', `(${p.map(() => '?').join(',')})`)).bind(...extra, ...p).all(); out.push(...(results || [])); } return out; };
 
-export async function calculaLances(env, origin, dia) {
+export async function calculaLances(env, origin, dia, conferir = false) {
   const hojeAgora = R.relogioSP();
   const db = env.DB, ocultos = await ocultosDaEquipe(origin).catch(() => new Set());
   // EQUIPE (Gestao de Equipe via /api/tv-mostra): nome, supervisor, canal; quem nao participa da Liga fica fora
@@ -103,7 +103,7 @@ export async function calculaLances(env, origin, dia) {
   // META x FATURADO DO MES (GEROT) para o campeao + campeao ja dado no mes
   const metaFat = new Map(); try { const { results } = await db.prepare(`SELECT filial, rca, json_extract(dados, '$."Meta (R$)"') m, json_extract(dados, '$."Faturado líquido (R$)"') f FROM gerot_vendedor_mes WHERE mes = ?`).bind(dia.slice(0, 7)).all(); for (const r of results || []) metaFat.set(`${r.filial}|${r.rca}`, { meta: Number(r.m) || 0, fat: Number(r.f) || 0 }); } catch (e) { /* sem GEROT */ }
   const campeaoJa = new Set(); try { const { results } = await db.prepare("SELECT filial, rca FROM tv_lances WHERE chave LIKE 'gol_campeao|%' AND dia >= ? AND dia < ?").bind(dia.slice(0, 8) + '01', dia).all(); for (const r of results || []) campeaoJa.add(`${r.filial}|${r.rca}`); } catch (e) { /* segue */ }
-  const hatJa = new Set(); try { const { results } = await db.prepare("SELECT filial, rca FROM tv_lances WHERE dia = ? AND chave LIKE 'gol_hattrick|%'").bind(dia).all(); for (const r of results || []) hatJa.add(`${r.filial}|${r.rca}`); } catch (e) { /* segue */ }
+  const hatJa = new Set(); if (!conferir) try { const { results } = await db.prepare("SELECT filial, rca FROM tv_lances WHERE dia = ? AND chave LIKE 'gol_hattrick|%'").bind(dia).all(); for (const r of results || []) hatJa.add(`${r.filial}|${r.rca}`); } catch (e) { /* segue */ }
 
   // GPS das visitas (CEVEN do gerente, functions/_lib/gps_gerente.js)
   const gps = new Map(); try { const { results } = await db.prepare('SELECT filial, rca, cliente, cli_lat, cli_lon, co_lat, co_lon, checkin, checkout FROM ceven_gps_visita WHERE dia = ?').bind(dia).all(); for (const r of results || []) { const kk = r.filial + '|' + r.rca; if (!gps.has(kk)) gps.set(kk, []); gps.get(kk).push(r); } } catch (e) { /* tabela ainda nao existe */ }
@@ -120,7 +120,9 @@ export async function calculaLances(env, origin, dia) {
     // (visitados sem justificativa = pedidos na rota do Clube)
     const Jv = jus.get(k) || new Map(), semJus = [...M.values()].filter((x) => x.ini && !Jv.has(x.id)), clubeOk = semJus.length > 0 && semJus.length === (Number(d.ped_rota) || 0);
     const pedDe = (x) => (pedCl.get(`${k}|${x.id}`) || ped.get(`${k}|${x.id}`) || pedC.get(`${k}|${x.cnpj}`) || [])[0] || null;
-    const venda = (x) => !!pedDe(x) || (clubeOk && !Jv.has(x.id));
+    // 22/11/2026 (auditoria lance por lance): a 'conta do Clube que fecha' (visitas sem justificativa = pedidos na rota) dava venda SEM pedido do cliente
+    //   (18-19/11: ~220 lances sem pedido em nenhuma base). Positivado = pedido (Vitorio): so vale com pedido do cliente no Clube ou no GEROT.
+    const venda = (x) => !!pedDe(x);
     const feitas = V.length, comVenda = V.filter(venda).length, dig = Number(d.total_pedido) || 0;
     // clientes visitados com pedido: pedido na rota, defesa, resgate
     for (const x of V.filter(venda)) {
@@ -197,7 +199,7 @@ export async function onRequestGet({ request, env }) {
   const dia = /^\d{4}-\d{2}-\d{2}$/.test(u.searchParams.get('dia') || '') ? u.searchParams.get('dia') : hoje;
   if (diaSemLance(dia)) return resp({ dia, status: 'fim de semana ou feriado: sem lance' });
   if (dia > hoje) return resp({ erro: 'dia futuro' }, 400);
-  const c = await calculaLances(env, u.origin, dia);
+  const c = await calculaLances(env, u.origin, dia, u.searchParams.get('conferir') === '1');
   if (c.erro) return resp({ dia, erro: c.erro });
   // no dia de hoje so grava o que ja aconteceu (cartao so depois do limite; nada antes das 06h)
   const agoraHms = `${String(agora.h).padStart(2, '0')}:${String(agora.m).padStart(2, '0')}:00`;
@@ -206,6 +208,21 @@ export async function onRequestGet({ request, env }) {
   const porFilial = {}; for (const l of L) porFilial[l.filial] = (porFilial[l.filial] || 0) + 1;
   const saida = { dia, vendedores_clube: c.vendedores, pedidos_gerot_no_dia: c.pedidos_gerot, lances: L.length, por_tipo: porTipo, por_filial: porFilial };
   { const ver = String(u.searchParams.get('ver') || '').toUpperCase(); if (/^[A-Z]{3}\|\d+$/.test(ver)) saida.do_vendedor = c.L.filter((l) => `${l.filial}|${l.rca}` === ver).map((l) => ({ chave: l.chave, hora: l.hora_sp, obs: String(l.obs || '').slice(0, 160) })); }
+  // CONFERENCIA LANCE POR LANCE (22/11/2026, Vitorio: 'auditoria em TODOS os lances... um por um'): recalcula das fontes e compara com o gravado.
+  //   faltam = a regra da hoje e nao esta gravado · sobram = gravado por este motor (FONTE: Clube) e a regra nao da mais · lances de outro motor (CEVEN antigo) so contados
+  if (u.searchParams.get('conferir') === '1') {
+    const { results: G } = await env.DB.prepare('SELECT filial, chave, nivel, rca, obs FROM tv_lances WHERE dia = ?').bind(dia).all();
+    // hat-trick vale 1 por vendedor no dia: compara por vendedor (a chave carrega a hora do 3o check-in, que muda com a sincronizacao do aparelho)
+    const nk = (f, ch) => f + '#' + (/^gol_hattrick\|/.test(ch) ? ch.split('|').slice(0, 2).join('|') : ch);
+    const calc = new Map(L.map((l) => [nk(l.filial, l.chave), l])), grav = new Map((G || []).map((g) => [nk(g.filial, g.chave), g]));
+    const tipo = (ch) => ch.split('|')[0] + (/^(imp|pen)\|/.test(ch) ? '|' + ch.split('|')[1] : '');
+    const faltam = [...calc].filter(([k]) => !grav.has(k)).map(([, l]) => ({ f: l.filial, chave: l.chave, obs: String(l.obs || '').slice(0, 140) }));
+    const sobram = [...grav].filter(([k, g]) => !calc.has(k) && /FONTE: Clube/.test(g.obs || '')).map(([, g]) => ({ f: g.filial, chave: g.chave, obs: String(g.obs || '').slice(0, 140) }));
+    const outros = [...grav].filter(([k, g]) => !calc.has(k) && !/FONTE: Clube/.test(g.obs || '')).length;
+    const cont = (a) => a.reduce((o, x) => { const t = tipo(x.chave); o[t] = (o[t] || 0) + 1; return o; }, {});
+    saida.conferencia = { gravados: grav.size, calculados: calc.size, iguais: [...calc.keys()].filter((k) => grav.has(k)).length, faltam: faltam.length, sobram: sobram.length, de_outro_motor: outros, faltam_por_tipo: cont(faltam), sobram_por_tipo: cont(sobram), exemplos_faltam: faltam.slice(0, 15), exemplos_sobram: sobram.slice(0, 15) };
+    if (u.searchParams.get('lista') === '1') saida.conferencia.sobram_lista = sobram.map((x) => ({ f: x.f, chave: (grav.get(nk(x.f, x.chave)) || {}).chave || x.chave }));
+  }
   if (u.searchParams.get('grava') === '1') {
     const iso = new Date().toISOString(), t = (v, n = 200) => (v == null ? null : String(v).slice(0, n));
     const st = L.map((l) => env.DB.prepare('INSERT OR IGNORE INTO tv_lances (dia, filial, chave, nivel, rca, vendedor, supervisor, cliente_id, cliente, motivo, dias_sem_compra, ultima_compra, tempo_visita, obs, hora_sp, visto_em, baseline) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)')

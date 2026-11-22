@@ -257,6 +257,23 @@ async function lerCentral(env, id, maxIdadeMs, filial, comReserva = false) {
     // CEVEN SEM RESPOSTA (12/11/2026, Vitorio: TV "carregando" e "R$ 0" com o CEVEN em 500 desde 11/11 17:34): mesma regra do central-snapshot —
     // o que falta hoje vem da ULTIMA LEITURA REAL do CEVEN neste mes (dashboard) e dos clientes de HOJE no roteiro do mes; nunca zero, nunca estimativa.
     let reforco = null, rotFinal = Array.isArray(rot) ? rot : null, dashFinal = dash || null;
+    // 22/11/2026 (auditoria das TVs: cartao do vendedor sem nome/meta/faturado desde a trava do CEVEN de 16/11): o MES vem do GEROT (meta, faturado, carteira
+    //   pendente, devolucao, positivacao) — mesma base do JOTA e da Matinal. So nas TELAS.
+    if (comReserva && !dashFinal) {
+      try {
+        const sig = String(row.filial_sigla || filial || '').replace(/1$/, '').toUpperCase(), mes = dataHojeBrasilia().slice(0, 7);
+        const g = await env.DB.prepare('SELECT vendedor, dados, em FROM gerot_vendedor_mes WHERE mes = ? AND filial = ? AND rca = ?').bind(mes, sig, String(id)).all();
+        const R0 = (g && g.results) || [];
+        if (R0.length) {
+          const s = (k) => { let t = 0, ok = false; for (const r of R0) { const x = lê(r.dados)?.[k]; const v = x == null || x === '' ? NaN : Number(x); if (Number.isFinite(v)) { t += v; ok = true; } } return ok ? t : null; };
+          // carteira do vendedor: soma da Carteira Total (valor calibrado contra a tela do GEROT); 'Carteira pendente' por vendedor vem vazia no GEROT
+          let cart = null; try { const c = await env.DB.prepare('SELECT SUM(valor) v, COUNT(*) n FROM gerot_carteira WHERE filial = ? AND rca = ?').bind(sig, String(id)).first(); if (c && c.n) cart = Number(c.v) || 0; else cart = 0; } catch { /* sem carteira */ }
+          const nm = String(R0[0].vendedor || '').replace(/^\s*\d+\s*-\s*/, '').trim() || null;
+          dashFinal = { nome: nm, financeiro: { meta: s('Meta (R$)'), faturado: s('Faturado líquido (R$)'), pendente: s('Carteira pendente (R$)') ?? cart, devolucao: s('Devolução (R$)') }, positivacao: { meta: s('Meta de positivação'), realizado: s('Positivação (filial + CNPJ)') } };
+          reforco = { dashboard: { fonte: 'GEROT', em: R0.map((r) => r.em).sort().pop() } };
+        }
+      } catch { /* sem GEROT: segue para a reserva */ }
+    }
     // 12/11/2026 (arquiteto): so TELAS (so_base sem hist) usam a reserva; o coletor de lances nunca. Rota planejada nao entra (nao tem status de visita de hoje).
     if (comReserva && !dashFinal) {
       try {
@@ -268,6 +285,26 @@ async function lerCentral(env, id, maxIdadeMs, filial, comReserva = false) {
           if (!Object.keys(reforco).length) reforco = null;
         }
       } catch { /* sem reforco: fica o que a base tem */ }
+    }
+    // ROTA DE HOJE PELO CLUBE (22/11/2026, auditoria das TVs: 'clientes' vinha do roteiro do CEVEN, travado): roteiro do Clube + check-in/out + pedido
+    //   (positivado = pedido, Vitorio) + justificativa (nao positivado, com o motivo). So nas TELAS.
+    if (comReserva && !rotFinal) {
+      try {
+        const sig = String(row.filial_sigla || filial || '').replace(/1$/, '').toUpperCase(), d = dataHojeBrasilia(), b = [d, sig, String(id)];
+        const [ro, ck, pe, ju] = await Promise.all([
+          env.DB.prepare('SELECT cliente, fantasia, razao FROM clube_roteiro WHERE dia = ? AND filial = ? AND rca = ?').bind(...b).all(),
+          env.DB.prepare('SELECT cliente, tipo, data_hora FROM clube_checkin WHERE dia = ? AND filial = ? AND rca = ?').bind(...b).all(),
+          env.DB.prepare('SELECT cliente, SUM(total) v FROM clube_pedido WHERE dia = ? AND filial = ? AND rca = ? GROUP BY cliente').bind(...b).all(),
+          env.DB.prepare('SELECT cliente, motivo FROM clube_justificativa WHERE dia = ? AND filial = ? AND rca = ?').bind(...b).all()
+        ]);
+        const RO = ro.results || [];
+        if (RO.length) {
+          const ci = new Map(), co = new Map(); for (const x of ck.results || []) { const h = String(x.data_hora || '').slice(11, 19), k = String(x.cliente); if (/IN/i.test(x.tipo)) { if (!ci.has(k) || h < ci.get(k)) ci.set(k, h); } else if (/OUT/i.test(x.tipo)) { if (!co.has(k) || h > co.get(k)) co.set(k, h); } }
+          const pv = new Map((pe.results || []).map((x) => [String(x.cliente), Number(x.v) || 0])), jm = new Map((ju.results || []).map((x) => [String(x.cliente), x.motivo]));
+          rotFinal = RO.map((c) => { const k = String(c.cliente); return { id_cliente: c.cliente, nome_cliente: c.fantasia || c.razao || null, status: pv.has(k) ? 'POSITIVADO' : jm.has(k) ? 'NAO_POSITIVADO' : null, motivo_nao_visita: jm.get(k) || null, valor_ultima_compra: pv.has(k) ? pv.get(k) : null, checkin_horario: ci.get(k) || null, checkout_horario: co.get(k) || null }; });
+          reforco = { ...(reforco || {}), roteiro: { fonte: 'Clube da Venda' } };
+        }
+      } catch { /* sem Clube: sem lista */ }
     }
     // CLUBE DA VENDA (12/11/2026): sem a produtividade do CEVEN de hoje, o DIA (digitado, pedidos, visitas) vem do Clube, so nas TELAS (nunca no coletor de lances)
     let prodFinal = prod || null;

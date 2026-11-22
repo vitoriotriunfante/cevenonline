@@ -112,3 +112,12 @@ Fora (sem fonte): marca própria / tripla / dobrou o mix / bonificação (itens 
 - **Tio Patinhas (TBE 303):** notas em 09 e 16/11 com R$ 0 de venda no GEROT → curva negativa mostra "nota sem valor de venda".
 - **Joseanne (TCA 408) amarelo 18/11:** pedidos 07:39/08:51 sem check-in; regra = check-in até 10h. **Decisão do Vitório:** pedido antes das 10h livra o amarelo?
 - **Matinal em imagem:** cards só existiam de 17/11 (o "sob demanda" nunca foi ligado). Agora 1x por dia na coleta da manhã; card com ritmo e necessidade do GEROT (antes: projeção linear) e bloqueados da Carteira Total (antes: pedido_status parado); /api/matinal-cards aceitava sem chave (faltava await).
+
+## 22/11/2026 (domingo) - Auditoria lance por lance da Champions (Vitorio: "lance so com evidencia")
+- Prova de pedido: 842 lances (710 pedido na rota, 97 defesa, 35 resgate) sem pedido do cliente no GEROT nem no Clube -> retirados (copia em tv_lances_retirados).
+- Conta do Clube que deduzia venda (visitas sem justificativa = pedidos) removida: venda so com pedido do cliente.
+- Recalculo de 17-19/11 das fontes: 351 lances com prova gravados; 257 sem prova retirados (venda deduzida, quinzenas com o mesmo pedido); 68 conflitos defesa x inativo resolvidos pela TAG do dia; 1 penalti sem dias retirado.
+- Todos os dias 03-19/11 refechados (copia em liga_fechamento_copia). Fechamento 22h17 seg-sex e semana invicta voltaram ao worker-cron (estavam no cron-lances desligado).
+- CEVEN: admin (compromisso, RET, TAGs) e gerente (GPS das visitas) liberados so nessas rotas; impedimento por GPS volta em 23/11.
+- TV: cartao do vendedor com o mes do GEROT e a rota do dia pelo Clube.
+- SEM FONTE AINDA: gol contra / vermelho por devolucao (GEROT so da motivo por mes, sem nota e data).
