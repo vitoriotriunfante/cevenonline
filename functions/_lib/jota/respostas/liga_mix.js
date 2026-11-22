@@ -44,6 +44,8 @@ export async function respLiga(B, E, alvo, t = '') {
     ''].join('\n');
 }
 export async function respCompromisso(B, E) {
+  // 22/11/2026: domingo nao tem compromisso nem RET (a resposta mandava 'cobrar' todo mundo)
+  { const hj = new Date(Date.now() - 3 * 3600000); if (hj.getUTCDay() === 0) return `📅 Hoje é *domingo*: sem compromisso matinal e sem RET. Pergunte na segunda (o admin do CEVEN é lido a cada 15 min, das 6h às 20h).`; }
   const R = await Promise.all(E.filiais.map((f) => B.sups(f).then((j) => ({ f, S: (j && j.supervisores) || null }))));
   const sups = new Set(E.vend.map((v) => v.filial + '|' + v.supervisor));
   const all = R.flatMap(({ f, S }) => (S || []).filter((x) => !/^GERENTE/i.test(x.nome) && (!(E.grupo || E.supervisor || E.rca) || sups.has(f + '|' + x.nome))).map((x) => ({ ...x, filial: f })));

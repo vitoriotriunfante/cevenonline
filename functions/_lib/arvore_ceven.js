@@ -318,7 +318,7 @@ export async function cargaClientesFoco(env, gravar = false) {
     if (p > 1) await new Promise((ok) => setTimeout(ok, 600));
     let r = null;
     try {
-      for (let t = 0; t < 5; t++) { r = await fetch(`${CEVEN}/api/admin/clientes-foco?page=${p}&limit=500`, { headers: H, signal: AbortSignal.timeout(30000) }); if (r.status !== 429) break; await new Promise((ok) => setTimeout(ok, 3000 * (t + 1))); }
+      for (let t = 0; t < 5; t++) { r = await fetch(`${CEVEN}/api/admin/clientes-foco?page=${p}&limit=500`, { headers: H, signal: AbortSignal.timeout(30000) }); if (r.status !== 429 && r.status < 500) break;   /* 22/11/2026: 502 na pagina 13 -> tenta de novo */ await new Promise((ok) => setTimeout(ok, 3000 * (t + 1))); }
       if (!r.ok) { out.erros.push(`pagina ${p}: ${r.status}`); break; } j = await r.json();
     } catch (e) { out.erros.push(`pagina ${p}: ${String(e && e.message || e).slice(0, 80)}`); break; }
     const I = (j && Array.isArray(j.items)) ? j.items : [];
@@ -400,5 +400,47 @@ export async function gravaCascataFilial(env, filialSigla, dataRef, prazoMs = 10
   } catch (e) {
     return null;
   }
+}
+
+
+// GPS DAS VISITAS DE HOJE pelo CEVEN de cada GERENTE (22/11/2026, Vitorio: 'vc vai entrar na filial de cada um deles... vao ser 11 chamados'):
+// fonte do IMPEDIMENTO POR GPS da Liga (o Clube nao traz coordenada). Grava ceven_gps_visita so com check-out, so quando mudou.
+const nGps = (v) => (v == null || v === '' || isNaN(Number(v)) ? null : Number(v));
+
+export async function coletaGpsGerentes(env, dia, prazoMs = 200000) {
+  if (!env.CEVEN_GERENTE_SENHA || !env.DB) return { status: 'SEM_SEGREDO_OU_D1' };
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS ceven_gps_visita (dia TEXT NOT NULL, filial TEXT NOT NULL, rca TEXT NOT NULL, cliente TEXT NOT NULL, cli_lat REAL, cli_lon REAL, ci_lat REAL, ci_lon REAL, co_lat REAL, co_lon REAL, checkin TEXT, checkout TEXT, tempo TEXT, hash TEXT, lido_em TEXT, PRIMARY KEY (dia, filial, rca, cliente))').run();
+  const fim = Date.now() + prazoMs, res = { filiais: 0, supervisores: 0, visitas_gps: 0, gravadas: 0, falhas: {} };
+  const falha = (m) => { res.falhas[m] = (res.falhas[m] || 0) + 1; };
+  await Promise.all(GERENTES.map(async (g) => {
+    try {
+      const tk = await tokenGerente(g, env.CEVEN_GERENTE_SENHA); if (!tk) return falha(g.sigla + ':login');
+      const H = { Authorization: 'Bearer ' + tk, 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': CEVEN_APP_SECRET };
+      const p = await fetch(`${CEVEN}/api/gerente/dashboard-cascata?filial=${g.filialKey}`, { headers: H, signal: AbortSignal.timeout(20000) });
+      if (!p.ok) return falha(g.sigla + ':painel' + p.status);
+      const sups = ((await p.json()).supervisores || []).map((s) => s.supervisorId).filter((x) => x != null);
+      res.filiais++; res.supervisores += sups.length;
+      const linhas = [];
+      for (const id of sups) {
+        if (Date.now() > fim) { falha('prazo'); break; }
+        try {
+          const r = await fetch(`${CEVEN}/api/gerente/supervisor/roteiro-hoje?filial=${g.filialKey}&supervisorId=${id}`, { headers: H, signal: AbortSignal.timeout(15000) });
+          if (!r.ok) { falha('rot' + r.status); continue; }
+          const a = await r.json(); if (!Array.isArray(a)) continue;
+          for (const v of a) {
+            const coLat = nGps(v.checkout_latitude), coLon = nGps(v.checkout_longitude); if (coLat == null || coLon == null || !v.id_representante || !v.id_cliente) continue;
+            const L = [dia, g.sigla, String(v.id_representante), String(v.id_cliente), nGps(v.latitude), nGps(v.longitude), nGps(v.checkin_latitude), nGps(v.checkin_longitude), coLat, coLon, v.checkin_horario || null, v.checkout_horario || null, v.tempo_visita || null];
+            L.push(L.slice(4).join('|')); linhas.push(L);
+          }
+        } catch (e) { falha('rot_' + (e && e.name)); }
+      }
+      res.visitas_gps += linhas.length;
+      for (let i = 0; i < linhas.length; i += 50) {
+        const out = await env.DB.batch(linhas.slice(i, i + 50).map((L) => env.DB.prepare("INSERT INTO ceven_gps_visita (dia, filial, rca, cliente, cli_lat, cli_lon, ci_lat, ci_lon, co_lat, co_lon, checkin, checkout, tempo, hash, lido_em) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,datetime('now')) ON CONFLICT (dia, filial, rca, cliente) DO UPDATE SET cli_lat=excluded.cli_lat, cli_lon=excluded.cli_lon, ci_lat=excluded.ci_lat, ci_lon=excluded.ci_lon, co_lat=excluded.co_lat, co_lon=excluded.co_lon, checkin=excluded.checkin, checkout=excluded.checkout, tempo=excluded.tempo, hash=excluded.hash, lido_em=excluded.lido_em WHERE ceven_gps_visita.hash IS NOT excluded.hash").bind(...L)));
+        for (const x of out || []) res.gravadas += (x && x.meta && x.meta.changes) || 0;
+      }
+    } catch (e) { falha(g.sigla + ':' + String((e && e.message) || e).slice(0, 30)); }
+  }));
+  return res;
 }
 

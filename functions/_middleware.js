@@ -6,7 +6,9 @@ if (!globalThis.__cevenFetchBloqueado) {
   globalThis.__fetchCevenOrig = _fetchOrig;
   globalThis.fetch = (input, init) => {
     const url = typeof input === 'string' ? input : (input && input.url) || '';
-    if (url.includes('ceven.drivetriunfante-locomotiva.com.br')) {
+    // 22/11/2026 (Vitorio: 'RETs, compromissos e tags... tinha que vir do admin' e 'CEVEN dos gerentes... deixar a champions rodando 100%'):
+    //   liberado SO o admin (login, compromissos, RET, clientes foco) e o gerente (login, roteiro do dia do supervisor). Todo o resto continua bloqueado.
+    if (url.includes('ceven.drivetriunfante-locomotiva.com.br') && !/\/api\/(admin\/(login|supervisores\/matriz-(compromissos|ret)|ret\/periodo|clientes-foco)|gerente-auth\/login|gerente\/supervisor\/roteiro-hoje|gerente\/supervisores|gerente\/dashboard-cascata)(\?|$|\/)/.test(url)) {
       return Promise.resolve(new Response(
         JSON.stringify({ ok: false, status: 'CEVEN_DESLIGADO', erro: 'CEVEN desligado por ordem do Vitorio' }),
         { status: 503, headers: { 'Content-Type': 'application/json' } }

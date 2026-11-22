@@ -21,6 +21,14 @@ import { ocultosDaEquipe, lanceDeOculto } from '../_lib/equipe_ocultos.js';
 import { diaSemLance, ehFeriado } from '../_lib/feriados.js';
 import { fechaDia } from '../_lib/liga_fechamento.js';
 
+// GPS (copia da regra de functions/api/cron-lances.js): distancia em metros e pontos da empresa (GPS nao captado = nunca impedimento)
+const PONTOS_EMPRESA = [[-23.2493, -45.9245], [-22.8952, -47.0475]];
+function distM(lat1, lon1, lat2, lon2) {
+  if ([lat1, lon1, lat2, lon2].some((v) => v == null || isNaN(v) || Number(v) === 0)) return null;
+  const R0 = 6371000, rad = (x) => (x * Math.PI) / 180, dLat = rad(lat2 - lat1), dLon = rad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return R0 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
 const CORS = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' };
 const resp = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: CORS });
 const FUSO1H = ['TCG', 'MCD', 'TCA'];
@@ -97,6 +105,8 @@ export async function calculaLances(env, origin, dia) {
   const campeaoJa = new Set(); try { const { results } = await db.prepare("SELECT filial, rca FROM tv_lances WHERE chave LIKE 'gol_campeao|%' AND dia >= ? AND dia < ?").bind(dia.slice(0, 8) + '01', dia).all(); for (const r of results || []) campeaoJa.add(`${r.filial}|${r.rca}`); } catch (e) { /* segue */ }
   const hatJa = new Set(); try { const { results } = await db.prepare("SELECT filial, rca FROM tv_lances WHERE dia = ? AND chave LIKE 'gol_hattrick|%'").bind(dia).all(); for (const r of results || []) hatJa.add(`${r.filial}|${r.rca}`); } catch (e) { /* segue */ }
 
+  // GPS das visitas (CEVEN do gerente, functions/_lib/gps_gerente.js)
+  const gps = new Map(); try { const { results } = await db.prepare('SELECT filial, rca, cliente, cli_lat, cli_lon, co_lat, co_lon, checkin, checkout FROM ceven_gps_visita WHERE dia = ?').bind(dia).all(); for (const r of results || []) { const kk = r.filial + '|' + r.rca; if (!gps.has(kk)) gps.set(kk, []); gps.get(kk).push(r); } } catch (e) { /* tabela ainda nao existe */ }
   const L = [];
   const fonte = ' | FONTE: Clube da Venda + GEROT';
   for (const d of VD) {
@@ -161,6 +171,17 @@ export async function calculaLances(env, origin, dia) {
       else if ((m.includes('FECHADO') || m.includes('ENCERROU')) && (dias != null && dias > DIAS_PENALTI_FECHADO)) add({ chave: `pen|fechado|${e.rca}|${cid}`, nivel: 'penalti', cliente_id: cid, cliente: nome, motivo: j.motivo, dias_sem_compra: dias, obs: `justificativa ${j.motivo} · ${dias ?? '?'} dias sem comprar${fonte}`, hora_sp: hora });
       else if (x && x.ini && x.fim && x.ini.min === x.fim.min) add({ chave: `imp|visita0|${e.rca}|${cid}`, nivel: 'impedimento', cliente_id: cid, cliente: nome, motivo: j.motivo, tempo_visita: '00:00', obs: `check-in ${x.ini.hms} | check-out ${x.fim.hms} | tempo 00:00 | visita de 00:00 (sem permanencia)${fonte}`, hora_sp: hhmmss(Math.max(x.fim.min, 6 * 60)) });
     }
+    // IMPEDIMENTO POR GPS (22/11/2026): GPS do check-out pelo CEVEN do GERENTE (ceven_gps_visita). Mesma regra do coletor antigo (cron-lances.js, 05/10/2026):
+    //   500 m < distancia do cadastro <= 5 km; fora dos pontos da empresa (GPS nao captado); ponto nao repetido (+-100 m) em outra visita do mesmo vendedor
+    { const G = gps.get(k) || [];
+      for (const c of G) {
+        const dM = distM(c.cli_lat, c.cli_lon, c.co_lat, c.co_lon);
+        if (dM == null || !(dM > 500 && dM <= 5000)) continue;
+        if (PONTOS_EMPRESA.some((p) => distM(c.co_lat, c.co_lon, p[0], p[1]) <= 1000)) continue;
+        if (G.filter((x) => distM(x.co_lat, x.co_lon, c.co_lat, c.co_lon) <= 100).length >= 2) continue;
+        const xv = M.get(String(c.cliente)), hc = hmDe(String(c.checkout || '').replace('T', ' ')) || (xv && xv.fim) || null;
+        add({ chave: `imp|gps|${e.rca}|${c.cliente}`, nivel: 'impedimento', cliente_id: String(c.cliente), cliente: (xv && xv.nome) || `Cliente #${c.cliente}`, obs: `check-out a ${Math.round(dM)} m do cadastro do cliente; cadastro ${c.cli_lat},${c.cli_lon}; check-out ${c.co_lat},${c.co_lon}${c.checkin ? ' | check-in ' + c.checkin : ''}${c.checkout ? ' | check-out ' + c.checkout : ''} | FONTE: CEVEN (gerente)`, hora_sp: hc ? hhmmss(Math.max(hc.min, 6 * 60)) : '12:00:00' });
+      } }
     // cartoes de rota: rota no Clube e nenhum check-in ate o limite
     const rot = Number(d.roteiros) || 0, prim = V.length ? V[0].ini.min : null, limA = (fuso ? 11 : 10) * 60, limV = (fuso ? 12 : 11) * 60;
     if (rot > 0 && (prim == null || prim >= limA)) add({ chave: `ven10|${e.rca}`, nivel: 'amarelo', obs: `nenhuma visita nem check-in de varejo (${rot} clientes na rota) as ${limA / 60}h (limite ${limA / 60}h)${fonte}`, hora_sp: hhmmss(limA) });

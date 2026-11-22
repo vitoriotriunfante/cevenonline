@@ -228,6 +228,8 @@ function linhasClienteDoExcel(arq, mes, comForn) {
   const ix = (re) => H.findIndex((h) => re.test(h));
   const iMes = ix(/^Mês$/), iFil = ix(/^Filial$/), iCv = ix(/^Cód\.? vendedor/i), iVend = ix(/^Vendedor$/i),
     iCc = ix(/^Cód\.? cliente/i), iCli = ix(/^Cliente$/i), iCnpj = ix(/CNPJ.*cliente|^CNPJ$|CPF.?CNPJ/i), iCs = ix(/^Cód\.? supervisor/i), iSup = ix(/^Supervisor$/i);
+  // 22/11/2026: estas 3 faltavam declarar ('iCf is not defined' derrubava clientes E cliente x industria desde 21/11)
+  const iCf = ix(/^Cód\.? fornecedor/i), iFor = ix(/^Fornecedor$/i), iCnf = ix(/^CNPJ fornecedor/i);
   const chaves = new Set([iMes, iFil, iCv, iVend, iCc, iCli, iCnpj, iCs, iSup, iCf, iFor, iCnf].filter((k) => k >= 0));
   const linhas = [];
   for (const r of rows.slice(hi + 1)) {
@@ -244,7 +246,14 @@ function linhasClienteDoExcel(arq, mes, comForn) {
     // so as colunas que o JOTA usa e que nao mudam a toa (arquiteto, 16/11/2026: 'Positivacao do dia', 'Captacao' e 'Necessidade dia' mudam todo dia e regravariam tudo)
     const dados = {}; H.forEach((h, k) => { if (!chaves.has(k) && h && /^Positiva[cç][aã]o (\(filial|M-1|3M|A-1)|^Positiva[cç][aã]o \+ Carteira|^Faturado l[ií]quido|^Carteira pendente|^Devolu[cç][aã]o \(R\$\)/i.test(h)) dados[h] = num(r[k]); });
     const linha = { mes: m, filial, rca, cliente, cnpj: cnpj || null, nome: nomeCli.replace(/\s*[·-]?\s*\d{11,14}\s*$/, '') || null, dados };
-    linha.hash = crypto.createHash('md5').update(JSON.stringify([linha.nome, dados])).digest('hex');
+    if (comForn) {
+      // cliente x industria: codigo e nome do fornecedor; linha toda zerada nao entra (nao comprou nada dessa industria)
+      const fNome = String(iFor >= 0 ? r[iFor] || '' : '').trim();
+      const fCod = String(iCf >= 0 && r[iCf] != null && r[iCf] !== '' ? r[iCf] : (fNome.match(/^(\d+)/) || [])[1] || (iCnf >= 0 ? String(r[iCnf] || '').replace(/\D/g, '') : '')).trim();
+      if (!fCod || Object.values(dados).every((v) => !v)) continue;
+      linha.forn_cod = fCod; linha.fornecedor = fNome.replace(/^\d+\s*-\s*/, '') || null;
+    }
+    linha.hash = crypto.createHash('md5').update(JSON.stringify(comForn ? [linha.nome, dados, linha.forn_cod] : [linha.nome, dados])).digest('hex');
     linhas.push(linha);
   }
   return { cab: H, linhas };

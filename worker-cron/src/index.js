@@ -120,6 +120,10 @@ export default {
       if (dia >= 1 && dia <= 6 && h >= 7 && h <= 20 && ((mi >= 15 && mi < 30) || mi >= 45)) {
         try { const r = await dispararWorkflow(env, 'brasileirao-dataset.yml', {}); console.log(`[LIGA] brasileirao-dataset.yml status=${r.status} ${r.body}`); } catch (e) { console.log('[LIGA][ERRO] ' + (e && e.message ? e.message : e)); }
       }
+      // CEVEN DO ADMIN (22/11/2026, Vitorio: 'RETs, compromissos e tags... tem que vir do admin'): compromisso/RET a cada 15 min e TAGs 2x/dia (a funcao decide). Seg-sab 06h-20h.
+      if (dia >= 1 && dia <= 6 && h >= 6 && h <= 20 && env.MONITORIA_CRON_KEY) {
+        await rodarTarefaTv(event.cron, { passos: [{ rota: '/api/cron-ceven-admin', ms: 280000, chaveEnv: 'MONITORIA_CRON_KEY' }] }, env);
+      }
       // MONITOR.IA PILOTO (21/11/2026): seg-sex 09h-20h BRT, UMA filial por chamada (65 supervisores numa chamada estourava a CPU, erro 1102).
       // O site decide a janela pela hora local da filial e se ENVIA (liberacao propria monitoria_liberada_ate) ou so GRAVA (sombra).
       if (dia >= 1 && dia <= 5 && !FERIADOS_NACIONAIS.has(dataSp) && h >= 9 && h <= 20 && env.MONITORIA_CRON_KEY) {
