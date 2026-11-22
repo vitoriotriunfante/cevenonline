@@ -18,7 +18,8 @@ const minDesde = (iso) => { if (!iso) return Infinity; const s = String(iso); co
 
 export async function onRequest({ request, env }) {
   const u = new URL(request.url), k = request.headers.get('x-chave') || u.searchParams.get('chave') || '';
-  if (!(await chaveAdminOk(env, request)) && !(env.MONITORIA_CRON_KEY && k === env.MONITORIA_CRON_KEY) && !(await chaveEvoValida(request, env))) return J({ erro: 'nao autorizado' }, 401);
+  const soSaude = u.searchParams.get('saude') === '1';   // 22/11/2026: painel de saude (public/saude.html) — so horas de leitura, sem dado de venda, sem chave
+  if (!soSaude && !(await chaveAdminOk(env, request)) && !(env.MONITORIA_CRON_KEY && k === env.MONITORIA_CRON_KEY) && !(await chaveEvoValida(request, env))) return J({ erro: 'nao autorizado' }, 401);
   const db = env.DB, rel = R.relogioSP(), dia = rel.dia, h = rel.h, util = !ehFeriado(dia) && new Date(dia + 'T12:00:00Z').getUTCDay() >= 1 && new Date(dia + 'T12:00:00Z').getUTCDay() <= 5;
   const um = async (sql, ...b) => { try { const r = await db.prepare(sql).bind(...b).first(); return r ? Object.values(r)[0] : null; } catch (e) { return null; } };
   const F = [];
@@ -28,7 +29,7 @@ export async function onRequest({ request, env }) {
   F.push({ id: 'liga', nome: 'Lances da Liga', ult: await um("SELECT MAX(visto_em) FROM tv_lances WHERE dia = ? AND nivel <> 'marker'", dia), lim: 90, vale: util && h >= 10 && h <= 19 });
   F.push({ id: 'vigia', nome: 'Agendador (worker-cron)', ult: await um("SELECT valor FROM config_flags WHERE chave = 'vigia_ultima'"), lim: 40, vale: h >= 8 && h <= 20 });
   const quadro = F.map((f) => ({ fonte: f.nome, ultima: f.ult, minutos: Number.isFinite(minDesde(f.ult)) ? Math.round(minDesde(f.ult)) : null, limite: f.lim, vale_agora: f.vale, parada: f.vale && minDesde(f.ult) > f.lim }));
-  if (u.searchParams.get('teste') === '1') return J({ dia, hora: rel.hm, quadro });
+  if (u.searchParams.get('teste') === '1' || soSaude) return J({ dia, hora: rel.hm, quadro });
   const avisos = [];
   for (const f of F) {
     const parada = f.vale && minDesde(f.ult) > f.lim && !(f.id === 'vigia' && !f.ult), chave = `vigia_${f.id}_${dia}`;
