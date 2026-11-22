@@ -444,3 +444,51 @@ export async function coletaGpsGerentes(env, dia, prazoMs = 200000) {
   return res;
 }
 
+
+// DEVOLUCOES PELO CEVEN ADMIN (22/11/2026, Vitorio: "nao e possivel nao termos uma fonte sequer"): o admin entra como o vendedor (view-as) e le a lista de
+// devolucoes (nota, data, cliente, R$) e o MOTIVO de cada nota nova. Prioridade: vendedores com devolucao nova no GEROT (gerot_pedido) nas ultimas 30 h;
+// depois rodizio de todos do mes (o mais antigo checado primeiro). Grava ceven_devolucao_nota (INSERT OR IGNORE) e devolucao_nota_motivo (motivo oficial).
+// Nunca assume: nota sem detalhe fica sem motivo e nao vira lance.
+export async function coletaDevolucoesAdmin(env, dia, maxVend = 40, prazoMs = 150000) {
+  const tk = await tokenAdmin(env); if (!tk) return { erro: 'login admin falhou' };
+  const H = { Authorization: 'Bearer ' + tk, 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': CEVEN_APP_SECRET };
+  const HR = { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json', 'X-App-Secret': CEVEN_APP_SECRET };   // rota do vendedor: sem o token do admin (como o coletor antigo)
+  const db = env.DB, fim = Date.now() + prazoMs, res = { vendedores: 0, notas_mes: 0, notas_novas: 0, motivos: 0, falhas: {} };
+  const falha = (m) => { res.falhas[m] = (res.falhas[m] || 0) + 1; };
+  await db.prepare('CREATE TABLE IF NOT EXISTS ceven_devolucao_nota (filial TEXT NOT NULL, rca TEXT NOT NULL, nota TEXT NOT NULL, data TEXT, valor REAL, cliente_id TEXT, cliente TEXT, visto_em TEXT, PRIMARY KEY (filial, rca, nota))').run();
+  await db.prepare('CREATE TABLE IF NOT EXISTS ceven_devolucao_checado (filial TEXT NOT NULL, rca TEXT NOT NULL, em TEXT, PRIMARY KEY (filial, rca))').run();
+  await db.prepare('CREATE TABLE IF NOT EXISTS devolucao_nota_motivo (rca TEXT NOT NULL, nota TEXT NOT NULL, nao_pediu INTEGER, motivos TEXT, resolvido_em TEXT, PRIMARY KEY (rca, nota))').run();
+  const mes = dia.slice(0, 7);
+  const pri = ((await db.prepare("SELECT DISTINCT filial, rca FROM gerot_pedido WHERE mes = ? AND rca IS NOT NULL AND em >= datetime('now', '-30 hours') AND json_extract(dados, '$.\"Devolução (R$)\"') > 0").bind(mes).all()).results || []);
+  const rod = ((await db.prepare("SELECT v.filial, v.rca FROM (SELECT DISTINCT filial, rca FROM gerot_vendedor_mes WHERE mes = ?) v LEFT JOIN ceven_devolucao_checado c ON c.filial = v.filial AND c.rca = v.rca ORDER BY COALESCE(c.em, '') LIMIT ?").bind(mes, maxVend).all()).results || []);
+  const fila = [], vistos = new Set(); for (const x of [...pri, ...rod]) { const k = x.filial + '|' + x.rca; if (!vistos.has(k) && fila.length < maxVend) { vistos.add(k); fila.push(x); } }
+  let k = 0;
+  await Promise.all(Array.from({ length: 3 }, async () => {
+    while (k < fila.length && Date.now() < fim) {
+      const { filial, rca } = fila[k++], fk = String(filial).toLowerCase() + '1';
+      try {
+        const r = await fetch(`${CEVEN}/api/rca/devolucoes?filial=${fk}&id=${rca}`, { headers: HR, signal: AbortSignal.timeout(15000) });
+        if (!r.ok) { falha('lista' + r.status); continue; }
+        const L = await r.json(); const lista = Array.isArray(L) ? L : (L && (L.devolucoes || L.items || L.data)) || [];
+        res.vendedores++;
+        const doMes = lista.filter((n) => n && n.numnota && String(n.data || '').slice(0, 7) === mes && Number(n.vl_devolvido) > 0);
+        res.notas_mes += doMes.length;
+        if (doMes.length) { const w = await db.batch(doMes.map((n) => db.prepare("INSERT OR IGNORE INTO ceven_devolucao_nota (filial, rca, nota, data, valor, cliente_id, cliente, visto_em) VALUES (?,?,?,?,?,?,?,datetime('now'))").bind(filial, String(rca), String(n.numnota), String(n.data).slice(0, 10), Number(n.vl_devolvido) || 0, n.codcli != null ? String(n.codcli) : null, n.nomecli ? String(n.nomecli).slice(0, 80) : null))); for (const x of w) res.notas_novas += (x.meta && x.meta.changes) || 0; }
+        const ja = new Set(((await db.prepare('SELECT nota FROM devolucao_nota_motivo WHERE rca = ?').bind(String(rca)).all()).results || []).map((x) => String(x.nota)));
+        for (const n of doMes.filter((n) => !ja.has(String(n.numnota)))) {
+          if (Date.now() > fim) break;
+          const d = await fetch(`${CEVEN}/api/rca/devolucoes/${encodeURIComponent(n.numnota)}?filial=${fk}&id=${rca}`, { headers: HR, signal: AbortSignal.timeout(15000) }).catch(() => null);
+          if (!d || !d.ok) { falha('motivo' + (d ? d.status : 'x')); continue; }
+          const det = await d.json().catch(() => null); const arr = Array.isArray(det) ? det : (det && (det.itens || det.items || det.data)) || [];
+          const motivos = [...new Set(arr.map((x) => String(x.motivo || '').trim().toUpperCase()).filter(Boolean))]; if (!motivos.length) { falha('sem_motivo'); continue; }
+          const np = motivos.some((m) => /N[AÃ]O PEDIU/.test(m)) ? 1 : 0;
+          await db.prepare("INSERT OR REPLACE INTO devolucao_nota_motivo (rca, nota, nao_pediu, motivos, resolvido_em) VALUES (?, ?, ?, ?, datetime('now'))").bind(String(rca), String(n.numnota), np, motivos.join(' / ').slice(0, 200)).run();
+          res.motivos++;
+        }
+        await db.prepare("INSERT INTO ceven_devolucao_checado (filial, rca, em) VALUES (?, ?, datetime('now')) ON CONFLICT (filial, rca) DO UPDATE SET em = excluded.em").bind(filial, String(rca)).run();
+      } catch (e) { falha(String((e && e.name) || 'erro')); }
+    }
+  }));
+  res.prioridade = pri.length;
+  return res;
+}

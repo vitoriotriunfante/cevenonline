@@ -22,7 +22,8 @@ import { diaSemLance, ehFeriado } from '../_lib/feriados.js';
 import { fechaDia } from '../_lib/liga_fechamento.js';
 
 // GPS (copia da regra de functions/api/cron-lances.js): distancia em metros e pontos da empresa (GPS nao captado = nunca impedimento)
-const PONTOS_EMPRESA = [[-23.2493, -45.9245], [-22.8952, -47.0475]];
+const DEV_COMERCIAL = /SEM DINHEIRO|COND.{1,3}PAGTO|EMITIU COD|PEDIDO DUPLICADO|RECUSOU MERC|PRECO DIFERENTE/;   // igual ao cron-lances.js
+const PONTOS_EMPRESA =[[-23.2493, -45.9245], [-22.8952, -47.0475]];
 function distM(lat1, lon1, lat2, lon2) {
   if ([lat1, lon1, lat2, lon2].some((v) => v == null || isNaN(v) || Number(v) === 0)) return null;
   const R0 = 6371000, rad = (x) => (x * Math.PI) / 180, dLat = rad(lat2 - lat1), dLon = rad(lon2 - lon1);
@@ -105,6 +106,8 @@ export async function calculaLances(env, origin, dia, conferir = false) {
   const campeaoJa = new Set(); try { const { results } = await db.prepare("SELECT filial, rca FROM tv_lances WHERE chave LIKE 'gol_campeao|%' AND dia >= ? AND dia < ?").bind(dia.slice(0, 8) + '01', dia).all(); for (const r of results || []) campeaoJa.add(`${r.filial}|${r.rca}`); } catch (e) { /* segue */ }
   const hatJa = new Set(); if (!conferir) try { const { results } = await db.prepare("SELECT filial, rca FROM tv_lances WHERE dia = ? AND chave LIKE 'gol_hattrick|%'").bind(dia).all(); for (const r of results || []) hatJa.add(`${r.filial}|${r.rca}`); } catch (e) { /* segue */ }
 
+  // DEVOLUCOES do dia com motivo oficial (CEVEN admin -> ceven_devolucao_nota + devolucao_nota_motivo)
+  const devs = new Map(); try { const { results } = await db.prepare('SELECT d.filial, d.rca, d.nota, d.data, d.valor, d.cliente_id, d.cliente, m.nao_pediu, m.motivos FROM ceven_devolucao_nota d JOIN devolucao_nota_motivo m ON m.rca = d.rca AND m.nota = d.nota WHERE d.data = ? AND d.valor > 0').bind(dia).all(); for (const r of results || []) { const kk = r.filial + '|' + r.rca; if (!devs.has(kk)) devs.set(kk, []); devs.get(kk).push(r); } } catch (e) { /* tabela ainda nao existe */ }
   // GPS das visitas (CEVEN do gerente, functions/_lib/gps_gerente.js)
   const gps = new Map(); try { const { results } = await db.prepare('SELECT filial, rca, cliente, cli_lat, cli_lon, co_lat, co_lon, checkin, checkout FROM ceven_gps_visita WHERE dia = ?').bind(dia).all(); for (const r of results || []) { const kk = r.filial + '|' + r.rca; if (!gps.has(kk)) gps.set(kk, []); gps.get(kk).push(r); } } catch (e) { /* tabela ainda nao existe */ }
   const L = [];
@@ -162,6 +165,13 @@ export async function calculaLances(env, origin, dia, conferir = false) {
     }
     const mf = metaFat.get(k);
     if (mf && mf.meta > 0 && mf.fat >= mf.meta && !campeaoJa.has(k)) add({ chave: `gol_campeao|${e.rca}|${dia.slice(0, 7)}`, nivel: 'gol', obs: `faturado do mes ${brl(mf.fat)} >= meta ${brl(mf.meta)} | FONTE: GEROT`, hora_sp: '19:00:00' });
+    // DEVOLUCAO (22/11/2026): nota registrada NO DIA (data da nota no CEVEN, lida pelo admin como o vendedor) com o MOTIVO OFICIAL da nota.
+    //   'CLIENTE NAO PEDIU' = vermelho (ver_dev); motivo comercial = gol contra (golcontra_dev); outro motivo ou sem motivo lido = nada (mesma regra do cron-lances.js)
+    for (const n of devs.get(k) || []) {
+      const base = `nota ${n.nota} de ${n.data} | ${brl(n.valor)} | ${n.cliente || 'cliente sem nome'} | motivo oficial: ${n.motivos} | FONTE: CEVEN (admin)`;
+      if (n.nao_pediu === 1) add({ chave: `ver_dev|${e.rca}|${n.nota}`, nivel: 'vermelho', cliente_id: n.cliente_id, cliente: n.cliente, motivo: n.motivos, obs: base, hora_sp: '18:00:00' });
+      else if (DEV_COMERCIAL.test(n.motivos || '')) add({ chave: `golcontra_dev|${e.rca}|${n.nota}`, nivel: 'golcontra', cliente_id: n.cliente_id, cliente: n.cliente, motivo: n.motivos, obs: base, hora_sp: '18:00:00' });
+    }
     if (!campo) continue;
     // penalti / impedimento: cliente com justificativa (nao vendeu)
     const J = jus.get(k) || new Map();
