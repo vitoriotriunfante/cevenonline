@@ -212,7 +212,7 @@ const TEMAS_SUPERVISOR = [
   [14, /FICHA\b|DADOS DO CLIENTE|VER CLIENTE|CONSULTAR CLIENTE/],
   [7, /FECHAMENTO( D[OE] (DIA|HOJE))?\W*$|FECHAMENTO D[OE] (DIA|HOJE)|COMO FOI O DIA/],
   [6, /RECORR/],
-  [5, /SEM VENDA|SEM COMPRA|CURVA|NAO COMPR|NAO POSITIV|INATIV|FALTA POSITIVAR/],
+  [5, /SEM VENDA|SEM COMPRA|CURVA|NAO COMPR|NAO POSITIV|INATIV|FALTA(M)? POSITIV|LISTA DE CLIENTES|QUAIS CLIENTES/],   // 22/11/2026: 'Lista de clientes' do supervisor ficava sem resposta
   [3, /LIGA|CHAMPION|PONTO|COLOCAC|LUGAR|RANKING|GOL|LANCE/],
   [4, /PEDIDO|BLOQUEAD|FATURAR|CANCELAD|PENDENTE/],
   [11, /DEVOLU/],
@@ -230,6 +230,8 @@ export function respMenuSupervisor(c) {
   const n = titulo(String(c.nome || '').split(' ')[0]);
   return [`📋 *MENU DO JOTA* — ${n} (supervisor)`, '', ...MENU_SUPERVISOR.map(([rot], i) => `*${i + 1}.* ${rot}`), '', '👉 *Digite o número* (ex.: 1) ou escreva do seu jeito.'].join('\n');
 }
+// 22/11/2026 (bateria real: 'meta financeira, quanto falta de positivacao, mix e recorrencia?' respondia so o mix): todos os temas citados, na ordem do menu
+export function temasDoTexto(t) { return [...new Set(TEMAS_VENDEDOR.filter(([, re]) => re.test(t)).map((x) => x[0]))].sort((a, b) => a - b); }
 export function temaDoTexto(t) { const x = TEMAS_VENDEDOR.find(([, re]) => re.test(t)); return x ? x[0] : null; }
 export function respMenuVendedor(c) {
   const n = titulo(String(c.nome || '').split(' ')[0]);

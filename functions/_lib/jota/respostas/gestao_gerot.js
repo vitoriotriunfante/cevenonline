@@ -105,18 +105,21 @@ export async function respCarteiraStatus(B, filiais, rcas, nome, soBloq, porFil,
 // Supervisor: vendedores e motivos. Vendedor: os pedidos dele. Supervisor/gerente/vendedor: os pedidos mais antigos travados.
 // Status do cliente (GEROT): cliente bloqueado/definitivo/excluido com pedido = dificilmente libera (tratar com o financeiro);
 //   cliente SEM compra no mes com pedido travado = positivacao que entra se liberar.
-export async function respCarteiraNivel(B, esc, { papel = 'diretoria', modo = 'bloq', tipo = null, abrir = false } = {}) {
+export async function respCarteiraNivel(B, esc, { papel = 'diretoria', modo = 'bloq', tipo = null, abrir = false, forn = null } = {}) {
   const db = B.env && B.env.DB; if (!db) return null;
   const F = esc.filiais && esc.filiais.length ? esc.filiais : FILIAIS, rc = esc.rcas && esc.rcas.length ? esc.rcas.map(String) : null;
   let R = [], NM = [];
   try {
-    R = (await db.prepare(`SELECT filial, pedido, rca, vendedor, entrada, situacao, COALESCE(NULLIF(motivo, ''), '') motivo, cliente, cnpj, status_cliente sc, positivado pos, valor FROM gerot_carteira WHERE filial IN (${qs(F)})${rc ? ` AND rca IN (${qs(rc)})` : ''}`).bind(...F, ...(rc || [])).all()).results || [];
+    R = (await db.prepare(`SELECT filial, pedido, rca, vendedor, entrada, situacao, COALESCE(NULLIF(motivo, ''), '') motivo, cliente, cnpj, status_cliente sc, positivado pos, valor, fornecedores FROM gerot_carteira WHERE filial IN (${qs(F)})${rc ? ` AND rca IN (${qs(rc)})` : ''}`).bind(...F, ...(rc || [])).all()).results || [];
+    // 22/11/2026: so os pedidos que tem a industria pedida (o valor mostrado e o do pedido inteiro)
+    if (forn && forn.length) { const nn = (x) => String(x || '').toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/^[A-Z]\s*-\s*/, '').replace(/\b(LTDA|S\.?A\.?|SA|ME)\b\.?/g, '').replace(/\s+/g, ' ').trim(); const alvo = forn.map(nn).filter(Boolean); R = R.filter((r) => { let fs = []; try { fs = JSON.parse(r.fornecedores || '[]'); } catch (e) { fs = []; } return fs.some((f) => alvo.some((a) => nn(f).includes(a) || a.includes(nn(f)))); }); }
     NM = (await db.prepare(`SELECT filial, rca, MAX(supervisor) sup FROM gerot_vendedor_mes WHERE mes = ? AND filial IN (${qs(F)}) GROUP BY filial, rca`).bind(mesAtual(), ...F).all()).results || [];
   } catch (e) { return null; }
   const supDe = new Map(NM.map((x) => [x.filial + '|' + x.rca, nomeCurto(String(x.sup || '').replace(/^\s*\d+\s*-\s*/, '')) || 'Sem supervisor']));
   const ehBloq = (s) => /BLOQ/i.test(s), tipoOk = (s) => !tipo || new RegExp(tipo, 'i').test(s);
   const A = R.filter((r) => (modo === 'total' || ehBloq(r.situacao)) && tipoOk(r.situacao));
-  const tag = modo === 'bloq' ? `🚫 *Pedidos bloqueados${tipo ? (/COMERC/.test(tipo) ? ' (comercial)' : ' (financeiro)') : ''} — ${esc.nome}*` : `💼 *Carteira total — ${esc.nome}*`;
+  const indN = forn && forn.length ? ' · ' + titulo(String(forn[0]).replace(/\b(LTDA|S\.?A\.?|SA)\b\.?/gi, '').toLowerCase()).trim() : '';
+  const tag = modo === 'bloq' ? `🚫 *Pedidos bloqueados${indN}${tipo ? (/COMERC/.test(tipo) ? ' (comercial)' : ' (financeiro)') : ''} — ${esc.nome}*` : `💼 *Carteira${indN ? ' em aberto' + indN : ' total'} — ${esc.nome}*`;
   if (!A.length) return `${tag}: nenhum pedido ${modo === 'bloq' ? 'bloqueado ' : ''}na Carteira Total do GEROT agora. ✅`;
   const soma = (L) => ({ n: L.length, v: L.reduce((a, r) => a + (Number(r.valor) || 0), 0) });
   const fmt = (x) => `*${R$(x.v)}* · ${N(x.n)} ped.`;

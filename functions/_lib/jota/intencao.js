@@ -87,7 +87,7 @@ export async function rotearIntencao(B, c, t, info) {
   }
   // A5 · MIX DE PRODUTO = KPI do GEROT "SKU / Cliente (mix)" (bateria real 21/11: "mix do vendedor Jaime", "meta mix", "mix atual e do mes anterior",
   //   "como esta minha rota e mix?" caiam na rota ou no fechamento). O +MIX (o que oferecer) continua no caminho dele.
-  if (/\bMIX\b/.test(t) && !/\+ ?MIX|MAIS ?MIX|OFERECER|OFERTA|SUGEST|QUEM COMPRA|LIGA|CHAMPIONS|DOBROU|INCENTIVO|PREMIA/.test(t) && !/\b\d{7,}\b/.test(t) && B.env && B.env.DB) {
+  if (/\bMIX\b/.test(t) && !(papel === 'vendedor' && /RECORR|META FINANC|POSITIVA/.test(t)) && !/\+ ?MIX|MAIS ?MIX|OFERECER|OFERTA|SUGEST|QUEM COMPRA|LIGA|CHAMPIONS|DOBROU|INCENTIVO|PREMIA/.test(t) && !/\b\d{7,}\b/.test(t) && B.env && B.env.DB) {
     try {
       const { respMixGerot } = await import('./respostas/gestao_gerot.js');
       const mR = t.match(/\b(?:VENDEDORA?|RCA|SETOR|COD(?:IGO)?)\s*(\d{1,5})\b/);
@@ -97,6 +97,12 @@ export async function rotearIntencao(B, c, t, info) {
       else if (acima) {
         const p = await achaPessoaTolerante(B, t.replace(/\b(MIX|META|DE|DO|DA|ATUAL|MES|ANTERIOR|PASSADO|PRODUTO|VENDEDORA?|COMO|ESTA|QUAL|O|A|E|EQUIPE|FILIAL|SUPERVISOR)\b/g, ' ').replace(/\s+/g, ' ').trim(), filCit).catch(() => null);
         if (p && !p.varios && p.tipo === 'vend') e = { filiais: [p.alvo.filial], rca: String(p.alvo.rca), nome: `${p.alvo.rca} - ${nome2(p.alvo.nome || '')}` };
+        else if ((papel === 'diretoria' || papel === 'ceo' || papel === 'gerente') && /\bSUPERVISORA?\s*(\d{1,4})\b/.test(t)) {   /* 22/11/2026: 'curva negativa bonobon supervisor 16' respondia o Brasil */
+          const sc = t.match(/\bSUPERVISORA?\s*(\d{1,4})\b/)[1], Fx = papel === 'gerente' ? [c.filial] : filCit ? [filCit] : FILIAIS;
+          const { results: SV } = await B.env.DB.prepare(`SELECT DISTINCT filial, rca, supervisor FROM gerot_vendedor_mes WHERE mes = ? AND cod_sup = ? AND filial IN (${Fx.map(() => '?').join(',')})`).bind(hojeSP().slice(0, 7), sc, ...Fx).all();
+          const Fs = [...new Set((SV || []).map((x) => x.filial))];
+          e = (SV || []).length ? { filiais: Fs, rcas: SV.map((x) => String(x.rca)), nome: `Equipe ${sc} - ${nome2(String(SV[0].supervisor || '').replace(/^\s*\d+\s*-\s*/, ''))}${Fs.length === 1 ? ' (' + Fs[0] + ')' : ''}` } : { filiais: Fx, nome: 'Brasil', nacional: true };
+        }
         else if (papel === 'diretoria' || papel === 'ceo') e = { filiais: filCit ? [filCit] : FILIAIS, nome: filCit || 'Brasil', nacional: !filCit };
         else { const Ev = await carregaEscopo(B, esc), V = (Ev && Ev.vend) || []; e = papel === 'gerente' && !c.grupo ? { filiais: [c.filial], nome: c.filial } : { filiais: [c.filial], nome: (Ev && Ev.nome) || 'Equipe', rcas: V.map((v) => String(v.rca)) }; }
       }
@@ -107,6 +113,24 @@ export async function rotearIntencao(B, c, t, info) {
       else if (/MES (PASSADO|ANTERIOR)|ULTIMO MES/.test(t) && !/ATUAL/.test(t)) { const d = new Date(hj.slice(0, 7) + '-15T12:00:00Z'); d.setUTCMonth(d.getUTCMonth() - 1); mesQ = d.toISOString().slice(0, 7); }
       if (e) { const r = await respMixGerot(B, e, mesQ, /\bMETA\b/.test(t)); if (r) return /\bROTA\b/.test(t) ? r + '\n_Para a rota de hoje, peça *minha rota*._' : r; }
     } catch (err) { /* segue o roteamento normal */ }
+  }
+  // A2 · RECORRENCIA DE MES QUE JA FECHOU (22/11/2026, Vanessa/TCV 'recorrencias resgatadas em outubro' recebia a de HOJE): o GEROT so tem a lista do mes atual gravada
+  { const mR0 = t.match(/\b(JANEIRO|FEVEREIRO|MARCO|ABRIL|MAIO|JUNHO|JULHO|AGOSTO|SETEMBRO|OUTUBRO)\b/);
+    if (/RECORR/.test(t) && mR0) return `🔄 A *recorrência de ${titulo(mR0[1].toLowerCase())}* não está gravada: o GEROT guarda a lista da recorrência só do mês atual (novembro, desde a carga de 10/11).\n\nDe novembro eu tenho: peça *recorrência* (quem falta comprar e a meta de 80%).`; }
+  // A3b · CLIENTES/PEDIDOS TRAVADOS DE UMA INDUSTRIA (22/11/2026, Maicon/TPH 'clientes travados por pendencia industria Leao' recebia o painel das industrias)
+  if ((acima || (papel === 'vendedor' && rcaV)) && /TRAVAD|PENDENCIA|BLOQUEAD|CARTEIRA|PENDENTES?/.test(t) && /INDUSTRIA|FORNECEDOR|MARCA|\bDA [A-Z]{4,}\b|\bDE [A-Z]{4,}\b/.test(t) && !/\b\d{7,}\b/.test(t)) {
+    try {
+      const ind = await industriasCitadas(B, t);
+      if (ind.length) {
+        const pp = papel === 'ceo' ? 'diretoria' : papel; let e;
+        if (pp === 'diretoria') e = { filiais: filCit ? [filCit] : FILIAIS, nome: filCit || 'Brasil', nacional: !filCit };
+        else if (pp === 'vendedor') e = { filiais: [c.filial], nome: `${rcaV} - ${nome2(c.nome || '')}`, rcas: [String(rcaV)] };
+        else { const Ev = await carregaEscopo(B, esc), V = (Ev && Ev.vend) || []; e = pp === 'gerente' ? { filiais: [c.filial], nome: (Ev && Ev.nome) || c.filial, rcas: c.grupo ? V.map((v) => String(v.rca)) : null } : { filiais: [c.filial], nome: (Ev && Ev.nome) || 'Equipe', rcas: V.map((v) => String(v.rca)) }; }
+        const forn = ind.map((f) => String(f).replace(/^[A-Z]\s*-\s*/, '').replace(/#\d+/, '').trim());
+        const r = await (await import('./respostas/gestao_gerot.js')).respCarteiraNivel(B, e, { papel: pp, modo: /BLOQUEAD/.test(t) ? 'bloq' : 'total', abrir: pp === 'diretoria' && !!filCit, forn });
+        if (r) return r;
+      }
+    } catch (err) { /* segue */ }
   }
   // A3 · CARTEIRA E BLOQUEADOS POR NIVEL (Vitorio, 22/11/2026: 'carteira total' caia na industria 'Total Quimica' e 'carteira API' no resumo antigo)
   if ((acima || (papel === 'vendedor' && rcaV)) && (/\bCARTEIRA\b/.test(t) || /\bBLOQUEAD|BLOQUEIO (FINANCEIRO|COMERCIAL)/.test(t) || (papel === 'vendedor' && /STATUS DOS PEDIDOS|MEUS PEDIDOS|PEDIDOS? (PENDENTES?|A FATURAR|LIBERADOS?|MONTADOS?)/.test(t))) && !/CARTEIRA DE CLIENTES?|QUANTOS CLIENTES|CLIENTES? (DA|NA) CARTEIRA|CLIENTES? BLOQUEAD|\b\d{7,}\b|POSITIVA|VISITAD|SEM COMPRA/.test(t)) {
@@ -132,6 +156,12 @@ export async function rotearIntencao(B, c, t, info) {
         let e;
         if (papel === 'vendedor' && c.rca) e = { filiais: [c.filial], rca: String(c.rca), nome: `${c.rca} - ${nome2(c.nome || '')}` };
         else if (mR) e = { filiais: filCit ? [filCit] : (papel === 'diretoria' || papel === 'ceo') ? FILIAIS : [c.filial], rca: mR[1], nome: `setor ${mR[1]}` };
+        else if ((papel === 'diretoria' || papel === 'ceo' || papel === 'gerente') && /\bSUPERVISORA?\s*(\d{1,4})\b/.test(t)) {   /* 22/11/2026: 'curva negativa bonobon supervisor 16' respondia o Brasil */
+          const sc = t.match(/\bSUPERVISORA?\s*(\d{1,4})\b/)[1], Fx = papel === 'gerente' ? [c.filial] : filCit ? [filCit] : FILIAIS;
+          const { results: SV } = await B.env.DB.prepare(`SELECT DISTINCT filial, rca, supervisor FROM gerot_vendedor_mes WHERE mes = ? AND cod_sup = ? AND filial IN (${Fx.map(() => '?').join(',')})`).bind(hojeSP().slice(0, 7), sc, ...Fx).all();
+          const Fs = [...new Set((SV || []).map((x) => x.filial))];
+          e = (SV || []).length ? { filiais: Fs, rcas: SV.map((x) => String(x.rca)), nome: `Equipe ${sc} - ${nome2(String(SV[0].supervisor || '').replace(/^\s*\d+\s*-\s*/, ''))}${Fs.length === 1 ? ' (' + Fs[0] + ')' : ''}` } : { filiais: Fx, nome: 'Brasil', nacional: true };
+        }
         else if (papel === 'diretoria' || papel === 'ceo') e = { filiais: filCit ? [filCit] : FILIAIS, nome: filCit || 'Brasil', nacional: !filCit };
         else { const Ev = await carregaEscopo(B, esc), V = (Ev && Ev.vend) || []; e = papel === 'gerente' && !c.grupo ? { filiais: [c.filial], nome: c.filial } : { filiais: [c.filial], nome: (Ev && Ev.nome) || 'Equipe', rcas: V.map((v) => String(v.rca)) }; }
         const r = await respCurvaIndustria(B, e, ind); if (r) return r;
@@ -424,7 +454,7 @@ async function industriasCitadas(B, t) {
   const STOP = /^(LTDA|LTD|S\/?A|SA|DO|DA|DE|DOS|BRASIL|INDUSTRIA|IND|COMERCIO|COM|DIST|DISTRIBUIDORA|ALIMENTOS|ALIM|PRODUTOS|E|EIRELI|ME|GRUPO)$/;
   const toks = t.split(/\s+/).filter((w) => w.length >= 4 && !PALAVRAS_COMANDO.test(w) && !FIL_RX.test(w) && !/^(CURVA|NEGATIVA|CLIENTES?|COMPRARAM|COMPROU|POSITIVAR|POSITIVADOS?|FALTA|FALTAM|SETOR|VENDEDORA?|EQUIPE|INDUSTRIAS?|MARCA|QUAIS|QUEM|AINDA|PRECISO|TRAVADO|TRAVADOS|PENDENCIA|ESTAO|DESSE|DESTE|MINHA|MINHAS|MEUS?|PASSADO|ANTERIOR|MESES|TRIUNFANTE|GRUPO|SUPERVISOR|GERENTE|FILIAL|BRASIL|LISTA|HOJE|ROTA)$/.test(w));
   let cods = new Set();
-  try { const { MARCAS } = await import('./marcas.js'); const tt = ' ' + t.replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ') + ' ';
+  try { const { MARCAS } = await import('./marcas.js'); const tt = (' ' + t.replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ') + ' ').replace(/ QUERO (?=(OS|AS|O|A|UM|UMA|SABER|VER|MEUS?|MINHAS?|LISTA|QUE|SAB|TODOS?|TODAS?|OS CLIENTES)\b)/g, ' ').replace(/^ QUERO /, ' ');   /* 22/11/2026: 'Quero os clientes...' virava a marca Quero (Food Brands) */
     cods = new Set(MARCAS.filter(([m]) => m.length >= 3 && tt.includes(' ' + m.replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ') + ' ')).map(([, cod]) => String(cod))); } catch (e) { /* sem marcas */ }
   if (cods.size) return F.map((x) => x.fornecedor).filter((f) => [...cods].some((cod) => String(f).includes('#' + cod)));
   if (!toks.length) return [];
@@ -441,7 +471,7 @@ async function respUmaIndustria(B, c, t, filCit, esc) {
   const toks = t.split(/\s+/).filter((w) => w.length >= 5 && !PALAVRAS_COMANDO.test(w) && !FIL_RX.test(w) && !/^(TRIUNFANTE|TRIUNFANTES|GRUPO|ESTAMOS|RESULTADO|VENDEMOS|QUANTO|META|METAS|BRASIL|BRASILEIRO|AGORA|HOJE|ONTEM|VENDA|VENDAS|VENDIDO|GERAL|TODAS|TODOS|FILIAIS|FILIAL|SEMANA|POSITIVACAO|CLIENTES|CLIENTE|TENDENCIA|FATURAMENTO|FATURADO|CARTEIRA|PEDIDOS|PEDIDO|RITMO|NUMEROS|COMPARADA|COMPARADO|ANTERIOR|ANTERIORES|PASSADO|MESES|ATUAL|EQUIPE|SUPERVISOR|VENDEDOR|VENDEDORES|GERENTE|DIRETORIA|INDUSTRIAS|INDUSTRIA)$/.test(w));
   // 21/11/2026 (planilha "Industrias - Marcas Comerciais" do Vitorio): MARCA citada (Baly, Ype, Scotch-Brite, Leao...) -> industria pelo codigo do fornecedor
   let porMarca = [];
-  try { const { MARCAS } = await import('./marcas.js'); const tt = ' ' + t.replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ') + ' ';
+  try { const { MARCAS } = await import('./marcas.js'); const tt = (' ' + t.replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ') + ' ').replace(/ QUERO (?=(OS|AS|O|A|UM|UMA|SABER|VER|MEUS?|MINHAS?|LISTA|QUE|SAB|TODOS?|TODAS?|OS CLIENTES)\b)/g, ' ').replace(/^ QUERO /, ' ');   /* 22/11/2026: 'Quero os clientes...' virava a marca Quero (Food Brands) */
     const cods = new Set(MARCAS.filter(([m]) => m.length >= 3 && tt.includes(' ' + m.replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ') + ' ')).map(([, cod]) => cod));
     if (cods.size) porMarca = F.map((x) => x.fornecedor).filter((f) => [...cods].some((cod) => String(f).includes('#' + cod))); } catch (e) { porMarca = []; }
   // 17/11/2026 ("Venda do Brasil agora" virou 'Fvo Brasilia'): palavra geral nunca vira nome de industria; parecido (1 letra) so com 6+ letras

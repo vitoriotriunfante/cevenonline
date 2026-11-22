@@ -528,6 +528,14 @@ export async function respostaInterna(B, c, texto, anteriores) {
         return abre(k, s);
       }
       if (!passa) {
+        // 22/11/2026 (bateria real): mensagem com 2 ou 3 assuntos do menu ('meta, positivacao, mix e recorrencia') = cada item do menu, em sequencia
+        { const { temasDoTexto } = await import('./respostas/liga_mix.js'); const ks = temasDoTexto(t).filter((x) => x !== 6 || /OFERECER|SUGEST|QUE VENDER/.test(t));
+          const querMix = /\bMIX\b/.test(t) && !/OFERECER|SUGEST|QUE VENDER/.test(t);
+          if (ks.length + (querMix ? 1 : 0) >= 2 && ks.length <= 3) {
+            const partes = []; for (const k2 of ks) { const r2 = await abre(k2, null); if (r2) partes.push(String(r2).replace(/\n*📌 \*Quer detalhar\?\*[\s\S]*$/, '').replace(/\n*\*0\* Voltar ao menu.*$/s, '')); }
+            if (querMix) { try { const { respMixGerot } = await import('./respostas/gestao_gerot.js'); const r3 = await respMixGerot(B, { filiais: [String(c.filial)], rca: String(rcaV), nome: `${rcaV} - ${nome2(c.nome || '')}` }, null, /\bMETA\b/.test(t)); if (r3) partes.push(r3); } catch (e) { /* sem mix */ } }
+            if (partes.length >= 2) return partes.join('\n\n━━━━━━━━━━\n\n') + '\n\n*0* Voltar ao menu';
+          } }
         const k = temaDoTexto(t);
         if (k) return abre(k, null);
         if (!t || /^\W*(MENU|OPCOES|OPCAO|AJUDA|HELP|OI|OLA|BOM DIA|BOA TARDE|BOA NOITE|E AI|FALA)\W*$/.test(t)) return respMenuVendedor(c);
