@@ -30,21 +30,24 @@ export async function onRequest({ request, env }) {
   F.push({ id: 'vigia', nome: 'Agendador (worker-cron)', ult: await um("SELECT valor FROM config_flags WHERE chave = 'vigia_ultima'"), lim: 40, vale: h >= 8 && h <= 20 });
   const quadro = F.map((f) => ({ fonte: f.nome, ultima: f.ult, minutos: Number.isFinite(minDesde(f.ult)) ? Math.round(minDesde(f.ult)) : null, limite: f.lim, vale_agora: f.vale, parada: f.vale && minDesde(f.ult) > f.lim }));
   if (u.searchParams.get('teste') === '1' || soSaude) return J({ dia, hora: rel.hm, quadro });
-  const avisos = [];
+  const avisos = [], marcar = [];
   for (const f of F) {
     const parada = f.vale && minDesde(f.ult) > f.lim && !(f.id === 'vigia' && !f.ult), chave = `vigia_${f.id}_${dia}`;
     const ja = await um('SELECT valor FROM config_flags WHERE chave = ?', chave);
     if (parada && ja !== 'parada') {
       const m = minDesde(f.ult);
       avisos.push(`⚠️ *${f.nome} parou*: última leitura ${Number.isFinite(m) ? `há ${Math.round(m)} min` : 'nenhuma hoje'} (limite ${f.lim} min). As respostas e telas que dependem dela ficam com o último dado.`);
-      await db.prepare('INSERT INTO config_flags (chave, valor) VALUES (?, ?) ON CONFLICT (chave) DO UPDATE SET valor = excluded.valor').bind(chave, 'parada').run();
+      marcar.push([chave, 'parada']);
     } else if (!parada && ja === 'parada') {
       avisos.push(`✅ *${f.nome} voltou* (última leitura há ${Math.round(minDesde(f.ult))} min).`);
-      await db.prepare('INSERT INTO config_flags (chave, valor) VALUES (?, ?) ON CONFLICT (chave) DO UPDATE SET valor = excluded.valor').bind(chave, 'ok').run();
+      marcar.push([chave, 'ok']);
     }
   }
   // ?externo=1 (reserva do GitHub) NAO marca a passagem do agendador: se o worker-cron parar, a reserva enxerga e avisa
   if (u.searchParams.get('externo') !== '1') await db.prepare("INSERT INTO config_flags (chave, valor) VALUES ('vigia_ultima', ?) ON CONFLICT (chave) DO UPDATE SET valor = excluded.valor").bind(new Date().toISOString()).run();
-  if (avisos.length) { try { const { enviar } = await import('../_lib/jota/base.js'); await enviar(env, VITORIO, `🛰️ *Vigia das fontes* · ${rel.hm}\n\n` + avisos.join('\n\n')); } catch (e) { /* aviso nao derruba */ } }
-  return J({ dia, hora: rel.hm, avisos: avisos.length, quadro });
+  // so marca 'avisei' se a mensagem SAIU (inventario 22/11: marcava antes e nunca repetia)
+  let envio = null;
+  if (avisos.length) { try { const { enviar } = await import('../_lib/jota/base.js'); envio = await enviar(env, VITORIO, `🛰️ *Vigia das fontes* · ${rel.hm}\n\n` + avisos.join('\n\n')); } catch (e) { envio = { ok: false, erro: String(e.message || e).slice(0, 80) }; } }
+  if (envio && envio.ok) for (const [ch, val] of marcar) await db.prepare('INSERT INTO config_flags (chave, valor) VALUES (?, ?) ON CONFLICT (chave) DO UPDATE SET valor = excluded.valor').bind(ch, val).run();
+  return J({ dia, hora: rel.hm, avisos: avisos.length, envio, quadro });
 }

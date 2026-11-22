@@ -72,6 +72,8 @@ export async function cotaEnvio(env, d, opts = {}) {
     // com a pausa valendo, so sai mensagem para quem escreveu nos ultimos 15 min (a resposta da pergunta dele); antes eram 24 h, o que deixava
     // passar aviso, campanha e boas-vindas para quem tinha escrito de manha. Sem pausa, volta a regra das 24 h.
     const pausa0 = await db.prepare("SELECT valor FROM config_flags WHERE chave = 'wa_pausa_proativa_ate'").first().catch(() => null);
+    // 22/11/2026 (Vitorio: 'nada proativo, exceto para o Vitorio'; inventario: o vigia/auditoria/curador nao chegavam nele): o numero do Vitorio passa pela pausa
+    if (vs.some((x) => /^55?41?987525605$|^554187525605$|^5541987525605$/.test(String(x)))) opts = { ...opts, manual: true };
     const emPausa = !!(pausa0 && pausa0.valor && new Date().toISOString() < String(pausa0.valor));
     const resp = await db.prepare(`SELECT 1 FROM bot_msgs WHERE celular IN (${ph}) AND direcao = 'in' AND quando > datetime('now', ?) LIMIT 1`).bind(...vs, emPausa ? '-15 minutes' : '-24 hours').first();
     if (resp) return { ok: true, resposta: true };
