@@ -15,7 +15,7 @@ async function ensureTable(db) {
 
 export async function onRequestGet({ request, env }) {
   if (!env || !env.DB) return j({ erro: 'D1 indisponivel' }, 500);
-  if (!chaveEvoValida(request, env)) return j({ erro: 'nao autorizado' }, 401);
+  if (!(await chaveEvoValida(request, env))) return j({ erro: 'nao autorizado' }, 401);   // 21/11/2026: sem await a Promise passava sempre
   await ensureTable(env.DB);
   const u = new URL(request.url);
   const data = u.searchParams.get('data') || '';
@@ -27,7 +27,7 @@ export async function onRequestGet({ request, env }) {
 
 export async function onRequestPost({ request, env }) {
   if (!env || !env.DB) return j({ erro: 'D1 indisponivel' }, 500);
-  if (!chaveEvoValida(request, env)) return j({ erro: 'nao autorizado' }, 401);
+  if (!(await chaveEvoValida(request, env))) return j({ erro: 'nao autorizado' }, 401);   // 21/11/2026: sem await a Promise passava sempre
   let body;
   try { body = await request.json(); } catch { return j({ erro: 'JSON invalido' }, 400); }
   const cards = Array.isArray(body.cards) ? body.cards : [];

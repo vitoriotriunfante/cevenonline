@@ -46,7 +46,7 @@ function buildHtml({ titulo, subtitulo, kpis, colunas, linhas }) {
     </div></div>
     <div class="kpis">${kpis.map((k) => `<div class="kpi"><div class="lbl">${escHtml(k.lbl)}</div><div class="val">${escHtml(k.val)}</div><div class="sub">${escHtml(k.sub)}</div></div>`).join('')}</div>
     <div class="panel">
-      <div class="panel-hdr"><span>🎯 Prioridade da Matinal (pior tendência primeiro)</span><span style="color:#94a3b8">${linhas.length} linha(s)</span></div>
+      <div class="panel-hdr"><span>🎯 Prioridade da Matinal (pior ritmo primeiro)</span><span style="color:#94a3b8">${linhas.length} linha(s)</span></div>
       <table><thead><tr>${colunas.map((c, i) => `<th${i > 0 ? ' class="num"' : ''}>${escHtml(c)}</th>`).join('')}</tr></thead>
       <tbody>${linhas.join('')}</tbody></table>
     </div>
@@ -68,10 +68,10 @@ function summarize(rows, dias, gerotPosicao, ontemData) {
   const DSEM = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
   const ontLbl = ontemData ? `Último dia útil (${DSEM[new Date(ontemData + 'T12:00:00Z').getUTCDay()]} ${ontemData.slice(8, 10)}/${ontemData.slice(5, 7)})` : 'Último dia útil';
   return {
-    subtitulo: `Base D1 (independente do CEVEN) · GEROT: ${gerotPosicao || 'Atual'}`,
+    subtitulo: `GEROT: ${gerotPosicao || 'Atual'} · dia: Clube da Venda`,
     kpis: [
       { lbl: 'Faturado + Carteira', val: R(totVend), sub: `de ${R(totMeta)} (${totMeta ? P((totVend / totMeta) * 100) : '0%'})` },
-      { lbl: 'Tendência Fechamento', val: P(tendPct), sub: `${R(totTend)} · ${dias.dec}/${dias.tot} du (${dias.falt} rest.)` },
+      { lbl: 'Ritmo (GEROT)', val: P(tendPct), sub: `captação ÷ meta ideal · ${dias.dec}/${dias.tot} du (${dias.falt} rest.)` },
       { lbl: 'Positivação', val: N(totPos), sub: `de ${N(totMetaPos)} (${totMetaPos ? P((totPos / totMetaPos) * 100) : '—'})` },
       { lbl: ontLbl, val: R(totOntVlr), sub: `${N(totOntQtd)} pedidos` + (totOntPos ? ` · ${N(totOntPos)} pos.` : '') }
     ]
@@ -108,9 +108,9 @@ function summarizeInd(rows, dias, gerotPosicao) {
     subtitulo: `Resumo de Indústrias (GEROT) · GEROT: ${gerotPosicao || 'Atual'}`,
     kpis: [
       { lbl: 'Faturado + Carteira', val: R(totVend), sub: totMeta ? `de ${R(totMeta)} (${P((totVend / totMeta) * 100)})` : 'Sem meta cadastrada' },
-      { lbl: 'Tendência Fechamento', val: totMeta ? P(tendPct) : '—', sub: `${R(totTend)} · ${dias.dec}/${dias.tot} du (${dias.falt} rest.)` },
+      { lbl: 'Ritmo (GEROT)', val: totMeta ? P(tendPct) : '—', sub: `captação ÷ meta ideal · ${dias.dec}/${dias.tot} du (${dias.falt} rest.)` },
       { lbl: 'Positivação (Ind.)', val: N(totPos), sub: `${comMeta.length} ind. c/ meta · ${rows.length} total` },
-      { lbl: 'Em Risco (<80% Tend.)', val: `${emRisco.length} de ${comMeta.length}`, sub: totMeta ? `falta ${R(faltaTot)}` : '—' }
+      { lbl: 'Em risco (ritmo < 80%)', val: `${emRisco.length} de ${comMeta.length}`, sub: totMeta ? `falta ${R(faltaTot)}` : '—' }
     ]
   };
 }
@@ -133,12 +133,17 @@ function rowIndHtml(x) {
 async function main() {
   const localD1 = process.argv.includes('--local-d1');
   if (!EVO_KEY && !localD1) throw new Error('EVO_KEY nao definido (ou use --local-d1)');
+  // 21/11/2026: uma vez por dia — se os cards de hoje ja existem (outra coleta da manha), nao gera de novo (GERAR_DE_NOVO=1 forca)
+  if (!localD1 && !process.env.GERAR_DE_NOVO) {
+    const hojeSp = new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10);
+    try { const ex = await (await fetch(`${BASE_URL}/api/matinal-cards?data=${hojeSp}`, { headers: { 'X-Evo-Key': EVO_KEY } })).json(); if (ex && ex.total >= 50) { console.log(`cards de ${hojeSp} ja existem (${ex.total}); nada a fazer`); return; } } catch (e) { /* segue e gera */ }
+  }
   console.log('Lendo /api/matinal ...');
   const res = await fetch(`${BASE_URL}/api/matinal`);
   const d = await res.json();
   if (!d.ok) throw new Error('Falha /api/matinal: ' + JSON.stringify(d));
 
-  const cols = ['Vendedor', 'Meta', 'Fat.+Cart.', '% Meta', 'Tendência', 'Precisa/Dia', 'Positiv.', 'Rota', 'Prosp.', 'Bloq.'];
+  const cols = ['Vendedor', 'Meta', 'Fat.+Cart.', '% Meta', 'Ritmo', 'Precisa/Dia', 'Positiv.', 'Rota', 'Prosp.', 'Bloq.'];
   const jobs = [];
 
   // 1. Por supervisor
@@ -200,7 +205,7 @@ async function main() {
 
   // 4. Cards de Resumo de Industrias (Supervisor, Filial, Brasil) nos mesmos moldes
   if (d.industrias) {
-    const colsInd = ['Indústria', 'Meta', 'Fat.+Cart.', '% Meta', 'Tendência', 'Precisa/Dia', 'Positiv.', 'Carteira'];
+    const colsInd = ['Indústria', 'Meta', 'Fat.+Cart.', '% Meta', 'Ritmo', 'Precisa/Dia', 'Positiv.', 'Carteira'];
     const porSup = d.industrias.porSup || {};
     for (const [, g] of bySup) {
       if (!g.cod_sup) continue;

@@ -51,10 +51,13 @@ function parseDados(raw) {
       capDia: Number(d['Captação Dia (R$)']) || 0,
       dev: Number(d['Devolução (R$)']) || 0,
       pos: Number(d['Positivação (filial + CNPJ)']) || 0,
-      metaPos: Number(d['Meta de positivação'] ?? d['Meta clientes']) || 0
+      metaPos: Number(d['Meta de positivação'] ?? d['Meta clientes']) || 0,
+      // 21/11/2026: ritmo e necessidade do proprio GEROT (a mesma conta do texto da Matinal; nada de projecao)
+      pi: d['% Meta Ideal captação'] == null ? null : Number(d['% Meta Ideal captação']),
+      nd: d['Necessidade dia captação (R$)'] == null ? null : Number(d['Necessidade dia captação (R$)'])
     };
   } catch {
-    return { meta: 0, fat: 0, pend: 0, capDia: 0, dev: 0, pos: 0, metaPos: 0 };
+    return { meta: 0, fat: 0, pend: 0, capDia: 0, dev: 0, pos: 0, metaPos: 0, pi: null, nd: null };
   }
 }
 
@@ -88,8 +91,9 @@ export async function onRequestGet({ request, env }) {
         : env.DB.prepare('SELECT filial, rca, roteiros n FROM clube_venda_dia WHERE dia = ?').bind(hoje)
       ).all().catch(() => ({ results: [] })),
       (fil
-        ? env.DB.prepare("SELECT filial, rca, status, COUNT(*) qtd, SUM(valor) vlr FROM pedido_status WHERE filial = ? AND data_pedido >= date('now', '-3 hours', '-7 days') AND status IN ('BLOQUEADO','LIBERADO') GROUP BY filial, rca, status").bind(fil)
-        : env.DB.prepare("SELECT filial, rca, status, COUNT(*) qtd, SUM(valor) vlr FROM pedido_status WHERE data_pedido >= date('now', '-3 hours', '-7 days') AND status IN ('BLOQUEADO','LIBERADO') GROUP BY filial, rca, status")
+        /* 21/11/2026: bloqueados = Carteira Total do GEROT (pedido_status parou em 13/11 com o CEVEN fora); R$ = total do pedido no Clube, igual a "pedidos bloqueados" */
+        ? env.DB.prepare("SELECT c.filial, c.rca, 'BLOQUEADO' status, COUNT(*) qtd, SUM(p.total) vlr FROM (SELECT DISTINCT filial, pedido, rca FROM gerot_carteira WHERE situacao LIKE 'Bloqueado%' AND filial = ?) c LEFT JOIN (SELECT filial, pedido_winthor, MAX(total) total FROM clube_pedido GROUP BY filial, pedido_winthor) p ON p.filial = c.filial AND p.pedido_winthor = c.pedido GROUP BY c.filial, c.rca").bind(fil)
+        : env.DB.prepare("SELECT c.filial, c.rca, 'BLOQUEADO' status, COUNT(*) qtd, SUM(p.total) vlr FROM (SELECT DISTINCT filial, pedido, rca FROM gerot_carteira WHERE situacao LIKE 'Bloqueado%') c LEFT JOIN (SELECT filial, pedido_winthor, MAX(total) total FROM clube_pedido GROUP BY filial, pedido_winthor) p ON p.filial = c.filial AND p.pedido_winthor = c.pedido GROUP BY c.filial, c.rca")
       ).all().catch(() => ({ results: [] })),
       (fil
         ? env.DB.prepare('SELECT filial, rca, COUNT(*) qtd FROM prospects_mapa WHERE filial = ? GROUP BY filial, rca').bind(fil)
@@ -138,15 +142,15 @@ export async function onRequestGet({ request, env }) {
     const filiais = (filRows.results || []).map((f) => {
       const m = parseDados(f.dados);
       const vend = m.fat + m.pend;
-      const tend = dias.dec ? (vend / dias.dec) * dias.tot : vend;
-      return { filial: f.filial, ...m, vend, tend, tendPct: m.meta ? (tend / m.meta) * 100 : 0, em: f.em };
+      const tendPct = m.pi != null ? m.pi * 100 : 0, tend = m.meta * (tendPct / 100);   // ritmo do GEROT (captacao / meta ideal); tend = ritmo em R$ da meta, so para somar grupos
+      return { filial: f.filial, ...m, vend, tend, tendPct, em: f.em };
     });
 
     const supervisores = (supRows.results || []).map((s) => {
       const m = parseDados(s.dados);
       const vend = m.fat + m.pend;
-      const tend = dias.dec ? (vend / dias.dec) * dias.tot : vend;
-      return { filial: s.filial, cod_sup: s.cod_sup, supervisor: s.supervisor, ...m, vend, tend, tendPct: m.meta ? (tend / m.meta) * 100 : 0 };
+      const tendPct = m.pi != null ? m.pi * 100 : 0, tend = m.meta * (tendPct / 100);
+      return { filial: s.filial, cod_sup: s.cod_sup, supervisor: s.supervisor, ...m, vend, tend, tendPct };
     });
 
     const vendedores = (vendRows.results || [])
@@ -154,7 +158,7 @@ export async function onRequestGet({ request, env }) {
       .map((v) => {
         const m = parseDados(v.dados);
         const vend = m.fat + m.pend;
-        const tend = dias.dec ? (vend / dias.dec) * dias.tot : vend;
+        const tendPctG = m.pi != null ? m.pi * 100 : 0, tend = m.meta * (tendPctG / 100);   // 21/11/2026: ritmo do GEROT, igual ao texto
         const falta = Math.max(0, m.meta - vend);
         const k = `${v.filial}|${v.rca}`;
         const p = pedMap.get(k) || { bloqQtd: 0, bloqVlr: 0, libQtd: 0, libVlr: 0 };
@@ -169,8 +173,8 @@ export async function onRequestGet({ request, env }) {
           vend,
           pctMeta: m.meta ? (vend / m.meta) * 100 : 0,
           tend,
-          tendPct: m.meta ? (tend / m.meta) * 100 : 0,
-          precisaDia: dias.falt ? falta / dias.falt : falta,
+          tendPct: tendPctG,
+          precisaDia: m.nd != null ? m.nd : (dias.falt ? falta / dias.falt : falta),
           rotaHoje: rotaMap.get(k) || 0,
           prospects: prospMap.get(k) || 0,
           bloqQtd: p.bloqQtd,
@@ -187,12 +191,14 @@ export async function onRequestGet({ request, env }) {
     const accInd = (map, chave, ind, m) => {
       if (!map.has(chave)) map.set(chave, new Map());
       const sub = map.get(chave);
-      if (!sub.has(ind)) sub.set(ind, { ind, meta: 0, fat: 0, pend: 0, pos: 0 });
+      if (!sub.has(ind)) sub.set(ind, { ind, meta: 0, fat: 0, pend: 0, pos: 0, piM: 0, nd: 0, temPi: false });
       const cur = sub.get(ind);
       cur.meta += m.meta;
       cur.fat += m.fat;
       cur.pend += m.pend;
       cur.pos += m.pos;
+      if (m.pi != null && m.meta > 0) { cur.piM += m.meta * m.pi; cur.temPi = true; }   // 21/11/2026: ritmo do GEROT ponderado pela meta
+      if (m.nd != null) cur.nd += m.nd;
     };
     const supIndMap = new Map(), filIndMap = new Map(), brIndMap = new Map();
     for (const r of indRows.results || []) {
@@ -210,8 +216,7 @@ export async function onRequestGet({ request, env }) {
       .filter((x) => x.meta > 0 || x.fat !== 0 || x.pend !== 0 || x.pos > 0)
       .map((x) => {
         const vend = x.fat + x.pend;
-        const tend = dias.dec ? (vend / dias.dec) * dias.tot : vend;
-        const falta = Math.max(0, x.meta - vend);
+        const tend = x.temPi ? x.piM : 0;   // 21/11/2026: ritmo do GEROT (captacao / meta ideal), nunca projecao
         return {
           ind: x.ind,
           meta: x.meta,
@@ -221,7 +226,7 @@ export async function onRequestGet({ request, env }) {
           pctMeta: x.meta ? (vend / x.meta) * 100 : 0,
           tend,
           tendPct: x.meta ? (tend / x.meta) * 100 : 0,
-          precisaDia: x.meta ? (dias.falt ? falta / dias.falt : falta) : 0,
+          precisaDia: x.meta ? x.nd : 0,
           pos: x.pos
         };
       })
@@ -240,7 +245,7 @@ export async function onRequestGet({ request, env }) {
       mes,
       dias,
       fonte: {
-        modo: 'D1 Offline-Resiliente (GEROT + CEVEN snapshot)',
+        modo: 'D1 (GEROT + Clube da Venda)',
         gerotPosicao: stGerot?.posicao || null,
         gerotEm: stGerot?.em || filiais[0]?.em || null
       },

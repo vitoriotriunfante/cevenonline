@@ -86,8 +86,12 @@ jobs:
           curl -s --max-time 150 -H "X-Evo-Key: $EVO_KEY" "https://ceven-cftv-matrix.pages.dev/api/liga-clube?grava=1" | head -c 600 || true
       - name: Gerar cards PNG da Matinal (WhatsApp)
         # 17/11/2026 (Vitorio: 'nao e a cada carga... e se o cara perguntar... nao gaste a toa'): imagem so sob demanda (matinal-card.yml); aqui so se pedido a mao
-        if: github.event.inputs.ensaio != 'true' && github.event.inputs.gerar_cards == 'true'
+        # 21/11/2026 (Vitorio: 'um monte de gente perguntando matinal... pq nao ta indo as imagens?'): o sob demanda nunca foi ligado e os cards so existiam
+        #   de 17/11. Agora: UMA vez por dia, na primeira coleta da manha (06h-08h BRT), ou quando pedido a mao. Nao e a cada carga.
+        if: github.event.inputs.ensaio != 'true'
         env:
           EVO_KEY: ${{ secrets.EVO_KEY }}
-        run: node scripts/gerar_cards_matinal.mjs || true
+        run: |
+          H=$(TZ=America/Sao_Paulo date +%H)
+          if [ "${{ github.event.inputs.gerar_cards }}" = "true" ] || [ "$H" = "06" ] || [ "$H" = "07" ] || [ "$H" = "08" ]; then node scripts/gerar_cards_matinal.mjs || true; else echo "cards da Matinal: so na coleta da manha"; fi
       # 16/11/2026: o repositorio e PUBLICO — artefatos (Excel e prints do GEROT) ficavam abertos por 7 dias. Removido: nada da empresa sai como artefato.
