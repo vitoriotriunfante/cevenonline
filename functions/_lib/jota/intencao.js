@@ -108,6 +108,19 @@ export async function rotearIntencao(B, c, t, info) {
       if (e) { const r = await respMixGerot(B, e, mesQ, /\bMETA\b/.test(t)); if (r) return /\bROTA\b/.test(t) ? r + '\n_Para a rota de hoje, peça *minha rota*._' : r; }
     } catch (err) { /* segue o roteamento normal */ }
   }
+  // A3 · CARTEIRA E BLOQUEADOS POR NIVEL (Vitorio, 22/11/2026: 'carteira total' caia na industria 'Total Quimica' e 'carteira API' no resumo antigo)
+  if ((acima || (papel === 'vendedor' && rcaV)) && (/\bCARTEIRA\b/.test(t) || /\bBLOQUEAD|BLOQUEIO (FINANCEIRO|COMERCIAL)/.test(t) || (papel === 'vendedor' && /STATUS DOS PEDIDOS|MEUS PEDIDOS|PEDIDOS? (PENDENTES?|A FATURAR|LIBERADOS?|MONTADOS?)/.test(t))) && !/CARTEIRA DE CLIENTES?|QUANTOS CLIENTES|CLIENTES? (DA|NA) CARTEIRA|CLIENTES? BLOQUEAD|\b\d{7,}\b|POSITIVA|VISITAD|SEM COMPRA/.test(t)) {
+    try {
+      const pp = papel === 'ceo' ? 'diretoria' : papel;
+      let e;
+      if (pp === 'diretoria') e = { filiais: filCit ? [filCit] : FILIAIS, nome: filCit || 'Brasil', nacional: !filCit };
+      else if (pp === 'vendedor') e = { filiais: [c.filial], nome: `${rcaV} - ${nome2(c.nome || '')}`, rcas: [String(rcaV)] };
+      else { const Ev = await carregaEscopo(B, esc), V = (Ev && Ev.vend) || []; if (pp === 'supervisor' && !V.length) return '👥 Não encontrei vendedores na sua equipe na Gestão de Equipe, então não mostro a carteira da filial. Peça ao gerente para conferir a sua equipe.'; e = pp === 'gerente' ? { filiais: [c.filial], nome: (Ev && Ev.nome) || c.filial, rcas: c.grupo ? V.map((v) => String(v.rca)) : null } : { filiais: [c.filial], nome: (Ev && Ev.nome) || 'Equipe', rcas: V.map((v) => String(v.rca)) }; }
+      const soB = /BLOQUEAD|BLOQUEIO/.test(t) && !/CARTEIRA TOTAL|STATUS|SITUAC/.test(t);
+      const r = await (await import('./respostas/gestao_gerot.js')).respCarteiraNivel(B, e, { papel: pp, modo: soB ? 'bloq' : 'total', tipo: /COMERCIA/.test(t) && !/FINANCEIR/.test(t) ? 'COMERC' : /FINANCEIR/.test(t) && !/COMERCIA/.test(t) ? 'FINANC' : null, abrir: pp === 'diretoria' && !!filCit });
+      if (r) return r;
+    } catch (err) { /* segue */ }
+  }
   // A4 · CURVA NEGATIVA DE UMA INDUSTRIA (bateria real 21/11: Gessandro 'curva negativa de Bonobon do setor 336', 'curva negativa da industria Leao'):
   //   GEROT Cliente x Industria: comprou a industria no mes passado e ainda nao comprou neste (sem faturado e sem carteira dela)
   if (/CURVA NEGATIVA|NAO COMPRARAM|NAO COMPROU|SEM COMPRA|FALTA(M)? POSITIVAR|QUEM FALTA|PARARAM DE COMPRAR/.test(t) && !/\b\d{7,}\b/.test(t) && B.env && B.env.DB) {
@@ -308,7 +321,7 @@ export async function rotearIntencao(B, c, t, info) {
     if ((papel === 'diretoria' || papel === 'ceo') && /ATINGIMENTO|PERCENTUAL (DA META|DE META|DE ATINGIMENTO)|% DA META/.test(t) && !filCit) { const { respBrasilGerot } = await import('./respostas/gerot_painel.js'); const r = await respBrasilGerot(B, null).catch(() => null); if (r) return r; }
     // carteira por status / motivo (Micheleto, 18/11: "bloqueio financeiro, bloqueio comercial e todos os outros motivos")
     // 22/11/2026 (Vitorio: "Pedidos pendentes" caiu na lista velha do CEVEN, parada em 13/11): pendente/liberado/em aberto/a faturar tambem vem da Carteira Total do GEROT
-    if (((/CARTEIRA|PEDIDOS? (EM CARTEIRA|PENDENTES?|BLOQUEAD)|BLOQUEIO (FINANCEIRO|COMERCIAL)/.test(t) && /STATUS|MOTIVO|BLOQUE|ABERT|SITUACAO/.test(t)) || /PEDIDOS? (PENDENTES?|LIBERADOS?|MONTADOS?|EM ABERTO|ABERTOS|A FATURAR|NAO FATURADOS?)|\bBLOQUEADOS?\b/.test(t)) && !/\b\d{7,}\b/.test(t) && !/CLIENTES? BLOQUEAD/.test(t)) { const e = await escG(); const soB = /BLOQUEAD|BLOQUEIO/.test(t) && !/STATUS|CARTEIRA|TODOS OS (STATUS|MOTIVOS)|OUTROS MOTIVOS|SITUACAO/.test(t); const r = await (await G()).respCarteiraStatus(B, e.filiais, e.rcas, e.nome, soB, /POR FILIA|ABERTOS? POR/.test(t), /COMERCIA/.test(t) && !/FINANCEIR/.test(t) ? 'COMERC' : /FINANCEIR/.test(t) && !/COMERCIA/.test(t) ? 'FINANC' : null).catch(() => null); if (r) return r; }
+    if (((/CARTEIRA|PEDIDOS? (EM CARTEIRA|PENDENTES?|BLOQUEAD)|BLOQUEIO (FINANCEIRO|COMERCIAL)/.test(t) && /STATUS|MOTIVO|BLOQUE|ABERT|SITUACAO/.test(t)) || /PEDIDOS? (PENDENTES?|LIBERADOS?|MONTADOS?|EM ABERTO|ABERTOS|A FATURAR|NAO FATURADOS?)|\bBLOQUEADOS?\b/.test(t)) && !/\b\d{7,}\b/.test(t) && !/CLIENTES? BLOQUEAD/.test(t)) { const e = await escG(); const soB = /BLOQUEAD|BLOQUEIO/.test(t) && !/STATUS|CARTEIRA|TODOS OS (STATUS|MOTIVOS)|OUTROS MOTIVOS|SITUACAO/.test(t); /* 22/11/2026 (Vitorio): carteira e bloqueados por nivel, sempre R$ + quantidade */ const pp = papel === 'ceo' ? 'diretoria' : papel; const r = await (await G()).respCarteiraNivel(B, e, { papel: pp, modo: soB ? 'bloq' : 'total', tipo: /COMERCIA/.test(t) && !/FINANCEIR/.test(t) ? 'COMERC' : /FINANCEIR/.test(t) && !/COMERCIA/.test(t) ? 'FINANC' : null, abrir: pp === 'diretoria' && !!filCit }).catch(() => null); if (r) return r; }
     // quem pediu / pedidos por vendedor (Clube: pedido colocado) — 22/11/2026
     if (/QUEM (PEDIU|VENDEU|FEZ PEDIDO|TIROU PEDIDO|COLOCOU PEDIDO)|PEDIDOS? (DE HOJE |DE ONTEM |DO DIA )?POR VENDEDOR/.test(t)) { const e = await escG(); const r = await (await G()).respQuemPediu(B, e).catch(() => null); if (r) return r; }
     // justificativas de nao venda pelo Clube (Vitorio, 18/11: "pq ate dia 16?" e "aberto por vendedor x justificativa e justificativa x vendedor")

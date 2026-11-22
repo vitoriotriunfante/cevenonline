@@ -1,6 +1,6 @@
 # MAPA DOS DADOS — GERADO DO CÓDIGO
 
-> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-11-16 01:16 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
+> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-11-22 19:12 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
 
 ## 1. Quem chama o CEVEN e RODA SOZINHO (16)
 Meta: só `functions/api/cron-varredura-central.js`.
@@ -41,17 +41,24 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `bot_contatos_log` | `functions/api/jota-contatos.js` |
 | `bot_contexto` | `functions/_lib/jota/fontes.js` |
 | `bot_envio_fila` | `functions/api/cron-varredura-central.js`, `functions/api/jota-contatos.js`, `functions/api/whatsapp/bot.js` |
-| `bot_msgs` | `functions/api/cron-varredura-central.js`, `functions/api/jota-aviso-matinal.js`, `functions/api/jota-boas-vindas.js`, `functions/api/jota-cardapio.js`, `functions/api/jota-contatos.js`, `functions/api/jota-convite-vendedores.js`, `functions/api/jota-proativo.js`, `functions/api/jota-reenviar.js`, `functions/api/whatsapp/bot.js`, `functions/api/whatsapp/registro.js`, `functions/_lib/monitoria/analista.js` |
+| `bot_msgs` | `functions/api/cron-varredura-central.js`, `functions/api/jota-aviso-matinal.js`, `functions/api/jota-boas-vindas.js`, `functions/api/jota-cardapio.js`, `functions/api/jota-contatos.js`, `functions/api/jota-convite-vendedores.js`, `functions/api/jota-proativo.js`, `functions/api/jota-reenviar.js`, `functions/api/whatsapp/bot.js`, `functions/api/whatsapp/registro.js`, `functions/_lib/monitoria/analista.js`, `functions/_lib/monitoria/piloto.js` |
 | `bot_reproc` | `functions/api/cron-varredura-central.js` |
 | `bot_sem_acesso_excluidos` | `functions/api/jota-contatos.js` |
-| `bot_sugestoes` | `functions/api/jota-conversas.js`, `functions/api/jota-passaporte.js`, `functions/api/whatsapp/bot.js`, `functions/_lib/jota/fontes.js` |
+| `bot_sugestoes` | `functions/api/jota-conversas.js`, `functions/api/jota-passaporte.js`, `functions/api/whatsapp/bot.js`, `functions/_lib/jota/fontes.js`, `functions/_lib/jota/intencao.js` |
 | `cache_analise_cliente` | `functions/api/tv-vendedor.js` |
 | `cache_resposta` | `functions/_lib/cache_borda.js`, `functions/_lib/jota/fontes.js` |
 | `canal_ceven` | `functions/api/divergencias.js`, `functions/_lib/arvore_ceven.js`, `scratch/patch_canal_ceven.js`, `scratch/patch_canal_ocultos_super.js` |
 | `cascata_dia` | `functions/_lib/arvore_ceven.js` |
+| `ceven_devolucao_checado` | `functions/_lib/arvore_ceven.js` |
+| `ceven_devolucao_nota` | `functions/_lib/arvore_ceven.js` |
+| `ceven_gps_visita` | `functions/_lib/arvore_ceven.js` |
+| `cliente_focos` | `functions/_lib/arvore_ceven.js` |
 | `clube_checkin` | `functions/api/clube-carga.js` |
 | `clube_justificativa` | `functions/api/clube-carga.js` |
+| `clube_pedido` | `functions/api/clube-carga.js` |
 | `clube_rodada` | `functions/api/clube-carga.js` |
+| `clube_roteiro` | `functions/api/clube-carga.js` |
+| `clube_roteiro_leitura` | `functions/api/clube-carga.js` |
 | `clube_venda_dia` | `functions/api/clube-carga.js` |
 | `codigos_descobertos` | `functions/api/cron-descobre-codigos.js` |
 | `coleta_estado` | `functions/api/cron-fechamento-dia.js`, `functions/api/cron-varredura-central.js`, `functions/_lib/concorrencia.js` |
@@ -60,40 +67,51 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `conferencia_rca` | `functions/api/cron-conferencia-dia.js` |
 | `config_custo` | `functions/api/custo-freio.js` |
 | `config_equipe_soberana` | `functions/api/equipe-decidir.js`, `functions/api/equipe-salvar.js`, `functions/api/equipe-solicitacoes.js` |
-| `config_flags` | `functions/api/cron-notificacoes-supervisores.js`, `functions/_lib/ceven_admin_token.js` |
+| `config_flags` | `functions/api/cron-ceven-admin.js`, `functions/api/cron-notificacoes-supervisores.js`, `functions/api/gerot-carga.js`, `functions/_lib/ceven_admin_token.js` |
 | `d1_telemetria_rotas` | `functions/_lib/telemetria.js` |
 | `descoberta_cursor` | `functions/api/cron-descobre-codigos.js` |
-| `devolucao_nota_motivo` | `functions/api/cron-lances.js` |
+| `devolucao_nota_motivo` | `functions/api/cron-lances.js`, `functions/_lib/arvore_ceven.js` |
 | `domain_events` | `functions/_lib/monitoria/motor.js` |
 | `equipe_tentativas` | `functions/_lib/senha_equipe.js` |
 | `ficha_cliente` | `functions/api/ficha-carga.js` |
 | `flash_alerts` | `functions/api/cron-radar-horario.js` |
 | `gerentes_filiais` | `functions/api/whatsapp/gerentes.js` |
+| `gerot_carteira` | `functions/api/gerot-carga.js` |
+| `gerot_cliente_forn_mes` | `functions/api/gerot-carga.js` |
+| `gerot_cliente_mes` | `functions/api/gerot-carga.js` |
 | `gerot_coleta_status` | `functions/api/gerot-carga.js` |
+| `gerot_devolucao_motivo` | `functions/api/gerot-carga.js` |
+| `gerot_devolucao_motivo_vend` | `functions/api/gerot-carga.js` |
+| `gerot_filial_dia` | `functions/api/gerot-carga.js` |
 | `gerot_filial_mes` | `functions/api/gerot-carga.js` |
+| `gerot_horario` | `functions/api/gerot-carga.js` |
+| `gerot_pedido` | `functions/api/gerot-carga.js` |
+| `gerot_pedido_entrada` | `functions/api/gerot-carga.js` |
 | `gerot_recorrencia_pasta` | `functions/api/gerot-carga.js` |
 | `gerot_supervisor_mes` | `functions/api/gerot-carga.js` |
 | `gerot_vendas` | `functions/api/gerot-carga.js` |
 | `gerot_vendedor_mes` | `functions/api/gerot-carga.js` |
 | `historico_cliente` | `functions/api/tv-vendedor.js` |
 | `jota_aprendizados` | `functions/_lib/jota/aprendizado.js` |
+| `jota_auditoria` | `functions/api/jota-auditoria.js` |
 | `jota_campanha_sim` | `functions/api/cron-varredura-central.js` |
 | `jota_foco_dia` | `functions/_lib/jota/respostas/momentos.js` |
 | `lances_excluidos_liga` | `functions/_lib/liga_fechamento.js` |
-| `liga_dia_fechado` | `functions/api/liga-repara-devolucao.js`, `functions/api/liga-repara-pedido.js`, `functions/_lib/liga_fechamento.js` |
-| `liga_fechamento` | `functions/api/liga-repara-devolucao.js`, `functions/api/liga-repara-pedido.js`, `functions/_lib/liga_fechamento.js` |
+| `liga_dia_fechado` | `functions/api/liga-clube.js`, `functions/api/liga-repara-devolucao.js`, `functions/api/liga-repara-pedido.js`, `functions/_lib/liga_fechamento.js` |
+| `liga_fechamento` | `functions/api/liga-clube.js`, `functions/api/liga-repara-devolucao.js`, `functions/api/liga-repara-pedido.js`, `functions/_lib/liga_fechamento.js` |
+| `liga_fechamento_copia` | `functions/api/liga-clube.js` |
 | `macro_fora_arvore` | `functions/api/cron-varredura-central.js` |
 | `mapa_executivo_live` | `functions/api/cron-mapa-executivo.js` |
 | `matinal_cards` | `functions/api/matinal-cards.js` |
 | `meta_hierarquia` | `functions/api/cron-varredura-central.js` |
-| `monitoria_envios` | `functions/_lib/monitoria/analista.js`, `functions/_lib/monitoria/detector.js`, `functions/_lib/monitoria/motor.js`, `functions/_lib/monitoria/supervisores.js` |
+| `monitoria_envios` | `functions/_lib/jota/intencao.js`, `functions/_lib/monitoria/analista.js`, `functions/_lib/monitoria/detector.js`, `functions/_lib/monitoria/motor.js`, `functions/_lib/monitoria/piloto.js`, `functions/_lib/monitoria/supervisores.js` |
 | `notif_envio_log` | `functions/api/cron-notificacoes-supervisores.js` |
 | `notif_lance_enviado` | `functions/api/cron-notificacoes-supervisores.js` |
 | `painel_gerente_dia` | `functions/_lib/arvore_ceven.js` |
 | `passaporte_cadastros` | `functions/api/jota-passaporte.js` |
 | `pedido_leitura` | `functions/api/cron-varredura-central.js` |
-| `pedido_status` | `functions/api/cron-lances.js`, `functions/api/cron-varredura-central.js`, `functions/_lib/pedido_status.js` |
-| `pedido_status_hist` | `functions/api/cron-lances.js`, `functions/api/cron-varredura-central.js`, `functions/_lib/pedido_status.js` |
+| `pedido_status` | `functions/api/cron-lances.js`, `functions/api/cron-varredura-central.js`, `functions/_lib/pedido_status.js`, `functions/_lib/pedido_status_fontes.js` |
+| `pedido_status_hist` | `functions/api/cron-lances.js`, `functions/api/cron-varredura-central.js`, `functions/_lib/pedido_status.js`, `functions/_lib/pedido_status_fontes.js` |
 | `piloto_pedidos_intraday` | `functions/api/cron-piloto-pedidos.js` |
 | `prospects_coleta_status` | `functions/api/ficha-carga.js` |
 | `prospects_mapa` | `functions/api/ficha-carga.js` |
@@ -108,7 +126,7 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `solicitacoes_ajuste_equipe` | `functions/api/equipe-solicitacoes.js` |
 | `supervisores_dia` | `functions/_lib/supervisores_coleta.js` |
 | `supervisores_ret_detalhe` | `functions/_lib/supervisores_coleta.js` |
-| `tv_lances` | `functions/api/liga-repara-devolucao.js`, `functions/api/liga-repara-pedido.js`, `functions/api/tv-lances.js` |
+| `tv_lances` | `functions/api/liga-clube.js`, `functions/api/liga-repara-devolucao.js`, `functions/api/liga-repara-pedido.js`, `functions/api/tv-lances.js` |
 | `tv_ping` | `functions/api/tv-ping.js` |
 | `varredura_central_rca` | `functions/api/cron-varredura-central.js` |
 | `varredura_slot` | `functions/api/cron-varredura-central.js` |

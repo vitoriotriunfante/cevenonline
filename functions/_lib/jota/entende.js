@@ -318,7 +318,7 @@ async function respFichaCliente(B, E, t, achado) {
   return [cab, ultima, ...(itens.length ? ['', '*Última compra:*', ...itens.slice(0, 8)] : []), ...(parou.length ? ['', '*Comprava e parou:*', ...parou.slice(0, 5)] : []), '', SUGESTAO + 'peça "o que oferecer" ou "últimos pedidos dele".'].join('\n');
 }
 export async function respostaInterna(B, c, texto, anteriores) {
-  let t = sem(texto).replace(/\bCOTAS?\b/g, 'META');   // COTA = META (Vitorio, 09/11/2026: 'quando usam a palavra COTA querem saber da META')
+  let t = sem(texto).replace(/\bCOTAS?\b/g, 'META').replace(/\bMETAS? DE POSITIVACAO (DE|DA|DO) /g, 'POSITIVACAO $1 ');   /* 22/11/2026: 'meta de positivacao de Arcor' = 'positivacao de Arcor' (item 13 do menu) */   // COTA = META (Vitorio, 09/11/2026: 'quando usam a palavra COTA querem saber da META')
   // CLIENTE POR 'COD' OU CNPJ (sugestoes do Vitorio 06/11/2026: 'historico cliente cod 250900' e o CNPJ viravam '#4000162'):
   // 'cliente cod/codigo/n 250900' = 'cliente 250900'; CNPJ (14 digitos, com ou sem ponto/barra) acha o codigo na ficha do D1
   if (/\bCLIENTE\s+(COD(IGO)?|N[UO]M(ERO)?|N)\.?\s*#?\d/.test(t)) t = t.replace(/\bCLIENTE\s+(COD(IGO)?|N[UO]M(ERO)?|N)\.?\s*#?(?=\d)/, 'CLIENTE #');
@@ -866,9 +866,16 @@ export async function respostaInterna(B, c, texto, anteriores) {
         if (u && u.d) {
         const J0 = (k) => `SUM(json_extract(dados, '$."${k}"'))`;
         const { results: fm2 } = await B.env.DB.prepare(`SELECT filial f, rca r, ${J0('Faturado bruto (R$)')} b, ${J0('Devolução (R$)')} dv, ${J0('Carteira pendente (R$)')} p, ${J0('Meta (R$)')} m, ${J0('Positivação (filial + CNPJ)')} pr, ${J0('Meta de positivação')} pm FROM gerot_vendedor_mes WHERE mes = ? AND rca NOT LIKE 'H|%' GROUP BY filial, rca`).bind(ym).all();
-          const L = (fm2 || []).filter((x) => esc.nacional || chaves.has(x.f + '|' + x.r)), s = (k) => L.reduce((a, x) => a + (Number(x[k]) || 0), 0), liq = s('b') - s('dv'), meta = s('m'), pos = s('pr'), mp = s('pm');
+          const L = (fm2 || []).filter((x) => esc.nacional || chaves.has(x.f + '|' + x.r)), s = (k) => L.reduce((a, x) => a + (Number(x[k]) || 0), 0);
+          let liq = s('b') - s('dv'), meta = s('m'), pos = s('pr'), mp = s('pm'), brT = s('b'), dvT = s('dv');
+          // 22/11/2026 (Vitorio: TBE setembro em 189%): a FILIAL INTEIRA usa o total da filial no GEROT (a meta de setembro por vendedor esta incompleta no GEROT;
+          //   a da filial bate com o PNA). Equipe/vendedor continua pela soma dos vendedores.
+          if (esc.nacional || (/^(gerente|diretoria|ceo)$/i.test(String(c && c.papel || '')) && !(c && c.grupo) && !esc.supervisor && !esc.rca && !esc.grupo)) {
+            const Fs = esc.nacional ? null : [...new Set((Em.vend || []).map((v) => String(v.filial)))];
+            try { const { results: FF } = await B.env.DB.prepare(`SELECT ${J0('Faturado líquido (R$)')} l, ${J0('Faturado bruto (R$)')} b, ${J0('Devolução (R$)')} dv, ${J0('Meta (R$)')} m, ${J0('Positivação (filial + CNPJ)')} pr, ${J0('Meta de positivação')} pm FROM gerot_filial_mes WHERE mes = ?${Fs ? ` AND filial IN (${Fs.map(() => '?').join(',')})` : ''}`).bind(ym, ...(Fs || [])).all(); const f0 = FF && FF[0]; if (f0 && Number(f0.m) > 0) { liq = Number(f0.l) || liq; meta = Number(f0.m); brT = Number(f0.b) || brT; dvT = Number(f0.dv) || 0; pos = Number(f0.pr) || pos; mp = Number(f0.pm) || mp; } } catch (e) { /* fica a soma */ }
+          }
           const liqV = (x) => (Number(x.b) || 0) - (Number(x.dv) || 0);
-          const cab = [`🏁 *Fechamento de ${titulo(NM[Number(ym.slice(5)) - 1])} — ${esc.nome}* (foto de ${u.d.split('-').reverse().join('/')})`, `💰 Faturado líquido: *${R$(liq)}* de ${R$(meta)}${meta > 0 ? ` → *${pctTxt(liq / meta * 100)}*` : ''}`, `(bruto ${R$(s('b'))} − devolução ${R$(s('dv'))})`, `⏳ Ficou pendente: ${R$(s('p'))}`, `👥 Positivação: *${Math.round(pos)}* de ${Math.round(mp)}${mp > 0 ? ` (${pctTxt(pos / mp * 100)})` : ''}`];
+          const cab = [`🏁 *Fechamento de ${titulo(NM[Number(ym.slice(5)) - 1])} — ${esc.nome}* (foto de ${u.d.split('-').reverse().join('/')})`, `💰 Faturado líquido: *${R$(liq)}* de ${R$(meta)}${meta > 0 ? ` → *${pctTxt(liq / meta * 100)}*` : ''}`, `(bruto ${R$(brT)} − devolução ${R$(dvT)})`, `⏳ Ficou pendente: ${R$(s('p'))}`, `👥 Positivação: *${Math.round(pos)}* de ${Math.round(mp)}${mp > 0 ? ` (${pctTxt(pos / mp * 100)})` : ''}`];
           if (L.length && s('b') > 0 && porVend && !esc.nacional && !esc.rca) {   // por vendedor, da mesma foto (Sueli/API, 01/11/2026: "e os vendedores" veio 0,0% de novembro)
             const pv = new Map(Em.vend.concat(Em.ocultos || []).map((v) => [v.filial + '|' + v.rca, v])), nomeV = (x) => { const v = pv.get(x.f + '|' + x.r); return v ? vn(v) : 'RCA ' + x.r; }, ehSup = (x) => /^SUP/i.test(String((pv.get(x.f + '|' + x.r) || {}).canal || ''));
             const cm = L.filter((x) => Number(x.m) > 0).sort((a, b) => liqV(b) / b.m - liqV(a) / a.m), sm = L.filter((x) => !(Number(x.m) > 0)).sort((a, b) => liqV(b) - liqV(a));

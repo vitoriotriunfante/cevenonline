@@ -99,6 +99,66 @@ export async function respCarteiraStatus(B, filiais, rcas, nome, soBloq, porFil,
   return L.join(String.fromCharCode(10));
 }
 
+// ---------- CARTEIRA E BLOQUEADOS POR NIVEL (Vitorio, 22/11/2026: "resolver isso de uma vez por todas") ----------
+// Sempre VALOR e QUANTIDADE. Bloqueados = financeiro + comercial. Carteira total = bloqueado financeiro, bloqueado comercial, pendente (sem carga), montado, liberado.
+// Diretoria: depois do total abre POR FILIAL (a filial trata os motivos dela). Gerente (ou diretoria pedindo uma filial): motivos, supervisores e vendedores.
+// Supervisor: vendedores e motivos. Vendedor: os pedidos dele. Supervisor/gerente/vendedor: os pedidos mais antigos travados.
+// Status do cliente (GEROT): cliente bloqueado/definitivo/excluido com pedido = dificilmente libera (tratar com o financeiro);
+//   cliente SEM compra no mes com pedido travado = positivacao que entra se liberar.
+export async function respCarteiraNivel(B, esc, { papel = 'diretoria', modo = 'bloq', tipo = null, abrir = false } = {}) {
+  const db = B.env && B.env.DB; if (!db) return null;
+  const F = esc.filiais && esc.filiais.length ? esc.filiais : FILIAIS, rc = esc.rcas && esc.rcas.length ? esc.rcas.map(String) : null;
+  let R = [], NM = [];
+  try {
+    R = (await db.prepare(`SELECT filial, pedido, rca, vendedor, entrada, situacao, COALESCE(NULLIF(motivo, ''), '') motivo, cliente, cnpj, status_cliente sc, positivado pos, valor FROM gerot_carteira WHERE filial IN (${qs(F)})${rc ? ` AND rca IN (${qs(rc)})` : ''}`).bind(...F, ...(rc || [])).all()).results || [];
+    NM = (await db.prepare(`SELECT filial, rca, MAX(supervisor) sup FROM gerot_vendedor_mes WHERE mes = ? AND filial IN (${qs(F)}) GROUP BY filial, rca`).bind(mesAtual(), ...F).all()).results || [];
+  } catch (e) { return null; }
+  const supDe = new Map(NM.map((x) => [x.filial + '|' + x.rca, nomeCurto(String(x.sup || '').replace(/^\s*\d+\s*-\s*/, '')) || 'Sem supervisor']));
+  const ehBloq = (s) => /BLOQ/i.test(s), tipoOk = (s) => !tipo || new RegExp(tipo, 'i').test(s);
+  const A = R.filter((r) => (modo === 'total' || ehBloq(r.situacao)) && tipoOk(r.situacao));
+  const tag = modo === 'bloq' ? `🚫 *Pedidos bloqueados${tipo ? (/COMERC/.test(tipo) ? ' (comercial)' : ' (financeiro)') : ''} — ${esc.nome}*` : `💼 *Carteira total — ${esc.nome}*`;
+  if (!A.length) return `${tag}: nenhum pedido ${modo === 'bloq' ? 'bloqueado ' : ''}na Carteira Total do GEROT agora. ✅`;
+  const soma = (L) => ({ n: L.length, v: L.reduce((a, r) => a + (Number(r.valor) || 0), 0) });
+  const fmt = (x) => `*${R$(x.v)}* · ${N(x.n)} ped.`;
+  const grp = (L, key) => { const m = new Map(); for (const r of L) { const k = key(r); const o = m.get(k) || []; o.push(r); m.set(k, o); } return [...m].map(([k, L2]) => [k, soma(L2), L2]).sort((a, b) => b[1].v - a[1].v); };
+  const SIT = [['Bloqueado Financeiro', '🔴'], ['Bloqueado Comercial', '🟠'], ['Pendente', '⏳'], ['Montado', '📦'], ['Liberado', '🟢']];
+  const tot = soma(A), L = [`${tag}: ${fmt(tot)}`];
+  const linhaSit = (Ls) => SIT.filter(([s]) => modo === 'total' || /BLOQ/i.test(s)).filter(([s]) => tipoOk(s)).map(([s, ic]) => { const x = soma(Ls.filter((r) => r.situacao === s)); return x.n ? `${ic} ${s === 'Pendente' ? 'Pendente (ainda sem carga)' : s}: ${fmt(x)}` : null; }).filter(Boolean);
+  L.push(...linhaSit(A));
+  if (modo === 'total') { const fat = soma(A.filter((r) => /MONTAD|LIBERAD/i.test(r.situacao))); L.push(`✅ Faturável (montado + liberado): ${fmt(fat)}`); }
+  const nac = papel === 'diretoria' && F.length > 1 && !abrir;
+  if (nac) {
+    L.push('', '*Por filial:*');
+    for (const [f, x, Lf] of grp(A, (r) => r.filial)) { const b = Lf.filter((r) => ehBloq(r.situacao)), fi = soma(b.filter((r) => /FINANC/i.test(r.situacao))), co = soma(b.filter((r) => /COMERC/i.test(r.situacao)));
+      L.push(`• *${f}*: ${fmt(x)}` + (modo === 'bloq' && !tipo ? ` (fin. ${R$(fi.v)}/${N(fi.n)} · com. ${R$(co.v)}/${N(co.n)})` : modo === 'total' ? ` · bloqueado ${R$(fi.v + co.v)}/${N(fi.n + co.n)}` : '')); }
+    L.push('', `_Para abrir uma filial (motivos, supervisores, vendedores): *${modo === 'bloq' ? 'bloqueados' : 'carteira'} TPH*._`);
+  } else {
+    const B0 = A.filter((r) => ehBloq(r.situacao));
+    if (B0.length && papel !== 'vendedor') {
+      L.push('', '*Bloqueados por motivo:*');
+      const lm = (m) => titulo(String(m).replace(/:\s*\d{5,}/g, '').replace(/\s+/g, ' ').trim().toLowerCase()) || 'Sem motivo';
+      const gm = grp(B0, (r) => r.situacao.replace('Bloqueado ', '').slice(0, 3) + '. · ' + lm(r.motivo)); for (const [m, x] of gm.slice(0, 8)) L.push(`• ${m}: ${fmt(x)}`); if (gm.length > 8) L.push(`_… e mais ${gm.length - 8} motivo(s)_`);
+    }
+    if (papel === 'gerente' || papel === 'diretoria') { L.push('', '*Por supervisor:*'); for (const [s, x] of grp(A, (r) => supDe.get(r.filial + '|' + r.rca) || 'Sem supervisor').slice(0, 12)) L.push(`• ${s}: ${fmt(x)}`); }
+    if (papel !== 'vendedor') { L.push('', '*Por vendedor:*'); const gv = grp(A, (r) => `${r.rca || 'sem código'} - ${nomeCurto(String(r.vendedor || '').replace(/^\s*\d+\s*-\s*/, ''))}`); for (const [v, x] of gv.slice(0, 15)) L.push(`• ${v}: ${fmt(x)}`); if (gv.length > 15) L.push(`_… e mais ${gv.length - 15} vendedores_`); }
+    // os mais antigos travados (bloqueados; na carteira total, tambem montado/liberado parado ha 8+ dias)
+    const hj = Date.parse(hojeSP() + 'T12:00:00Z'), dias = (r) => Math.round((hj - Date.parse(String(r.entrada) + 'T12:00:00Z')) / 864e5);
+    const velhos = A.filter((r) => r.entrada && (ehBloq(r.situacao) || dias(r) >= 8)).sort((a, b) => String(a.entrada).localeCompare(String(b.entrada))).slice(0, 10);
+    if (velhos.length) { L.push('', `*⏰ Mais antigos em aberto (${velhos.length}):*`); for (const r of velhos) L.push(`• ${dias(r)} dias · ${String(r.entrada).slice(8, 10)}/${String(r.entrada).slice(5, 7)} · ped. ${r.pedido} · ${titulo(String(r.cliente || '').toLowerCase()).slice(0, 28)} · ${R$(r.valor)} · ${r.situacao.replace('Bloqueado ', 'bloq. ').toLowerCase()}${r.motivo ? ' (' + String(r.motivo).replace(/:\s*\d{5,}/g, '').toLowerCase().slice(0, 40) + ')' : ''}${papel !== 'vendedor' ? ' · ' + (r.rca || 'sem código') : ''}`); }
+  }
+  // VISAO DO CLIENTE (status do cliente no GEROT) — so nos bloqueados
+  const Bq = A.filter((r) => ehBloq(r.situacao));
+  if (Bq.length) {
+    const cli = (L2) => new Set(L2.map((r) => r.filial + '|' + (r.cnpj || r.cliente))).size;
+    const semPos = Bq.filter((r) => /^N/i.test(String(r.pos || ''))), duro = Bq.filter((r) => /BLOQUEADO|EXCLU/i.test(String(r.sc || '')));
+    L.push('', '*👥 Clientes:*');
+    if (semPos.length) L.push(`• *${N(cli(semPos))} clientes sem compra no mês* com pedido travado (${R$(soma(semPos).v)}): se liberar, são *${N(cli(semPos))} positivações* a mais.`);
+    if (duro.length) L.push(`• *${N(cli(duro))} clientes com cadastro bloqueado/definitivo/excluído* (${R$(soma(duro).v)} em ${N(duro.length)} ped.): dificilmente liberam — tratar com o financeiro antes de vender de novo.`);
+  }
+  L.push('', '_Carteira Total do GEROT (valor do item conferido contra a tela). Status do cliente e positivado no mês: GEROT._');
+  return L.join(String.fromCharCode(10));
+}
+
 // ---------- QUEM PEDIU (Clube da Venda: pedido colocado) ----------
 // 22/11/2026 (Vitorio, domingo: "Quem pediu por vendedor?" caiu no 'estou em treinamento'): hoje; se hoje nao tem pedido, o ultimo dia que teve.
 // R$ = valor COLOCADO no Clube (pode ser cortado/reprovado depois; faturado e carteira sao do GEROT).
