@@ -318,7 +318,7 @@ async function respFichaCliente(B, E, t, achado) {
   return [cab, ultima, ...(itens.length ? ['', '*Última compra:*', ...itens.slice(0, 8)] : []), ...(parou.length ? ['', '*Comprava e parou:*', ...parou.slice(0, 5)] : []), '', SUGESTAO + 'peça "o que oferecer" ou "últimos pedidos dele".'].join('\n');
 }
 export async function respostaInterna(B, c, texto, anteriores) {
-  let t = sem(texto).replace(/\bCOTAS?\b/g, 'META').replace(/\bMETAS? DE POSITIVACAO (DE|DA|DO) /g, 'POSITIVACAO $1 ');   /* 22/11/2026: 'meta de positivacao de Arcor' = 'positivacao de Arcor' (item 13 do menu) */   // COTA = META (Vitorio, 09/11/2026: 'quando usam a palavra COTA querem saber da META')
+  let t = sem(texto).replace(/\bCOTAS?\b/g, 'META').replace(/\bMETAS? DE POSITIVACAO (DE|DA|DO) /g, 'POSITIVACAO $1 ').replace(/\bMETAS? FINANCEIRAS?\b/g, 'META');   /* 22/11/2026: 'meta de positivacao de Arcor' = 'positivacao de Arcor' (item 13 do menu) */   // COTA = META (Vitorio, 09/11/2026: 'quando usam a palavra COTA querem saber da META')
   // CLIENTE POR 'COD' OU CNPJ (sugestoes do Vitorio 06/11/2026: 'historico cliente cod 250900' e o CNPJ viravam '#4000162'):
   // 'cliente cod/codigo/n 250900' = 'cliente 250900'; CNPJ (14 digitos, com ou sem ponto/barra) acha o codigo na ficha do D1
   if (/\bCLIENTE\s+(COD(IGO)?|N[UO]M(ERO)?|N)\.?\s*#?\d/.test(t)) t = t.replace(/\bCLIENTE\s+(COD(IGO)?|N[UO]M(ERO)?|N)\.?\s*#?(?=\d)/, 'CLIENTE #');
