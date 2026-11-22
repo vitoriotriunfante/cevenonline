@@ -8,6 +8,21 @@ import { P, R$, SUGESTAO, nome2, sem, titulo, vn } from '../base.js';
 import { agrupa, listaNomes, pctTxt } from '../escopo.js';
 
 export async function respLances(B, E, t) {
+  // 22/11/2026 (bateria real: 'Ja tomei cartao no mes de novembro?' respondia os lances de HOJE): pergunta do MES = lances do mes (base auditada, sem copia MTZ e sem excluido)
+  if (/\b(NO|DO|ESTE|NESTE|ESSE|NESSE) MES\b|\bNOVEMBRO\b|\bMES INTEIRO\b/.test(t) && B.env && B.env.DB) {
+    const mes = new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 7), F = E.filiais || [];
+    const rc = (E.grupo || E.supervisor || E.rca) ? E.vend.map((v) => String(v.rca)) : null;
+    let R0 = [];
+    try { R0 = (await B.env.DB.prepare(`SELECT t.dia, t.filial, t.rca, t.vendedor, t.nivel, t.cliente, t.motivo, t.obs FROM tv_lances t WHERE t.dia >= ? AND t.filial IN (${F.map(() => '?').join(',')})${rc ? ` AND t.rca IN (${rc.map(() => '?').join(',')})` : ''} AND t.nivel <> 'marker' AND NOT EXISTS (SELECT 1 FROM lances_excluidos_liga x WHERE x.dia = t.dia AND x.chave = t.chave) ORDER BY t.dia`).bind(mes + '-01', ...F, ...(rc || [])).all()).results || []; } catch (e) { R0 = null; }
+    if (R0) {
+      const tiposM = [['PENALTI', /^penalti$/], ['IMPEDIMENTO', /^impedimento$/], ['VERMELHO', /^vermelho$/], ['AMARELO', /^amarelo$/], ['CARTAO', /^(vermelho|amarelo)$/], ['CARTOES', /^(vermelho|amarelo)$/], ['GOL CONTRA', /^golcontra$/]];
+      const tpm = tiposM.find(([k]) => t.includes(k)), cont = {}; for (const l of R0) cont[l.nivel] = (cont[l.nivel] || 0) + 1;
+      const out = [`⚽ *Lances do mês — ${E.nome}*`, Object.entries(cont).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k}: ${n}`).join(' · ') || 'nenhum lance no mês'];
+      if (tpm) { const S = R0.filter((l) => tpm[1].test(l.nivel)); out.push('', `*${titulo(tpm[0])} no mês (${S.length}):*`); for (const l of S.slice(-20)) out.push(`• ${l.dia.slice(8, 10)}/${l.dia.slice(5, 7)} ${nome2(l.vendedor)}${E.nacional ? ' ' + l.filial : ''} — ${l.nivel}${l.cliente ? ' · ' + titulo(l.cliente) : ''}${l.motivo ? ' · ' + titulo(String(l.motivo).toLowerCase()) : ''}`); if (S.length > 20) out.push(`… e mais ${S.length - 20} (mostrando os mais recentes)`); }
+      out.push('', '_Lances auditados da Liga (só com evidência)._');
+      return out.join('\n');
+    }
+  }
   const lc = await B.lances(); if (!lc) return 'Não consegui ler os lances de hoje agora.';
   const rcas = new Set(E.vend.map((v) => v.filial + '|' + v.rca));
   let L = (lc.lances || []).filter((l) => E.filiais.includes(l.filial) && (!(E.grupo || E.supervisor || E.rca) || rcas.has(l.filial + '|' + l.rca)));

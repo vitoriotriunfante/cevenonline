@@ -49,7 +49,7 @@ export async function respMargemGerot(B, filiais, nome) {
 }
 
 // ---------- CARTEIRA POR STATUS E MOTIVO (Carteira Total) ----------
-export async function respCarteiraStatus(B, filiais, rcas, nome, soBloq, porFil) {
+export async function respCarteiraStatus(B, filiais, rcas, nome, soBloq, porFil, soTipo) {
   // 21/11/2026: R$ de cada status e motivo = o do GEROT (Valor item = preco unitario em centavos x Qt a faturar). Nunca o Clube (pedido do Clube pode ser cortado/reprovado).
   const db = B.env && B.env.DB; if (!db) return null;
   const F = filiais && filiais.length ? filiais : FILIAIS;
@@ -75,9 +75,11 @@ export async function respCarteiraStatus(B, filiais, rcas, nome, soBloq, porFil)
   }
   const tot = R.reduce((a, r) => a + r.n, 0), val = V.reduce((a, r) => a + (Number(J(r.dados)['Carteira pendente (R$)']) || 0), 0);
   // 21/11/2026 (Vitorio pediu 'pedido bloqueados' e veio a carteira inteira): so os bloqueados; o resto vira uma linha
-  const sits = [...porSit].filter(([s]) => !soBloq || /BLOQ/i.test(s)), resto = soBloq ? [...porSit].filter(([s]) => !/BLOQ/i.test(s)) : [];
+  // 22/11/2026 (bateria real: 'Pedidos bloqueados comercial' trazia o financeiro junto): soTipo = 'COMERC' | 'FINANC'
+  const quer = (s) => (!soBloq || /BLOQ/i.test(s)) && (!soTipo || new RegExp(soTipo, 'i').test(s));
+  const sits = [...porSit].filter(([s]) => quer(s)), resto = soBloq ? [...porSit].filter(([s]) => !quer(s)) : [];
   const bN = sits.reduce((a, [, x]) => a + x.n, 0), bV = sits.reduce((a, [, x]) => a + x.v, 0);
-  if (soBloq && !sits.length) return `🚫 *Pedidos bloqueados — ${nome}*: nenhum pedido bloqueado na Carteira Total do GEROT agora. ✅`;
+  if (soBloq && !sits.length) return `🚫 *Pedidos bloqueados${soTipo ? (/COMERC/.test(soTipo) ? ' (comercial)' : ' (financeiro)') : ''} — ${nome}*: nenhum na Carteira Total do GEROT agora. ✅`;
   const L = soBloq ? [`🚫 *Pedidos bloqueados — ${nome}*: *${N(bN)}* pedidos${usaG ? ` · *${R$(bV)}*` : ''}`, ''] : [`💼 *Carteira em aberto por status — ${nome}*`, `*${N(tot)}* pedidos${!(rcas && rcas.length) && val ? ` · carteira pendente ${R$(val)} (GEROT)` : ''}`,
     ...(() => { const fat = [...porSit].filter(([s]) => /MONTAD|LIBERAD/i.test(s)).reduce((a, [, x]) => a + x.v, 0), aN = [...porSit].reduce((a, [, x]) => a + x.atr, 0), aV = [...porSit].reduce((a, [, x]) => a + x.atrv, 0); return [`${usaG ? `✅ Faturável (montado + liberado): *${R$(fat)}*` : ''}${aN ? `${usaG ? ' · ' : ''}⏰ em atraso (8 dias ou mais): ${N(aN)} pedidos${usaG ? ' · ' + R$(aV) : ''}` : ''}`]; })(), ''];
   for (const [s, x] of sits.sort((a, b) => (/BLOQ/i.test(b[0]) - /BLOQ/i.test(a[0])) || b[1].n - a[1].n)) {

@@ -459,8 +459,8 @@ export async function coletaDevolucoesAdmin(env, dia, maxVend = 40, prazoMs = 15
   await db.prepare('CREATE TABLE IF NOT EXISTS ceven_devolucao_checado (filial TEXT NOT NULL, rca TEXT NOT NULL, em TEXT, PRIMARY KEY (filial, rca))').run();
   await db.prepare('CREATE TABLE IF NOT EXISTS devolucao_nota_motivo (rca TEXT NOT NULL, nota TEXT NOT NULL, nao_pediu INTEGER, motivos TEXT, resolvido_em TEXT, PRIMARY KEY (rca, nota))').run();
   const mes = dia.slice(0, 7);
-  const pri = ((await db.prepare("SELECT DISTINCT filial, rca FROM gerot_pedido WHERE mes = ? AND rca IS NOT NULL AND em >= datetime('now', '-30 hours') AND json_extract(dados, '$.\"Devolução (R$)\"') > 0").bind(mes).all()).results || []);
-  const rod = ((await db.prepare("SELECT v.filial, v.rca FROM (SELECT DISTINCT filial, rca FROM gerot_vendedor_mes WHERE mes = ?) v LEFT JOIN ceven_devolucao_checado c ON c.filial = v.filial AND c.rca = v.rca ORDER BY COALESCE(c.em, '') LIMIT ?").bind(mes, maxVend).all()).results || []);
+  const pri = ((await db.prepare("SELECT DISTINCT g.filial, g.rca FROM gerot_pedido g LEFT JOIN ceven_devolucao_checado c ON c.filial = g.filial AND c.rca = g.rca WHERE g.mes = ? AND g.rca IS NOT NULL AND g.em >= datetime('now', '-30 hours') AND json_extract(g.dados, '$.\"Devolução (R$)\"') > 0 AND (c.em IS NULL OR c.em < datetime('now', '-3 hours') OR c.em < replace(substr(g.em, 1, 19), 'T', ' '))").bind(mes).all()).results || []);
+  const rod = ((await db.prepare("SELECT v.filial, v.rca FROM (SELECT DISTINCT filial, rca FROM gerot_vendedor_mes WHERE mes = ? AND rca NOT LIKE '%|%' AND CAST(rca AS INTEGER) > 0) v LEFT JOIN ceven_devolucao_checado c ON c.filial = v.filial AND c.rca = v.rca ORDER BY COALESCE(c.em, '') LIMIT ?").bind(mes, maxVend).all()).results || []);
   const fila = [], vistos = new Set(); for (const x of [...pri, ...rod]) { const k = x.filial + '|' + x.rca; if (!vistos.has(k) && fila.length < maxVend) { vistos.add(k); fila.push(x); } }
   let k = 0;
   await Promise.all(Array.from({ length: 3 }, async () => {
@@ -468,7 +468,7 @@ export async function coletaDevolucoesAdmin(env, dia, maxVend = 40, prazoMs = 15
       const { filial, rca } = fila[k++], fk = String(filial).toLowerCase() + '1';
       try {
         const r = await fetch(`${CEVEN}/api/rca/devolucoes?filial=${fk}&id=${rca}`, { headers: HR, signal: AbortSignal.timeout(15000) });
-        if (!r.ok) { falha('lista' + r.status); continue; }
+        if (!r.ok) { falha('lista' + r.status); if (r.status === 429) { k = fila.length; continue; } if (r.status >= 400 && r.status < 500) await db.prepare("INSERT INTO ceven_devolucao_checado (filial, rca, em) VALUES (?, ?, datetime('now')) ON CONFLICT (filial, rca) DO UPDATE SET em = excluded.em").bind(filial, String(rca)).run(); continue; }   // codigo que o CEVEN recusa (4xx) sai da frente da fila   // cota do CEVEN: para e nao insiste (volta na proxima rodada)
         const L = await r.json(); const lista = Array.isArray(L) ? L : (L && (L.devolucoes || L.items || L.data)) || [];
         res.vendedores++;
         const doMes = lista.filter((n) => n && n.numnota && String(n.data || '').slice(0, 7) === mes && Number(n.vl_devolvido) > 0);

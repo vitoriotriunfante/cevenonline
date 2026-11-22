@@ -121,3 +121,8 @@ Fora (sem fonte): marca própria / tripla / dobrou o mix / bonificação (itens 
 - CEVEN: admin (compromisso, RET, TAGs) e gerente (GPS das visitas) liberados so nessas rotas; impedimento por GPS volta em 23/11.
 - TV: cartao do vendedor com o mes do GEROT e a rota do dia pelo Clube.
 - SEM FONTE AINDA: gol contra / vermelho por devolucao (GEROT so da motivo por mes, sem nota e data).
+- (22/11, tarde) Pontos que subiram no refechamento: 58 copias MTZ de lances retirados (retiradas) + 161 lances de 03-11/11 gravados depois do fechamento original das 22h (retirados). Dias 03-11 ficaram abaixo do original.
+- Devolucao: CEVEN (rota do vendedor) le nota, data e motivo; 893 notas/167 vendedores. 85 lances 17-19/11 gerados; 391 de 03-16/11 conferem 100% com o motivo; 249 que o coletor antigo nao leu foram gravados (reparo, mesmo metodo de outubro). Todos os dias refechados; auditoria de prova 26.156 lances, 0 falha.
+- Trava no motor: lance retirado pela auditoria nunca volta; defesa x inativo nunca os dois no mesmo cliente/dia.
+- Placar: 11 filiais, gerentes e 71 supervisores batem com a soma dos vendedores (time do supervisor = canal da maioria).
+- JOTA bateria real 17-22/11: 89,9% (661/735). Corrigidos: domingo so barra pergunta do dia; singular com negrito; fechamento de agosto/setembro (vendedor caia no menu do mes passado); bloqueado comercial/financeiro; cartao no mes. Vazias (15) = saudacao/IA que o teste seco nao roda.

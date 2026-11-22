@@ -29,6 +29,7 @@ export async function acabamento(B, env, resp) {
   }
   // 18/11/2026 (R15/R18): "Vago" nunca aparece como nome ("Setor Vago" = setor sem titular; "Vago Gabriel" = quem cobre a vaga) e "1 clientes" vira "1 cliente"
   resp = resp.replace(/\bSetor Vago\b/gi, 'Setor sem titular').replace(/\bVAGO\s*(\(\s*SUP\s*\)\s*)?[-–:]?\s*(?=[A-Za-zÀ-ú]{2,})/gi, '').replace(/\bvago\b/gi, 'sem titular');
-  resp = resp.replace(/(^|[^\d.,])1 (pontos|clientes|pedidos|vendedores|visitas|lances|dias|notas|indústrias|produtos|itens|supervisores|filiais|motivos)\b/g, (m, a, w) => `${a}1 ${SING[w]}`);
+  // 22/11/2026 (bateria real: 'em *1* pedidos'): vale tambem com o numero em negrito
+  resp = resp.replace(/(^|[^\d.,*])(\*?)1(\*?) (pontos|clientes|pedidos|vendedores|visitas|lances|dias|notas|indústrias|produtos|itens|supervisores|filiais|motivos)\b/g, (m, a, b1, b2, w) => `${a}${b1}1${b2} ${SING[w]}`);
   return resp;
 }

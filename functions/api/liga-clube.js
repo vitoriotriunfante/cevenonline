@@ -234,6 +234,13 @@ export async function onRequestGet({ request, env }) {
     if (u.searchParams.get('lista') === '1') saida.conferencia.sobram_lista = sobram.map((x) => ({ f: x.f, chave: (grav.get(nk(x.f, x.chave)) || {}).chave || x.chave }));
   }
   if (u.searchParams.get('grava') === '1') {
+    // 22/11/2026 (auditoria): (1) lance retirado pela auditoria nunca volta; (2) defesa e resgate de inativo nunca os dois no mesmo cliente e dia (vale o que ja esta gravado)
+    try {
+      const ret = new Set(((await env.DB.prepare('SELECT filial, chave FROM tv_lances_retirados WHERE dia = ?').bind(dia).all()).results || []).map((x) => x.filial + '#' + x.chave));
+      const ja = ((await env.DB.prepare("SELECT filial, rca, cliente_id, substr(chave, 1, instr(chave, '|') - 1) t FROM tv_lances WHERE dia = ? AND (chave LIKE 'def|%' OR chave LIKE 'gol_inativo|%')").bind(dia).all()).results || []);
+      const tem = new Map(ja.map((x) => [x.filial + '|' + x.rca + '|' + x.cliente_id, x.t]));
+      L = L.filter((l) => { if (ret.has(l.filial + '#' + l.chave)) return false; const t0 = l.chave.split('|')[0]; if (t0 !== 'def' && t0 !== 'gol_inativo') return true; const o = tem.get(l.filial + '|' + l.rca + '|' + l.cliente_id); return !o || o === t0; });
+    } catch (e) { /* tabela de retirados ainda nao existe */ }
     const iso = new Date().toISOString(), t = (v, n = 200) => (v == null ? null : String(v).slice(0, n));
     const st = L.map((l) => env.DB.prepare('INSERT OR IGNORE INTO tv_lances (dia, filial, chave, nivel, rca, vendedor, supervisor, cliente_id, cliente, motivo, dias_sem_compra, ultima_compra, tempo_visita, obs, hora_sp, visto_em, baseline) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)')
       .bind(dia, l.filial, l.chave, l.nivel, t(l.rca, 20), t(l.vendedor), t(l.supervisor), t(l.cliente_id, 30), t(l.cliente), t(l.motivo), l.dias_sem_compra == null ? null : Math.trunc(l.dias_sem_compra), t(l.ultima_compra, 10), t(l.tempo_visita, 8), t(l.obs, 700), l.hora_sp, iso));
