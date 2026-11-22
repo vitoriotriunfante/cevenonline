@@ -782,6 +782,14 @@ export async function onRequestGet({ env, request, waitUntil }) {
   if (!env.DB) return new Response(JSON.stringify({ erro: 'D1 (env.DB) não configurado' }), { status: 503, headers: cors });
   // DIAGNOSTICO (?diag=1): uma chamada de cada caminho, com status e tempo, sem gravar nada
   if (new URL(request.url).searchParams.get('diag') === '1') {
+    // 22/11/2026 (Vitorio: 'faz o teste pra tu ver em 1 gerente e no admin'): so com a chave admin; passa pela trava do CEVEN SO durante este diagnostico
+    const { chaveAdminOk } = await import('../_lib/chave_admin_jota.js');
+    if (!(await chaveAdminOk(env, request).catch(() => false))) return new Response(JSON.stringify({ erro: 'nao autorizado' }), { status: 401, headers: cors });
+    const fetchTrava = globalThis.fetch;
+    if (globalThis.__fetchCevenOrig) globalThis.fetch = globalThis.__fetchCevenOrig;
+    try { return await diagCeven(); } finally { globalThis.fetch = fetchTrava; }
+  }
+  async function diagCeven() {
     const out = {}, mede = async (nome, url, h) => { const t = Date.now(); try { const r = await fetch(url, { headers: h, signal: AbortSignal.timeout(15000) }); const x = await r.text(); out[nome] = { http: r.status, ms: Date.now() - t, bytes: x.length, reset: r.headers.get('x-ratelimit-reset') }; } catch (e) { out[nome] = { erro: e.name, ms: Date.now() - t }; } };
     await mede('produtividade', `${CEVEN}/api/rca/produtividade?filial=tbl1&id=185`, HDR);
     // resposta real dos logins (02/11/2026): "login falhou" sem o status nao diz se e senha, bloqueio ou fora do ar. Nao devolve token nem senha.
@@ -803,6 +811,7 @@ export async function onRequestGet({ env, request, waitUntil }) {
     } catch (e) { out.gerente = String(e.message || e).slice(0, 80); }
     return new Response(JSON.stringify(out), { headers: cors });
   }
+  // fim do diagnostico
   const resp = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: cors });
 
   const t0 = Date.now();

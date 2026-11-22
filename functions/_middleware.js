@@ -2,6 +2,8 @@
 if (!globalThis.__cevenFetchBloqueado) {
   globalThis.__cevenFetchBloqueado = true;
   const _fetchOrig = globalThis.fetch.bind(globalThis);
+  // 22/11/2026: so o diagnostico com chave admin (/api/cron-varredura-central?diag=1) usa, e devolve a trava no fim
+  globalThis.__fetchCevenOrig = _fetchOrig;
   globalThis.fetch = (input, init) => {
     const url = typeof input === 'string' ? input : (input && input.url) || '';
     if (url.includes('ceven.drivetriunfante-locomotiva.com.br')) {
