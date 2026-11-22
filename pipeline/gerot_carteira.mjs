@@ -47,17 +47,28 @@ function rcaDoVendedor(filial, ven, pedido) {
   return v && (!n || bate(v.n, n) || v.n.split(' ')[0] === n.split(' ')[0]) ? pre : null;
 }
 
-function porPedido(arq) {
+// 22/11/2026: CALIBRACAO DO VALOR. O 'Valor item' nao fecha com a tela (/100 = 0,35-0,8x; x qtd = 24-960x). A coleta le na TELA da Carteira Total o total
+//   de cada situacao e testa as formulas candidatas; vale so a que bater (3%). Nenhuma bateu = valor fica null (o JOTA nao mostra R$). Log: so proporcoes.
+export function lerAlvoTela(txt) {
+  const n = (s) => Number(String(s).replace(/\./g, '').replace(',', '.'));
+  const tot = (txt.match(/CARTEIRA PENDENTE\s*\n\s*R\$\s*([\d.,]+)/i) || [])[1];
+  const sit = {}; for (const m of txt.matchAll(/(Bloqueado Financeiro|Bloqueado Comercial|Pendente|Montado|Liberado)\s*\n\s*R\$\s*([\d.,]+)\s*·/gi)) sit[m[1].toLowerCase()] = n(m[2]);
+  return { total: tot ? n(tot) : null, sit };
+}
+function porPedido(arq, alvo) {
   const w = XLSX.readFile(arq), sh = w.Sheets[w.SheetNames[0]];
   const rows = XLSX.utils.sheet_to_json(sh, { header: 1, defval: null });
+  const rowsW = XLSX.utils.sheet_to_json(sh, { header: 1, defval: null, raw: false });
   const hi = rows.findIndex((r) => r && r.some((c) => /^Pedido$/i.test(String(c || '').trim())) && r.some((c) => /^Filial$/i.test(String(c || '').trim())));
   if (hi < 0) throw new Error('planilha sem cabecalho Pedido/Filial');
   const H = rows[hi].map((c) => String(c || '').trim()), ix = (re) => H.findIndex((h) => re.test(h));
   const I = { ent: ix(/^Entrada$/i), fil: ix(/^Filial$/i), ped: ix(/^Pedido$/i), ori: ix(/^Origem$/i), st: ix(/^Status$/i), sit: ix(/^Situa[cç][aã]o$/i), mot: ix(/^Motivo Bloqueio$/i),
     cli: ix(/^Cliente$/i), cnpj: ix(/^CNPJ Cliente$/i), stc: ix(/^Status Cliente$/i), posm: ix(/^Positivado no m[eê]s$/i), sup: ix(/^Supervisor$/i), ven: ix(/^Vendedor$/i),
     forn: ix(/^Fornecedor$/i), qped: ix(/^Qt Pedida$/i), qfat: ix(/^Qt a Faturar$/i), val: ix(/^Valor item$/i), sku: ix(/^SKU$/i), prod: ix(/^Produto$/i) };
-  const P = new Map();
-  for (const r of rows.slice(hi + 1)) {
+  const P = new Map(), LN = [];
+  const brl = (t) => { if (t == null) return 0; const q = String(t).replace(/[R$\s]/g, ''); if (!q) return 0; const v = q.includes(',') ? Number(q.replace(/\./g, '').replace(',', '.')) : Number(q); return Number.isFinite(v) ? v : 0; };
+  for (let ri = hi + 1; ri < rows.length; ri++) {
+    const r = rows[ri], rw = rowsW[ri] || [];
     if (!r || !r.some((c) => c != null && c !== '')) continue;
     const filial = String(r[I.fil] || '').trim().slice(0, 3).toUpperCase(), pedido = String(r[I.ped] ?? '').replace(/\D/g, '');
     if (!/^[A-Z]{3}$/.test(filial) || !pedido) continue;
@@ -78,16 +89,27 @@ function porPedido(arq) {
     // 18/11/2026: o "Valor item" do GEROT vem em CENTAVOS -> divide por 100
     // 21/11/2026 (Vitorio: 'e so olhar nos arquivos do GEROT'): e o PRECO UNITARIO, nao o valor da linha. Linha = preco x Qt a faturar (sem ela, Qt pedida).
     //   A soma ficava 2-10x abaixo da tela (Bloqueio Comercial R$ 211 mil x R$ 442.445 do GEROT).
-    const qL = num(I.qfat >= 0 ? r[I.qfat] : 0) || num(I.qped >= 0 ? r[I.qped] : 0) || 1;
-    const vItem = num(I.val >= 0 ? r[I.val] : 0) / 100 * qL;
-    x.valor += vItem; x.itens++;
+    const qL = num(I.qfat >= 0 ? r[I.qfat] : 0) || num(I.qped >= 0 ? r[I.qped] : 0) || 1, raw = num(I.val >= 0 ? r[I.val] : 0), txtV = brl(I.val >= 0 ? rw[I.val] : null);
+    const cand = { A: raw / 100, B: raw / 100 * qL, C: txtV, D: txtV * qL, E: raw };
+    const ln = { x, cand, sit: String(x.situacao || '').toLowerCase(), mpOk: false }; LN.push(ln);
+    const vItem = cand.A;   // provisorio (so para os conjuntos de fornecedor/SKU); o valor final sai da calibracao
+    x.itens++;
     // MARCA PROPRIA (Liga): fornecedor TRIUNFANTE BRASIL, sem o palete (SKU 8171 'TRIUNFANTE (NAO E MARCA PROPRIA)', regra de 10/11/2026)
     { const fN = String(I.forn >= 0 ? r[I.forn] || '' : '').toUpperCase(), sk = String(I.sku >= 0 ? r[I.sku] ?? '' : '').replace(/\D/g, ''), pN = String(I.prod >= 0 ? r[I.prod] || '' : '').toUpperCase();
-      if (/TRIUNFANTE BRASIL|MARCA PROPRIA/.test(fN) && sk !== '8171' && !/PALLET|PALETE/.test(pN)) x.mp += vItem;
+      if (/TRIUNFANTE BRASIL|MARCA PROPRIA/.test(fN) && sk !== '8171' && !/PALLET|PALETE/.test(pN)) ln.mpOk = true;
       if (fN && vItem > 0) x._f.add(fN); if (sk && vItem > 0) x._s.add(sk); } x.qped += num(I.qped >= 0 ? r[I.qped] : 0); x.qfat += num(I.qfat >= 0 ? r[I.qfat] : 0);
     const f = I.forn >= 0 ? String(r[I.forn] || '').trim() : ''; if (f && !x.fornecedores.includes(f) && x.fornecedores.length < 8) x.fornecedores.push(f);
   }
-  const L = [...P.values()].map(({ _f, _s, ...x }) => ({ ...x, valor: Math.round(x.valor * 100) / 100, mp: Math.round(x.mp * 100) / 100, nforn: _f.size, skus: _s.size, hash: crypto.createHash('md5').update(JSON.stringify([x.status, x.situacao, x.motivo, Math.round(x.valor * 100), x.itens, x.qfat, x.rca, x.entrada, Math.round(x.mp * 100), _f.size, _s.size, 'c100q'])).digest('hex') }));
+  // calibracao contra a tela
+  const somas = {}; for (const k of Object.keys(LN[0] ? LN[0].cand : {})) somas[k] = LN.reduce((a, l) => a + (l.cand[k] || 0), 0);
+  const razao = {}; let esc = null;
+  if (alvo && alvo.total) for (const [k, v] of Object.entries(somas)) { razao[k] = Math.round((v / alvo.total) * 1000) / 1000; if (!esc && Math.abs(v / alvo.total - 1) <= 0.03) esc = k; }
+  const porSit = {}; if (esc) for (const l of LN) porSit[l.sit] = (porSit[l.sit] || 0) + (l.cand[esc] || 0);
+  const rSit = Object.fromEntries(Object.entries((alvo && alvo.sit) || {}).map(([k, v]) => [k, porSit[k] && v ? Math.round((porSit[k] / v) * 1000) / 1000 : null]));
+  log('calibracao do valor: proporcao (soma / tela) por formula', JSON.stringify(razao), '· escolhida', esc || 'NENHUMA (valor fica null)', '· por situacao', JSON.stringify(rSit));
+  for (const x of P.values()) { x.valor = esc ? 0 : null; x.mp = esc ? 0 : null; }
+  if (esc) for (const l of LN) { l.x.valor += l.cand[esc] || 0; if (l.mpOk) l.x.mp += l.cand[esc] || 0; }
+  const L = [...P.values()].map(({ _f, _s, ...x }) => ({ ...x, valor: x.valor == null ? null : Math.round(x.valor * 100) / 100, mp: x.mp == null ? null : Math.round(x.mp * 100) / 100, nforn: _f.size, skus: _s.size, hash: crypto.createHash('md5').update(JSON.stringify([x.status, x.situacao, x.motivo, x.valor == null ? null : Math.round(x.valor * 100), x.itens, x.qfat, x.rca, x.entrada, x.mp == null ? null : Math.round(x.mp * 100), _f.size, _s.size, 'cal'])).digest('hex') }));
   // 17/11/2026: o valor somado deu 25-82x o total do pedido no Clube. Log SO DO FORMATO (digitos trocados por 9, nada de valor) de Valor item, Qt Pedida e Caixas
   const fmt = (v) => (v == null ? 'null' : typeof v === 'number' ? 'numero' + (Number.isInteger(v) ? '-inteiro' : '-decimal') : String(v).replace(/[0-9]/g, '9').slice(0, 20));
   const amostra = rows.slice(hi + 1, hi + 400).filter(Boolean); const tipos = (k) => { const m = {}; for (const r of amostra) { const f = fmt(k >= 0 ? r[k] : null); m[f] = (m[f] || 0) + 1; } return JSON.stringify(Object.entries(m).sort((a, b) => b[1] - a[1]).slice(0, 4)); };
@@ -112,6 +134,8 @@ try {
   const achou = await page.evaluate(() => { const a = document.querySelector('[data-v="carteiraDet"]'); if (a) { a.scrollIntoView(); a.click(); } return !!a; });
   if (!achou) throw new Error('menu Carteira Total nao encontrado');
   await page.waitForTimeout(20000);
+  const alvo = lerAlvoTela(await page.evaluate(() => document.body.innerText).catch(() => ''));
+  log('tela da carteira: total lido', alvo.total ? 'sim' : 'NAO', '· situacoes lidas', Object.keys(alvo.sit).join(', ') || 'nenhuma');
   const b = page.getByText(/Exportar planilha/i).first();
   if (!(await b.count())) throw new Error('botao Exportar planilha nao encontrado');
   const dl = page.waitForEvent('download', { timeout: 240000 }).catch(() => null);
@@ -119,7 +143,7 @@ try {
   const d = await dl; if (!d) throw new Error('exportar nao gerou arquivo em 4 min');
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'gerot-cart-')), arq = path.join(tmp, 'carteira.xlsx'); await d.saveAs(arq);
   await carregaEquipe();
-  const { L, cab, linhas } = porPedido(arq);
+  const { L, cab, linhas } = porPedido(arq, alvo);
   fs.rmSync(tmp, { recursive: true, force: true });
   log(`carteira: ${linhas} itens · ${L.length} pedidos · colunas ${JSON.stringify(cab)} · com status ${L.filter((x) => x.status).length} · com vendedor ${L.filter((x) => x.rca).length}`);
   if (!ENSAIO && L.length) {

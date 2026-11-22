@@ -91,7 +91,7 @@ function rowVendHtml(v) {
     <td class="num">${N(v.pos)}${v.metaPos ? '/' + N(v.metaPos) : ''}</td>
     <td class="num">${N(v.rota)}</td>
     <td class="num">${N(v.prospects)}</td>
-    <td class="num">${v.bloqQtd ? `<span style="color:#f87171">${N(v.bloqQtd)} (${R(v.bloqVlr)})</span>` : '0'}</td>
+    <td class="num">${v.bloqQtd ? `<span style="color:#f87171">${N(v.bloqQtd)}${v.bloqVlr ? ` (${R(v.bloqVlr)})` : ''}</span>` : '0'}</td>
   </tr>`;
 }
 

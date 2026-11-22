@@ -116,12 +116,20 @@ export async function onRequestGet({ request, env }) {
       rotaMap.set(`${r.filial}|${r.rca}`, clientes);
     }
 
+    // 22/11/2026: R$ dos bloqueados so quando a soma da Carteira Total bate (5%) com a 'Carteira pendente' do GEROT; senao so a quantidade
+    let valorOk = false;
+    try {
+      const cpG = (filRows.results || []).reduce((a, f) => a + (Number(JSON.parse(f.dados || '{}')['Carteira pendente (R$)']) || 0), 0);
+      const sc = await env.DB.prepare(`SELECT SUM(valor) s FROM gerot_carteira${fil ? ' WHERE filial = ?' : ''}`).bind(...(fil ? [fil] : [])).first();
+      const cpF = fil ? (Number(JSON.parse(((filRows.results || []).find((f) => f.filial === fil) || {}).dados || '{}')['Carteira pendente (R$)']) || 0) : cpG;
+      valorOk = cpF > 0 && Math.abs((Number(sc && sc.s) || 0) / cpF - 1) <= 0.05;
+    } catch (e) { valorOk = false; }
     const pedMap = new Map();
     for (const p of pedRows.results || []) {
       const k = `${p.filial}|${p.rca}`;
       if (!pedMap.has(k)) pedMap.set(k, { bloqQtd: 0, bloqVlr: 0, libQtd: 0, libVlr: 0 });
       const cur = pedMap.get(k);
-      if (p.status === 'BLOQUEADO') { cur.bloqQtd += Number(p.qtd) || 0; cur.bloqVlr += Number(p.vlr) || 0; }
+      if (p.status === 'BLOQUEADO') { cur.bloqQtd += Number(p.qtd) || 0; cur.bloqVlr += valorOk ? Number(p.vlr) || 0 : 0; }
       if (p.status === 'LIBERADO') { cur.libQtd += Number(p.qtd) || 0; cur.libVlr += Number(p.vlr) || 0; }
     }
 
