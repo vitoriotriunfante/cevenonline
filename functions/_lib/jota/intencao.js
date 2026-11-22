@@ -304,7 +304,7 @@ export async function rotearIntencao(B, c, t, info) {
     // percentual de atingimento por filial (Micheleto, 17/11: virava texto generico da IA)
     if ((papel === 'diretoria' || papel === 'ceo') && /ATINGIMENTO|PERCENTUAL (DA META|DE META|DE ATINGIMENTO)|% DA META/.test(t) && !filCit) { const { respBrasilGerot } = await import('./respostas/gerot_painel.js'); const r = await respBrasilGerot(B, null).catch(() => null); if (r) return r; }
     // carteira por status / motivo (Micheleto, 18/11: "bloqueio financeiro, bloqueio comercial e todos os outros motivos")
-    if (/CARTEIRA|PEDIDOS? (EM CARTEIRA|PENDENTES?|BLOQUEAD)|BLOQUEIO (FINANCEIRO|COMERCIAL)/.test(t) && /STATUS|MOTIVO|BLOQUE|ABERT|SITUACAO/.test(t) && !/\b\d{7,}\b/.test(t)) { const e = await escG(); const r = await (await G()).respCarteiraStatus(B, e.filiais, e.rcas, e.nome).catch(() => null); if (r) return r; }
+    if (/CARTEIRA|PEDIDOS? (EM CARTEIRA|PENDENTES?|BLOQUEAD)|BLOQUEIO (FINANCEIRO|COMERCIAL)/.test(t) && /STATUS|MOTIVO|BLOQUE|ABERT|SITUACAO/.test(t) && !/\b\d{7,}\b/.test(t)) { const e = await escG(); const soB = /BLOQUEAD|BLOQUEIO/.test(t) && !/STATUS|CARTEIRA|TODOS OS (STATUS|MOTIVOS)|OUTROS MOTIVOS|SITUACAO/.test(t); const r = await (await G()).respCarteiraStatus(B, e.filiais, e.rcas, e.nome, soB).catch(() => null); if (r) return r; }
     // justificativas de nao venda pelo Clube (Vitorio, 18/11: "pq ate dia 16?" e "aberto por vendedor x justificativa e justificativa x vendedor")
     if (/JUSTIFICATIVA|MOTIVOS? DE NAO VENDA|NAO VENDA/.test(t)) {
       // 18/11/2026: a ORDEM das palavras decide: "vendedor x justificativa"/"por vendedor" = cada vendedor com os motivos dele; "justificativa x vendedor"/"por motivo" = cada motivo com quem mais usa

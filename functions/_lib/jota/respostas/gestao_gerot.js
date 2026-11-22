@@ -49,32 +49,46 @@ export async function respMargemGerot(B, filiais, nome) {
 }
 
 // ---------- CARTEIRA POR STATUS E MOTIVO (Carteira Total) ----------
-export async function respCarteiraStatus(B, filiais, rcas, nome) {
+export async function respCarteiraStatus(B, filiais, rcas, nome, soBloq) {
   // 21/11/2026 (Vitorio: "bloqueados... infelizmente nao pensou que tinha que ter o valor"): R$ de cada status e motivo = TOTAL DO PEDIDO no Clube da Venda
   // (o que o vendedor digitou; 89% dos bloqueados tem). O 'Valor item' da Carteira Total do GEROT nao fecha (sai de 2x a 10x menor), por isso nao e usado.
   const db = B.env && B.env.DB; if (!db) return null;
   const F = filiais && filiais.length ? filiais : FILIAIS;
   let R = [], V = [];
   try {
-    R = (await db.prepare(`SELECT c.filial, c.situacao, COALESCE(NULLIF(c.motivo, ''), '') motivo, COUNT(*) n, SUM(p.total) v, SUM(p.total IS NULL) sv FROM gerot_carteira c LEFT JOIN (SELECT filial, pedido_winthor, MAX(total) total FROM clube_pedido GROUP BY filial, pedido_winthor) p ON p.filial = c.filial AND p.pedido_winthor = c.pedido WHERE c.filial IN (${qs(F)})${rcas && rcas.length ? ` AND c.rca IN (${qs(rcas)})` : ''} GROUP BY c.filial, c.situacao, motivo`).bind(...F, ...(rcas || [])).all()).results || [];
+    R = (await db.prepare(`SELECT c.filial, c.situacao, COALESCE(NULLIF(c.motivo, ''), '') motivo, COUNT(*) n, SUM(p.total) v, SUM(p.total IS NULL) sv, SUM(c.valor) vg, SUM(CASE WHEN c.entrada <= date('now', '-3 hours', '-8 days') THEN 1 ELSE 0 END) atr, SUM(CASE WHEN c.entrada <= date('now', '-3 hours', '-8 days') THEN c.valor ELSE 0 END) atrv FROM gerot_carteira c LEFT JOIN (SELECT filial, pedido_winthor, MAX(total) total FROM clube_pedido GROUP BY filial, pedido_winthor) p ON p.filial = c.filial AND p.pedido_winthor = c.pedido WHERE c.filial IN (${qs(F)})${rcas && rcas.length ? ` AND c.rca IN (${qs(rcas)})` : ''} GROUP BY c.filial, c.situacao, motivo`).bind(...F, ...(rcas || [])).all()).results || [];
     V = (await db.prepare(`SELECT filial, dados FROM gerot_filial_mes WHERE mes = ? AND filial IN (${qs(F)})`).bind(mesAtual(), ...F).all()).results || [];
   } catch (e) { return null; }
   if (!R.length) return `💼 *Carteira — ${nome}*: nenhum pedido em aberto na Carteira Total do GEROT.`;
+  // 21/11/2026 (Vitorio: 'e so olhar nos arquivos do GEROT'): R$ = o do PROPRIO GEROT (preco x qt a faturar) quando a soma bate com a 'Carteira pendente' do GEROT (5%);
+  //   senao, o total do pedido no Clube (como antes) e o rodape diz qual valeu
+  const valG = V.reduce((a, r) => a + (Number(J(r.dados)['Carteira pendente (R$)']) || 0), 0), somaG = R.reduce((a, r) => a + (Number(r.vg) || 0), 0);
+  const usaG = !(rcas && rcas.length) ? valG > 0 && Math.abs(somaG / valG - 1) <= 0.05 : somaG > 0 && (await (async () => { try { const t = await db.prepare(`SELECT SUM(valor) s FROM gerot_carteira WHERE filial IN (${qs(F)})`).bind(...F).first(); return valG > 0 && Math.abs((Number(t && t.s) || 0) / valG - 1) <= 0.05; } catch (e) { return false; } })());
+  if (usaG) for (const r of R) { r.v = Number(r.vg) || 0; r.sv = 0; }
+  const limpaMot = (m) => String(m).replace(/:s*d{5,}/g, '').replace(/s+/g, ' ').trim();
   const porSit = new Map();
   for (const r of R) {
     const s = titulo(String(r.situacao || 'Sem situação').toLowerCase()); const x = porSit.get(s) || { n: 0, v: 0, sv: 0, mot: new Map(), fil: new Map() };
-    x.n += r.n; x.v += Number(r.v) || 0; x.sv += Number(r.sv) || 0;
-    if (r.motivo) { const m = titulo(r.motivo.toLowerCase()), y = x.mot.get(m) || { n: 0, v: 0 }; y.n += r.n; y.v += Number(r.v) || 0; x.mot.set(m, y); }
+    x.n += r.n; x.v += Number(r.v) || 0; x.sv += Number(r.sv) || 0; x.atr = (x.atr || 0) + (Number(r.atr) || 0); x.atrv = (x.atrv || 0) + (Number(r.atrv) || 0);
+    if (r.motivo) { const m = titulo(limpaMot(r.motivo).toLowerCase()), y = x.mot.get(m) || { n: 0, v: 0 }; y.n += r.n; y.v += Number(r.v) || 0; x.mot.set(m, y); }
     const z = x.fil.get(r.filial) || { n: 0, v: 0 }; z.n += r.n; z.v += Number(r.v) || 0; x.fil.set(r.filial, z); porSit.set(s, x);
   }
   const tot = R.reduce((a, r) => a + r.n, 0), val = V.reduce((a, r) => a + (Number(J(r.dados)['Carteira pendente (R$)']) || 0), 0);
-  const L = [`💼 *Carteira em aberto por status — ${nome}*`, `*${N(tot)}* pedidos${!(rcas && rcas.length) && val ? ` · carteira pendente ${R$(val)} (GEROT)` : ''}`, ''];
-  for (const [s, x] of [...porSit].sort((a, b) => (/BLOQ/i.test(b[0]) - /BLOQ/i.test(a[0])) || b[1].n - a[1].n)) {
-    L.push(`${/BLOQ/i.test(s) ? '🚫' : /LIBER/i.test(s) ? '🟢' : '⏳'} *${s}*: ${N(x.n)} pedidos · *${R$(x.v)}*${x.sv ? ` _(${N(x.sv)} sem valor)_` : ''}`);
-    for (const [m, y] of [...x.mot].sort((a, b) => b[1].v - a[1].v).slice(0, 6)) L.push(`   • ${m}: ${N(y.n)} · ${R$(y.v)}`);
+  // 21/11/2026 (Vitorio pediu 'pedido bloqueados' e veio a carteira inteira): so os bloqueados; o resto vira uma linha
+  const sits = [...porSit].filter(([s]) => !soBloq || /BLOQ/i.test(s)), resto = soBloq ? [...porSit].filter(([s]) => !/BLOQ/i.test(s)) : [];
+  const bN = sits.reduce((a, [, x]) => a + x.n, 0), bV = sits.reduce((a, [, x]) => a + x.v, 0);
+  if (soBloq && !sits.length) return `🚫 *Pedidos bloqueados — ${nome}*: nenhum pedido bloqueado na Carteira Total do GEROT agora. ✅`;
+  const L = soBloq ? [`🚫 *Pedidos bloqueados — ${nome}*: *${N(bN)}* pedidos · *${R$(bV)}*`, ''] : [`💼 *Carteira em aberto por status — ${nome}*`, `*${N(tot)}* pedidos${!(rcas && rcas.length) && val ? ` · carteira pendente ${R$(val)} (GEROT)` : ''}`,
+    ...(() => { const fat = [...porSit].filter(([s]) => /MONTAD|LIBERAD/i.test(s)).reduce((a, [, x]) => a + x.v, 0), aN = [...porSit].reduce((a, [, x]) => a + x.atr, 0), aV = [...porSit].reduce((a, [, x]) => a + x.atrv, 0); return [`✅ Faturável (montado + liberado): *${R$(fat)}*${aN ? ` · ⏰ em atraso (8 dias ou mais): ${N(aN)} pedidos${usaG ? ' · ' + R$(aV) : ''}` : ''}`]; })(), ''];
+  for (const [s, x] of sits.sort((a, b) => (/BLOQ/i.test(b[0]) - /BLOQ/i.test(a[0])) || b[1].n - a[1].n)) {
+    L.push(`${/BLOQ/i.test(s) ? '🚫' : /LIBER/i.test(s) ? '🟢' : '⏳'} *${s}*: ${N(x.n)} pedidos · ${x.v > 0 ? `*${R$(x.v)}*${x.sv ? ` _(${N(x.sv)} sem valor)_` : ''}` : '_sem valor no Clube_'}`);
+    const ms = [...x.mot].sort((a, b) => b[1].v - a[1].v || b[1].n - a[1].n);
+    for (const [m, y] of ms.slice(0, 8)) L.push(`   • ${m}: ${N(y.n)} · ${R$(y.v)}`);
+    if (ms.length > 8) L.push(`   _… e mais ${ms.length - 8} motivo(s)_`);
     if (F.length > 1 && /BLOQ/i.test(s)) L.push(`   _por filial: ${[...x.fil].sort((a, b) => b[1].v - a[1].v).map(([f, z]) => `${f} ${R$(z.v)}`).join(' · ')}_`);
   }
-  L.push('', '_Status e motivo: Carteira Total do GEROT · R$: total do pedido no Clube da Venda ("sem valor" = pedido que não passou pelo Clube). Valor de um pedido: mande o número._');
+  if (resto.length) L.push('', `_Resto da carteira: ${resto.sort((a, b) => b[1].n - a[1].n).map(([s, x]) => `${s.toLowerCase()} ${N(x.n)}`).join(' · ')} — peça *carteira por status* para ver tudo._`);
+  L.push('', '' + (usaG ? '_Carteira Total do GEROT (status, motivo e R$). Valor de um pedido: mande o número._' : '_Status e motivo: Carteira Total do GEROT · R$: total do pedido no Clube da Venda ("sem valor" = pedido que não passou pelo Clube). Valor de um pedido: mande o número._'));
   return L.join(String.fromCharCode(10));
 }
 

@@ -75,8 +75,11 @@ function porPedido(arq) {
         valor: 0, itens: 0, qped: 0, qfat: 0, fornecedores: [], mp: 0, _f: new Set(), _s: new Set() };
       P.set(k, x);
     }
-    // 18/11/2026: o "Valor item" do GEROT vem em CENTAVOS (varios pedidos davam exatamente 100,00x o total do Clube) -> divide por 100
-    const vItem = num(I.val >= 0 ? r[I.val] : 0) / 100;
+    // 18/11/2026: o "Valor item" do GEROT vem em CENTAVOS -> divide por 100
+    // 21/11/2026 (Vitorio: 'e so olhar nos arquivos do GEROT'): e o PRECO UNITARIO, nao o valor da linha. Linha = preco x Qt a faturar (sem ela, Qt pedida).
+    //   A soma ficava 2-10x abaixo da tela (Bloqueio Comercial R$ 211 mil x R$ 442.445 do GEROT).
+    const qL = num(I.qfat >= 0 ? r[I.qfat] : 0) || num(I.qped >= 0 ? r[I.qped] : 0) || 1;
+    const vItem = num(I.val >= 0 ? r[I.val] : 0) / 100 * qL;
     x.valor += vItem; x.itens++;
     // MARCA PROPRIA (Liga): fornecedor TRIUNFANTE BRASIL, sem o palete (SKU 8171 'TRIUNFANTE (NAO E MARCA PROPRIA)', regra de 10/11/2026)
     { const fN = String(I.forn >= 0 ? r[I.forn] || '' : '').toUpperCase(), sk = String(I.sku >= 0 ? r[I.sku] ?? '' : '').replace(/\D/g, ''), pN = String(I.prod >= 0 ? r[I.prod] || '' : '').toUpperCase();
@@ -84,7 +87,7 @@ function porPedido(arq) {
       if (fN && vItem > 0) x._f.add(fN); if (sk && vItem > 0) x._s.add(sk); } x.qped += num(I.qped >= 0 ? r[I.qped] : 0); x.qfat += num(I.qfat >= 0 ? r[I.qfat] : 0);
     const f = I.forn >= 0 ? String(r[I.forn] || '').trim() : ''; if (f && !x.fornecedores.includes(f) && x.fornecedores.length < 8) x.fornecedores.push(f);
   }
-  const L = [...P.values()].map(({ _f, _s, ...x }) => ({ ...x, valor: Math.round(x.valor * 100) / 100, mp: Math.round(x.mp * 100) / 100, nforn: _f.size, skus: _s.size, hash: crypto.createHash('md5').update(JSON.stringify([x.status, x.situacao, x.motivo, Math.round(x.valor * 100), x.itens, x.qfat, x.rca, x.entrada, Math.round(x.mp * 100), _f.size, _s.size, 'c100'])).digest('hex') }));
+  const L = [...P.values()].map(({ _f, _s, ...x }) => ({ ...x, valor: Math.round(x.valor * 100) / 100, mp: Math.round(x.mp * 100) / 100, nforn: _f.size, skus: _s.size, hash: crypto.createHash('md5').update(JSON.stringify([x.status, x.situacao, x.motivo, Math.round(x.valor * 100), x.itens, x.qfat, x.rca, x.entrada, Math.round(x.mp * 100), _f.size, _s.size, 'c100q'])).digest('hex') }));
   // 17/11/2026: o valor somado deu 25-82x o total do pedido no Clube. Log SO DO FORMATO (digitos trocados por 9, nada de valor) de Valor item, Qt Pedida e Caixas
   const fmt = (v) => (v == null ? 'null' : typeof v === 'number' ? 'numero' + (Number.isInteger(v) ? '-inteiro' : '-decimal') : String(v).replace(/[0-9]/g, '9').slice(0, 20));
   const amostra = rows.slice(hi + 1, hi + 400).filter(Boolean); const tipos = (k) => { const m = {}; for (const r of amostra) { const f = fmt(k >= 0 ? r[k] : null); m[f] = (m[f] || 0) + 1; } return JSON.stringify(Object.entries(m).sort((a, b) => b[1] - a[1]).slice(0, 4)); };
