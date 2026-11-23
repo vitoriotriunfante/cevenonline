@@ -194,7 +194,8 @@ export async function respHoje(B, E, t) {
   const ofiVend = ofi && ofi.meta ? (ofi.fat + ofi.pend) : 0;
   const ofiTend = ofi && ofi.meta && duTot ? ((ofiVend / Math.max(1, duTot - (duFalt - 1))) * duTot / ofi.meta) * 100 : 0;
   const ritO = await ritmoGerot(B, E);
-  const linhaGerot = ofi && ofi.meta ? `📊 Mês (GEROT): *${R$(ofiVend)}* / ${R$(ofi.meta)} (*${P(ofiVend, ofi.meta)}*) · ` + (ritO != null ? txtRitmo(ritO) : `📈 Tendência: *${ofiTend.toFixed(1).replace('.', ',')}%*`) : '';
+  // 23/11/2026 (Vitorio: 'onde ta 42 milhoes precisa colocar que e Faturado X + Carteira Y = Z'): o faturado (garantido) vem separado da carteira (pode ser cortada/excluida)
+  const linhaGerot = ofi && ofi.meta ? `📊 Mês (GEROT): faturado *${R$(ofi.fat)}* (${P(ofi.fat, ofi.meta)}) + carteira ${R$(ofi.pend)} = *${R$(ofiVend)}* de ${R$(ofi.meta)} (*${P(ofiVend, ofi.meta)}*) · ` + (ritO != null ? txtRitmo(ritO) : `📈 Tendência: *${ofiTend.toFixed(1).replace('.', ',')}%*`) : '';
   if (E.nacional) {
     const G = [...agrupa(V, (v) => v.filial)].sort((a, b) => b[1].dig - a[1].dig);
     const tot = { ...(agrupa(V, () => 'x').get('x') || { dig: 0, ped: 0, visF: 0, visP: 0, comVenda: 0, zerados: 0 }) };

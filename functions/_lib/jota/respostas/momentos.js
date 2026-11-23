@@ -53,11 +53,30 @@ async function recorrenciaGerot(B, v) {
   try { return await B.env.DB.prepare("SELECT sum(objetivo) objetivo, sum(meta) meta, sum(positivados) positivados FROM gerot_recorrencia_pasta WHERE mes = ? AND filial = ? AND nivel = 'vendedor' AND cod = ? HAVING count(*) > 0").bind(hojeSP().slice(0, 7), String(v.filial), String(v.rca)).first(); } catch (e) { return null; }
 }
 // Resultado do ultimo dia fechado no Clube da Venda (ontem) para compor o planejamento matinal (Vitorio, 13/11/2026)
+// PLANEJAMENTO DO DIA (Vitorio, 23/11/2026: 'de manha nao tem pedidos... coloque as oportunidades do dia: tags recorrencia hoje na rota,
+//   vendedores de varejo com menos de 20 visitas no dia por filial... informacao para comecar o dia'). Rota de hoje do Clube + TAG do admin.
+//   V = vendedores do escopo (com .varejo, .filial, .rca). Devolve por filial: clientes na rota, vendedores com rota, TAG recorrencia na rota,
+//   vendedores de varejo com rota < 20 (nome), e o total. Sem rota gravada hoje = null (nunca inventa).
+export async function planejamentoHoje(B, V) {
+  if (!B || !B.env || !B.env.DB) return null;
+  const hj = hojeSP(), F = [...new Set((V || []).map((v) => String(v.filial)).filter(Boolean))]; if (!F.length) return null;
+  const meus = new Map((V || []).map((v) => [v.filial + '|' + v.rca, v]));
+  let R0 = [];
+  try { R0 = (await B.env.DB.prepare(`SELECT r.filial, r.rca, COUNT(*) n, SUM(CASE WHEN EXISTS (SELECT 1 FROM cliente_focos f WHERE f.filial = r.filial AND f.id_cliente = r.cnpj AND f.tag LIKE '%RECORR%') THEN 1 ELSE 0 END) rec FROM clube_roteiro r WHERE r.dia = ? AND r.filial IN (${F.map(() => '?').join(',')}) GROUP BY r.filial, r.rca`).bind(hj, ...F).all()).results || []; } catch (e) { return null; }
+  R0 = R0.filter((r) => meus.has(r.filial + '|' + r.rca)); if (!R0.length) return null;
+  const pf = new Map();
+  for (const r of R0) { const v = meus.get(r.filial + '|' + r.rca), o = pf.get(r.filial) || { cli: 0, vend: 0, rec: 0, curtos: [] }; o.cli += r.n; o.vend++; o.rec += Number(r.rec) || 0; if (v && v.varejo && r.n < 20) o.curtos.push(`${r.rca} (${r.n})`); pf.set(r.filial, o); }
+  const tot = { cli: 0, vend: 0, rec: 0, curtos: 0 }; for (const o of pf.values()) { tot.cli += o.cli; tot.vend += o.vend; tot.rec += o.rec; tot.curtos += o.curtos.length; }
+  return { porFilial: pf, tot };
+}
+
 async function ontemClubeResumo(B, V, nacional = false) {
   if (!B || !B.env || !B.env.DB) return null;
   try {
-    const ult = await B.env.DB.prepare('SELECT MAX(dia) d FROM clube_venda_dia WHERE dia < ? AND total_pedido > 0').bind(hojeSP()).first();
-    const dia = ult && ult.d;
+    // 23/11/2026 (Vitorio: 'vc pegou venda de ontem... deveria ter pego do dia util anterior'): ultimo DIA UTIL (seg-sex, sem feriado) com venda no Clube
+    const { ehFeriado } = await import('../../feriados.js');
+    const { results: DS } = await B.env.DB.prepare("SELECT DISTINCT dia FROM clube_venda_dia WHERE dia < ? AND total_pedido > 0 AND strftime('%w', dia) BETWEEN '1' AND '5' ORDER BY dia DESC LIMIT 6").bind(hojeSP()).all();
+    const dia = ((DS || []).map((x) => x.dia).find((d) => !ehFeriado(d))) || null;
     if (!dia) return null;
     const fmt = `${dia.slice(8, 10)}/${dia.slice(5, 7)}`;
     if (nacional) {
@@ -258,7 +277,7 @@ export async function respMomento(B, c, Ev, momentoForcado = null) {
   const vend = (v.fat || 0) + (v.pend || 0), falta = Math.max(0, (v.meta || 0) - vend), du = diasUteisRestantes(), porDia = du ? falta / du : 0;
   if (momento === 'plano') {
     const [g, ont] = await Promise.all([recorrenciaGerot(B, v), ontemClubeResumo(B, [v])]);
-    if (ont) L.push(`📅 *Ontem (${ont.fmt}):* ${ont.val > 0 ? `*${R$(ont.val)}* em ${N(ont.ped)} ped.` : 'sem pedido no Clube'}${ont.rot ? ` · ${ont.vis}/${ont.rot} visitas` : ''}`);
+    if (ont) L.push(`📅 *Último dia útil (${ont.fmt}):* ${ont.val > 0 ? `*${R$(ont.val)}* em ${N(ont.ped)} ped.` : 'sem pedido no Clube'}${ont.rot ? ` · ${ont.vis}/${ont.rot} visitas` : ''}`);
     // 11/11 (parecer do analista, item 4): nunca chamar de 'faturamento' a soma; separar faturado e a faturar
     if (v.meta > 0) L.push(`💰 *Acumulado:* *${pc(vend, v.meta)}* da meta (${R$(vend)} de ${R$(v.meta)}) · fat. ${R$(v.fat || 0)} + a fat. ${R$(v.pend || 0)}`);
     if (v.metaPos) L.push(`👥 Positivação: *${N(v.pos || 0)} de ${N(v.metaPos)}* clientes`);
@@ -420,7 +439,7 @@ export async function respMomentoSupervisor(B, c, Ev, momentoForcado = null) {
   const linhaV = (x, extra) => { lista.push(x.v); return `• *${curto(x.v)}*${extra ? ' · ' + extra : ''}`; };   // 11/11/2026: sem posicao; o numero digitado e o CODIGO do vendedor
   if (momento === 'abertura') {
     const ont = await ontemClubeResumo(B, TODOS);
-    if (ont) L.push(`📅 *Ontem (${ont.fmt}):* *${R$(ont.val)}* em ${N(ont.ped)} ped. (${ont.com} vendedores com venda${ont.rot ? ` · ${ont.vis}/${ont.rot} visitas` : ''})`);
+    if (ont) L.push(`📅 *Último dia útil (${ont.fmt}):* *${R$(ont.val)}* em ${N(ont.ped)} ped. (${ont.com} vendedores com venda${ont.rot ? ` · ${ont.vis}/${ont.rot} visitas` : ''})`);
     // as duas partes explicitas (11/11: o item 2 mostra so o faturado em %; aqui faturado + a faturar, como o CEVEN)
     if (meta > 0) L.push(`💰 *Acumulado:* *${pc(vd, meta)}* da meta · fat. ${R$(soma((v) => v.fat))} (${pc(soma((v) => v.fat), meta)}) + a fat. ${R$(soma((v) => v.pend))} de ${R$(meta)}`);
     if (porDia > 0) L.push(`🎯 *Projeção de hoje:* a equipe precisa de *${R$(porDia)}* para o ritmo (${du}d úteis)`);
@@ -501,7 +520,7 @@ export async function respMomentoGerente(B, c, Ev, momentoForcado = null) {
   const L = [ABRE_G[momento][ix](n, nomeF), ''];
   if (momento === 'abertura') {
     const ont = await ontemClubeResumo(B, TODOS);
-    if (ont) L.push(`📅 *Ontem (${ont.fmt}):* *${R$(ont.val)}* em ${N(ont.ped)} ped.${ont.rot ? ` · ${N(ont.vis)}/${N(ont.rot)} visitas` : ''}`);
+    if (ont) L.push(`📅 *Último dia útil (${ont.fmt}):* *${R$(ont.val)}* em ${N(ont.ped)} ped.${ont.rot ? ` · ${N(ont.vis)}/${N(ont.rot)} visitas` : ''}`);
   }
   if (meta > 0) L.push(`💰 *Acumulado:* *${pc(vd, meta)}* da meta (${R$(vd)} de ${R$(meta)}) · fat. ${R$(soma(TODOS, (v) => v.fat))} (${pc(soma(TODOS, (v) => v.fat), meta)}) + a fat. ${R$(soma(TODOS, (v) => v.pend))}`);
   // Mesma fonte de resumo.js para o gerente de filial: macro.dig / macro.pedidos (inclui todos os canais/ocultos)
@@ -639,7 +658,7 @@ export async function respMomentoDiretoria(B, c, Ev, momentoForcado = null) {
   const L = [ABRE_D[momento][ix](n), ''];
   if (new Date(hojeSP() + 'T12:00:00Z').getUTCDay() === 0) L.push('📅 _Hoje é domingo (filiais paradas; números até o último dia útil)._', '');
   const ont = await ontemClubeResumo(B, TODOS, true);
-  if (ont) L.push(`📅 *Ontem (${ont.fmt}, Clube):* *${R$(ont.val)}* em *${N(ont.ped)}* pedidos` + (ont.rot ? ` · ${N(ont.vis)}/${N(ont.rot)} visitas` : ''));
+  if (ont) L.push(`📅 *Último dia útil (${ont.fmt}, Clube):* *${R$(ont.val)}* em *${N(ont.ped)}* pedidos` + (ont.rot ? ` · ${N(ont.vis)}/${N(ont.rot)} visitas` : ''));
 
   if (meta > 0) {
     L.push(`💰 *Vendido (fat. + a faturar):* *${pc(vd, meta)}* da meta (${R$(vd)} de ${R$(meta)})`);
@@ -648,7 +667,10 @@ export async function respMomentoDiretoria(B, c, Ev, momentoForcado = null) {
     L.push(`📊 *Ritmo:* ${statusRitmo} (calendário pede *${esp.toFixed(0)}%*)` + (du && meta > vd ? ` · precisa *${R$(porDia)}/dia útil* (${du}d)` : ''));
   }
   if (mpos > 0) L.push(`👥 *Positivação (GEROT):* *${N(pos)} de ${N(mpos)}* (${pc(pos, mpos)})` + (recMeta > 0 ? ` · 🔄 Recorrência: *${N(recPos)} de ${N(recMeta)}* (${pc(recPos, recMeta)})` : ''));
-  L.push(`📝 *Hoje (Clube):* *${R$(dig)}* em *${N(ped)}* pedidos` + (ped ? ` (ticket ${R$(dig / ped)})` : ''));
+  // 23/11/2026: de manha, sem pedido ainda, o 'hoje R$ 0' vira o PLANEJAMENTO do dia (rota, recorrencia na rota, rota curta)
+  const PLN = !ped ? await planejamentoHoje(B, V).catch(() => null) : null;
+  if (PLN) L.push(`🗓️ *Planejamento de hoje (rota do Clube):* *${N(PLN.tot.cli)}* clientes · ${N(PLN.tot.vend)} vendedores · 🔄 *${N(PLN.tot.rec)}* com TAG de recorrência na rota` + (PLN.tot.curtos ? ` · ⚠️ *${N(PLN.tot.curtos)}* vendedores de varejo com menos de 20 visitas` : ''));
+  else L.push(`📝 *Hoje (Clube):* *${R$(dig)}* em *${N(ped)}* pedidos` + (ped ? ` (ticket ${R$(dig / ped)})` : ''));
   if (visP > 0) L.push(`🚶 *Rota varejo:* *${N(visF)} de ${N(visP)}* visitas · ⚠️ *${zerados}* em rota sem pedido`);
 
   try {
@@ -665,9 +687,10 @@ export async function respMomentoDiretoria(B, c, Ev, momentoForcado = null) {
   // Por filial: 11 filiais ordenadas por % vendido (fat + a faturar / meta)
   porFil.sort((a, b) => b.pct - a.pct);
   if (porFil.length) {
-    L.push('', '*Por filial (% vendido · fat. · hoje):*');
+    L.push('', PLN ? '*Por filial (% vendido · fat. · rota de hoje):*' : '*Por filial (% vendido · fat. · hoje):*');
     for (const f of porFil) {
-      L.push(`• *${f.sig}* ${pc(f.vdF, f.mF)} (fat ${pc(f.fF, f.mF)}) · hoje ${R$(f.dF)}` + (visP > 0 ? ` · ${f.zF} zer.` : ''));
+      const p0 = PLN && PLN.porFilial.get(f.sig);
+      L.push(`• *${f.sig}* ${pc(f.vdF, f.mF)} (fat ${pc(f.fF, f.mF)}) · ` + (PLN ? (p0 ? `${N(p0.cli)} cli. na rota · 🔄 ${N(p0.rec)} recorr.${p0.curtos.length ? ` · ⚠️ ${p0.curtos.length} vend. < 20 visitas` : ''}` : 'sem rota hoje') : `hoje ${R$(f.dF)}` + (visP > 0 ? ` · ${f.zF} zer.` : '')));
     }
     const pior = porFil[porFil.length - 1];
     const maisZer = visP > 0 ? porFil.slice().sort((a, b) => b.zF - a.zF)[0] : null;

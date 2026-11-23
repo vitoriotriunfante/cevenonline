@@ -1,6 +1,6 @@
 # MAPA DOS DADOS — GERADO DO CÓDIGO
 
-> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-11-22 22:37 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
+> **Não editar à mão.** Gerado por `node scripts/mapa_dados.mjs` em 2026-11-23 12:01 UTC. Plano e decisões: [BASE_UNICA.md](BASE_UNICA.md).
 
 ## 1. Quem chama o CEVEN e RODA SOZINHO (16)
 Meta: só `functions/api/cron-varredura-central.js`.
@@ -67,7 +67,7 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `conferencia_rca` | `functions/api/cron-conferencia-dia.js` |
 | `config_custo` | `functions/api/custo-freio.js` |
 | `config_equipe_soberana` | `functions/api/equipe-decidir.js`, `functions/api/equipe-salvar.js`, `functions/api/equipe-solicitacoes.js` |
-| `config_flags` | `functions/api/cron-ceven-admin.js`, `functions/api/cron-notificacoes-supervisores.js`, `functions/api/gerot-carga.js`, `functions/api/vigia-fontes.js`, `functions/_lib/ceven_admin_token.js` |
+| `config_flags` | `functions/api/cron-ceven-admin.js`, `functions/api/cron-notificacoes-supervisores.js`, `functions/api/gerot-carga.js`, `functions/api/vigia-fontes.js`, `functions/_lib/arvore_ceven.js`, `functions/_lib/ceven_admin_token.js` |
 | `d1_telemetria_rotas` | `functions/_lib/telemetria.js` |
 | `descoberta_cursor` | `functions/api/cron-descobre-codigos.js` |
 | `devolucao_nota_motivo` | `functions/api/cron-lances.js`, `functions/_lib/arvore_ceven.js` |
@@ -121,6 +121,7 @@ Meta: só `functions/api/cron-varredura-central.js`.
 | `regras_monitoria` | `functions/_lib/monitoria/motor.js` |
 | `resumo_executivo_live` | `functions/api/cron-faturado-mes.js`, `functions/api/cron-mapa-executivo.js` |
 | `rota_gerente_dia` | `functions/_lib/arvore_ceven.js` |
+| `rota_planejada` | `functions/_lib/arvore_ceven.js` |
 | `saude_coleta` | `functions/api/cron-varredura-central.js` |
 | `semana_invicta_checada` | `functions/api/cron-semana-invicta.js` |
 | `solicitacoes_ajuste_equipe` | `functions/api/equipe-solicitacoes.js` |

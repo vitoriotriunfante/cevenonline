@@ -495,3 +495,45 @@ export async function coletaDevolucoesAdmin(env, dia, maxVend = 40, prazoMs = 15
   res.prioridade = pri.length;
   return res;
 }
+
+// ROTA PLANEJADA DOS PROXIMOS DIAS (23/11/2026, Tamara/TCV 352 pediu no domingo 'meu planejamento para amanha' e o Clube so tem a rota do dia):
+// roteiro do mes de cada supervisor pelo CEVEN de cada GERENTE (data_visita por cliente). Grava rota_planejada (dia, filial, rca, cliente) de hoje ate +7 dias.
+// Ritmo igual ao GPS (2 filiais por vez, 1,2 s entre chamadas). Apaga e regrava so os dias futuros da filial lida com sucesso (a rota muda).
+export async function coletaRotaPlanejada(env, hoje, prazoMs = 220000) {
+  if (!env.CEVEN_GERENTE_SENHA || !env.DB) return { status: 'SEM_SEGREDO_OU_D1' };
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS rota_planejada (dia TEXT NOT NULL, filial TEXT NOT NULL, rca TEXT NOT NULL, cliente TEXT NOT NULL, nome TEXT, cnpj TEXT, ult_compra TEXT, lido_em TEXT, PRIMARY KEY (dia, filial, rca, cliente))').run();
+  const ate = new Date(Date.parse(hoje + 'T12:00:00Z') + 7 * 864e5).toISOString().slice(0, 10);
+  const fim = Date.now() + prazoMs, res = { filiais: 0, supervisores: 0, visitas: 0, falhas: {} }, falha = (m) => { res.falhas[m] = (res.falhas[m] || 0) + 1; };
+  // 23/11/2026: o roteiro do mes e grande (~4 s por supervisor): RODIZIO — a filial lida ha mais tempo primeiro; cada rodada faz as que couberem no prazo
+  let ultR = {}; try { const f = await env.DB.prepare("SELECT valor FROM config_flags WHERE chave = 'rota_planejada_ult'").first(); ultR = JSON.parse((f && f.valor) || '{}'); } catch (e) { ultR = {}; }
+  const espera = (ms) => new Promise((ok) => setTimeout(ok, ms)), fila0 = GERENTES.slice().sort((x, y) => String(ultR[x.sigla] || '').localeCompare(String(ultR[y.sigla] || ''))); let ig = 0;
+  const pega = async (url, H) => { let r = await fetch(url, { headers: H, signal: AbortSignal.timeout(25000) }); if (r.status === 429) { await espera(20000); r = await fetch(url, { headers: H, signal: AbortSignal.timeout(25000) }); } await espera(1200); return r; };
+  await Promise.all(Array.from({ length: 2 }, async () => { while (ig < fila0.length && Date.now() < fim) { const g = fila0[ig++]; await (async () => {
+    try {
+      const tk = await tokenGerente(g, env.CEVEN_GERENTE_SENHA); if (!tk) return falha(g.sigla + ':login');
+      const H = { Authorization: 'Bearer ' + tk, 'User-Agent': 'Mozilla/5.0', 'X-App-Secret': CEVEN_APP_SECRET };
+      const p = await pega(`${CEVEN}/api/gerente/dashboard-cascata?filial=${g.filialKey}`, H); if (!p.ok) return falha(g.sigla + ':painel' + p.status);
+      const sups = ((await p.json()).supervisores || []).map((s) => s.supervisorId).filter((x) => x != null);
+      const linhas = []; let ok = true;
+      for (const id of sups) {
+        if (Date.now() > fim) { ok = false; falha('prazo'); break; }
+        const r = await pega(`${CEVEN}/api/gerente/supervisor/roteiro-mes?filial=${g.filialKey}&supervisorId=${id}`, H);
+        if (!r.ok) { ok = false; falha('rot' + r.status); continue; }
+        const a = await r.json().catch(() => null); if (!Array.isArray(a)) { ok = false; continue; }
+        res.supervisores++;
+        for (const v of a) { const d = String(v.data_visita || '').slice(0, 10); if (!(d >= hoje && d <= ate) || !v.id_representante || !v.id_cliente || v.prospect) continue;
+          linhas.push([d, g.sigla, String(v.id_representante), String(v.id_cliente), String(v.FANTASIA || v.razao_social || '').slice(0, 60), String(v.cnpj || '').replace(/\D/g, ''), String(v.data_ultima_compra || '').slice(0, 10) || null]); }
+      }
+      if (!ok || !linhas.length) return;   // leitura incompleta da filial: mantem o que ja estava gravado
+      res.filiais++; res.visitas += linhas.length; ultR[g.sigla] = new Date().toISOString();
+      // custo do D1 = linhas gravadas: so grava o que mudou e so apaga a visita que saiu da rota (nunca apaga+regrava tudo)
+      const quer = new Set(linhas.map((L) => L[0] + '|' + L[2] + '|' + L[3]));
+      const ex = ((await env.DB.prepare('SELECT dia, rca, cliente FROM rota_planejada WHERE filial = ? AND dia >= ?').bind(g.sigla, hoje).all()).results || []).filter((x) => !quer.has(x.dia + '|' + x.rca + '|' + x.cliente));
+      for (let i = 0; i < ex.length; i += 80) await env.DB.batch(ex.slice(i, i + 80).map((x) => env.DB.prepare('DELETE FROM rota_planejada WHERE dia = ? AND filial = ? AND rca = ? AND cliente = ?').bind(x.dia, g.sigla, x.rca, x.cliente)));
+      for (let i = 0; i < linhas.length; i += 80) await env.DB.batch(linhas.slice(i, i + 80).map((L) => env.DB.prepare("INSERT INTO rota_planejada (dia, filial, rca, cliente, nome, cnpj, ult_compra, lido_em) VALUES (?,?,?,?,?,?,?,datetime('now')) ON CONFLICT (dia, filial, rca, cliente) DO UPDATE SET nome = excluded.nome, cnpj = excluded.cnpj, ult_compra = excluded.ult_compra, lido_em = excluded.lido_em WHERE rota_planejada.nome IS NOT excluded.nome OR rota_planejada.ult_compra IS NOT excluded.ult_compra").bind(...L)));
+    } catch (e) { falha(g.sigla + ':' + String((e && e.message) || e).slice(0, 30)); }
+  })(); } }));
+  await env.DB.prepare("INSERT INTO config_flags (chave, valor) VALUES ('rota_planejada_ult', ?) ON CONFLICT (chave) DO UPDATE SET valor = excluded.valor").bind(JSON.stringify(ultR)).run();
+  res.lidas = ultR;
+  return res;
+}

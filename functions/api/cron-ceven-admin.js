@@ -36,5 +36,7 @@ export async function onRequest({ request, env }) {
   const A = await import('../_lib/arvore_ceven.js');
   if (quer('gps') && (u.searchParams.get('gps') === '1' || (rel.h >= 7 && rel.h <= 20))) { try { out.gps = await A.coletaGpsGerentes(env, rel.dia, 200000); } catch (e) { out.gps = { erro: String(e.message || e).slice(0, 80) }; } }
   if (quer('dev') && (u.searchParams.get('dev') === '1' || (rel.h >= 6 && rel.h <= 20))) { try { out.devolucoes = await A.coletaDevolucoesAdmin(env, rel.dia, Number(u.searchParams.get('max')) || 40, 200000); } catch (e) { out.devolucoes = { erro: String(e.message || e).slice(0, 80) }; } }
+  // ROTA PLANEJADA (hoje a +7 dias) pelo roteiro do mes dos gerentes: rodizio a cada 15 min, 05h-20h (filial mais antiga primeiro) ou ?rota=1
+  if (quer('rota') && (u.searchParams.get('rota') === '1' || (rel.h >= 5 && rel.h <= 20))) { try { out.rota = await A.coletaRotaPlanejada(env, rel.dia, 220000); } catch (e) { out.rota = { erro: String(e.message || e).slice(0, 80) }; } }
   return J(out);
 }
