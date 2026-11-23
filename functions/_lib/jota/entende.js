@@ -292,7 +292,7 @@ async function respFichaCliente(B, E, t, achado) {
   if (fic) {
     const dBr2 = (d) => d ? String(d).slice(8, 10) + '/' + String(d).slice(5, 7) + '/' + String(d).slice(0, 4) : 'sem data';
     const Ps = (fic.ped || []).filter((p) => !E.rca || String(p.rca) === String(E.rca));
-    const cab2 = `🏪 *${nome}* (#${x.id_cliente} · ${v.filial} · ${vn(v)})`;
+    const cab2 = `🏪 *Histórico do cliente — ${nome}* (#${x.id_cliente} · ${v.filial} · ${vn(v)})`;
     if (!Ps.length) return [cab2, E.rca ? 'Não tenho pedido deste cliente com o seu código no histórico.' : 'Não tenho pedido deste cliente no histórico.', '', SUGESTAO + 'peça "o que oferecer".'].join('\n');
     const ult2 = `Última compra: *${dBr2(Ps[0].data)}* · ${R$(Ps[0].valor)}`, itens2 = (Ps[0].itens || []).map((s) => `• ${titulo(s.d)}: ${N(s.q)} un. · ${R$(s.v)}`), parou2 = (fic.parou || []).filter((s) => !E.rca || String(s.rca) === String(E.rca)).map((s) => `• ${titulo(s.d)} · última: ${dBr2(s.ult)}`);
     if (FICHA_PEDIDOS.test(t)) return [cab2, '', '*Últimos pedidos:*', ...Ps.map((p) => `• ${dBr2(p.data)} · nº ${p.num} · ${R$(p.valor)} · ${titulo(String(p.status || 'sem status'))}${p.cortado > 0 ? ` · cortado ${R$(p.cortado)}` : ''}${(p.cortes || []).length ? `\n   ✂️ ${titulo(p.cat || 'Corte')}: ${p.cortes.slice(0, 6).map((i) => titulo(i.d)).join(', ')}` : ''}${E.rca ? '' : ` · ${p.rca}`}`), '', SUGESTAO + 'peça "o que oferecer" para a próxima visita.'].join('\n');
@@ -485,7 +485,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
         } else r = await interno(chave.replace('VENDEDOR', eu));
         // META DE RECORRENCIA = GEROT (Vitorio, 10/11/2026: 'a meta de recorrencia tem no GEROT'): lista do dia 1 (recuperacao), meta 80%; a lista da TAG abaixo mostra quem falta
         if (/recorrencia/i.test(chave) && B.env && B.env.DB) { try {
-          const g = await B.env.DB.prepare("SELECT sum(objetivo) objetivo, sum(meta) meta, sum(positivados) positivados, sum(faturado) faturado, max(em) em, count(*) pastas FROM gerot_recorrencia_pasta WHERE mes = ? AND filial = ? AND nivel = 'vendedor' AND cod = ? HAVING count(*) > 0").bind(hojeSP().slice(0, 7), String(c.filial || ''), String(rcaV)).first();
+          const g = await B.env.DB.prepare(/* 23/11/2026 (conflito 13): so a pasta atual */ "SELECT r.objetivo, r.meta, r.positivados, r.faturado, r.em, 1 pastas FROM gerot_recorrencia_pasta r WHERE r.mes = ? AND r.filial = ? AND r.nivel = 'vendedor' AND r.cod = ? ORDER BY (r.sup = (SELECT g.cod_sup FROM gerot_vendedor_mes g WHERE g.mes = r.mes AND g.filial = r.filial AND CAST(g.rca AS INTEGER) = CAST(r.cod AS INTEGER) ORDER BY coalesce(json_extract(g.dados, '$."Faturado líquido (R$)"'), 0) DESC LIMIT 1)) DESC, r.em DESC LIMIT 1").bind(hojeSP().slice(0, 7), String(c.filial || ''), String(rcaV)).first();
           if (g && g.objetivo != null) r = [`🎯 *Meta de recorrência (GEROT)*: objetivo *${N(g.objetivo)}* clientes · meta 80% = *${N(g.meta || 0)}* · positivados *${N(g.positivados || 0)}*` + (g.meta ? ` (${(g.positivados / g.meta * 100).toFixed(1).replace('.', ',')}% da meta · faltam *${N(Math.max(0, g.meta - g.positivados))}*)` : '') + (g.faturado != null ? ` · ${R$(g.faturado)}` : ''),
             '_Lista do dia 1º do GEROT: clientes com compra de 31 a 90 dias e nenhuma nos 30 dias antes do dia 1º._', '', String(r)].join('\n');
         } catch (e) { /* sem GEROT: fica a TAG do CEVEN */ } }
@@ -906,6 +906,9 @@ export async function respostaInterna(B, c, texto, anteriores) {
       const Es = await carregaEscopo(B, esc), dev = /DEVOLU/.test(t);
       const S = [...agrupa(Es.vend, (v) => supChave(v, Es.nacional))].filter(([k]) => supReal(k) && !/^VAGO/.test(k)).filter(([, x]) => dev || x.metaPos > 0)
         .sort((a, b) => dev ? b[1].dev - a[1].dev : a[1].pos / a[1].metaPos - b[1].pos / b[1].metaPos).slice(0, 10);
+      // 23/11/2026 (dicionario 3.9, conflito 7): positivacao de cada equipe = clientes distintos (regra 4), ranking pela % da meta do supervisor no GEROT quando houver
+      if (!dev && !Es.nacional && S.length && B.env && B.env.DB) { try { const { positivacaoPorGrupos } = await import('../fatos/index.js'); const G0 = [...agrupa(Es.vend, (v) => supChave(v, false))].filter(([k]) => supReal(k) && !/^VAGO/.test(k)); const PG = await positivacaoPorGrupos(B.env.DB, Es.filiais[0], new Map(G0.map(([k, y]) => [k, y.V.map((v) => v.rca)]))); if (PG) { const S2 = G0.map(([k, y]) => [k, { ...y, pos: (PG.get(k) || {}).pos || 0 }]).sort((x, y) => x[1].pos - y[1].pos).slice(0, 10); return [`🔻 *Supervisores — menor positivação · ${Es.nome}* _(clientes distintos com faturado no mês, GEROT)_`, ...S2.map(([k, x], i) => `${i + 1}. ${supNome(k)} — ${N(x.pos)} clientes`)].join('
+'); } } catch (e) { /* segue */ } }
       if (S.length) return [`🔻 *Supervisores — ${dev ? 'maior devolução no mês' : 'menor positivação'} · ${Es.nome}*`, ...S.map(([k, x], i) => `${i + 1}. ${supNome(k)} — ${dev ? R$(x.dev) : `${x.pos} de ${Math.round(x.metaPos)} (${pctTxt(x.pos / x.metaPos * 100)})`}`)].join('\n');
     }
     // MARCA OU INDUSTRIA CITADA: "venda de bally por supervisor", "resumo de grassi", "quanto falta de panasonic". Antes caia no total geral, como se a marca nao tivesse sido pedida (auditoria 01/11/2026)

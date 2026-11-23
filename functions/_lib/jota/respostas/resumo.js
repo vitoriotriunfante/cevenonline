@@ -405,7 +405,10 @@ export async function respHojeEquipe(B, E) {
     const jus = J.filter((j) => j.filial === v.filial && String(j.rca) === String(v.rca));
     return { v, c, dig, ped: c ? Number(c.ped_total) || 0 : 0, rot: c ? Number(c.roteiros) || 0 : 0, vis: c ? Number(c.visitas_rota) || 0 : 0, metaDia, pct: metaDia ? dig / metaDia : (dig > 0 ? 9 : null), jus };
   });
-  const tDig = L0.reduce((a, x) => a + x.dig, 0), tMeta = V.some((v) => v.cap != null) && DUg.restantes > 0 ? Math.max(0, V.reduce((a, v) => a + (v.meta || 0), 0) - V.reduce((a, v) => a + (v.cap || 0), 0)) / DUg.restantes : 0 /* equipe: (meta - captacao) / dias, nunca a soma das necessidades */, tPed = L0.reduce((a, x) => a + x.ped, 0);
+  // 23/11/2026 (total = linhas): na filial inteira, o Clube de quem nao esta na lista (fora das equipes, televenda) entra no total e numa linha propria
+  const foraC = !(E.supervisor || E.grupo || E.rca) ? C.filter((x) => !L0.some((y) => y.v.filial === x.filial && String(Number(y.v.rca)) === String(Number(x.rca)))) : [];
+  const foraDig = foraC.reduce((a, x) => a + (Number(x.total_pedido) || 0), 0), foraPed = foraC.reduce((a, x) => a + (Number(x.ped_total) || 0), 0);
+  const tDig = L0.reduce((a, x) => a + x.dig, 0) + foraDig, tMeta = V.some((v) => v.cap != null) && DUg.restantes > 0 ? Math.max(0, V.reduce((a, v) => a + (v.meta || 0), 0) - V.reduce((a, v) => a + (v.cap || 0), 0)) / DUg.restantes : 0 /* equipe: (meta - captacao) / dias, nunca a soma das necessidades */, tPed = L0.reduce((a, x) => a + x.ped, 0) + foraPed;
   const tRot = L0.reduce((a, x) => a + x.rot, 0), tVis = L0.reduce((a, x) => a + x.vis, 0);
   const far = (p) => p == null ? '⚪' : p >= 1 ? '🟢' : p >= 0.7 ? '🟡' : '🔴';
   const hora = lido ? new Date(lido).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }) : '';
@@ -419,6 +422,7 @@ export async function respHojeEquipe(B, E) {
     L.push(`${far(x.pct)} *${x.v.rca} - ${titulo(nome2(x.v.nome))}*: ${R$(x.dig)}${x.metaDia ? ` de ${R$(x.metaDia)}` : ''} · ${N(x.ped)} ped.` + (x.rot ? ` · ${x.vis}/${x.rot} vis.` : '') + sp);
   }
   if (ord.length > 15) L.push(`… e mais ${ord.length - 15} vendedores`);
+  if (foraDig || foraPed) L.push(`⚪ _fora das equipes_: ${R$(foraDig)} · ${N(foraPed)} ped.`);
   const parados = J.filter((j) => Number(j.dias_sem_comprar) > 30 && L0.some((x) => x.v.filial === j.filial && String(x.v.rca) === String(j.rca))).sort((a, b) => Number(b.dias_sem_comprar) - Number(a.dias_sem_comprar));
   if (parados.length) {
     L.push('', `🟡 *Ficaram na mesa (visitados, sem pedido, +30 dias sem comprar): ${parados.length}*`);

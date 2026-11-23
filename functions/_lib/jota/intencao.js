@@ -62,6 +62,20 @@ export async function rotearIntencao(B, c, t, info) {
 
   // A · PARE
   if (/^\W*(PARE|PARA|CHEGA|STOP|CANCELA|CANCELAR|PARE DE MANDAR)\W*$/.test(t)) return 'Ok, parei. Quando quiser, é só perguntar.';
+  // R · ROTEAMENTO DO CONTRATO (gabarito 23/11/2026): cada pergunta no item certo do menu
+  // R1 · recorrencia do vendedor ('como estou indo com as recorrencias') = item 8, nunca o cartao geral
+  if (papel === 'vendedor' && /RECORREN/.test(t) && !/O QUE (E|EH)|REGRA|COMO FUNCIONA|ESCOLHID|JANEIRO|FEVEREIRO|MARCO|ABRIL|MAIO|JUNHO|JULHO|AGOSTO|SETEMBRO|OUTUBRO|MES PASSADO|MES ANTERIOR|EQUIPE/.test(t) && info && info.interno && !/CLIENTES DE RECORRENCIA/.test(t)) return info.interno('quais sao meus clientes de recorrencia');
+  // R2 · 'carteira de clientes' do vendedor (o numero citado e o proprio codigo) = item 14
+  if (papel === 'vendedor' && rcaV && /CARTEIRA DE CLIENTES?\b|MINHA CARTEIRA\W*$/.test(t) && !(t.match(/\b\d{3,}\b/g) || []).some((n) => String(Number(n)) !== String(Number(rcaV)))) {
+    const Ev = await carregaEscopo(B, esc), v = ((Ev && Ev.vend) || []).concat((Ev && Ev.ocultos) || []).find((x) => String(Number(x.rca)) === String(Number(rcaV)));
+    if (v) { const { respCarteiraVendedor } = await import('./respostas/rota.js'); const r = await respCarteiraVendedor(B, v).catch(() => null); if (r) return r; }
+  }
+  // R5 · 'resultado por vendedor, faturado, pendentes e positivacao' = o resumo da equipe aberto por vendedor (nao a carteira)
+  if ((papel === 'supervisor' || papel === 'gerente') && /RESULTADO|DESEMPENHO/.test(t) && /POR VENDEDOR/.test(t) && /FATURAD|POSITIVA/.test(t)) { const { respResumo } = await import('./respostas/resumo.js'); const r = await respResumo(B, await carregaEscopo(B, esc)).catch(() => null); if (r) return r; }
+  // R3 · compromisso do supervisor (lancamento de hoje) = respCompromisso (CEVEN admin)
+  if (acima && /COMPROMISSO/.test(t) && !/SEMANA|RANKING|POR FILIAL|PERCENT|%/.test(t)) { const { respCompromisso } = await import('./respostas/liga_mix.js'); const r = await respCompromisso(B, await carregaEscopo(B, esc)).catch(() => null); if (r) return r; }
+  // R4 · 'resultado por industria' (gerente/diretoria) = painel das industrias da filial, nunca uma industria adivinhada
+  if ((papel === 'gerente' || papel === 'diretoria' || papel === 'ceo') && /(RESULTADO|COMO ESTA|COMO ESTAMOS|VENDAS?)\W.*\bPOR INDUSTRIAS?\b|^\W*POR INDUSTRIAS?\W*$/.test(t) && (c.filial || filCit)) { const PI = await import('./respostas/painel_industrias.js'); const r = await PI.respPainelIndustrias(B.env, B, { mes: hojeSP().slice(0, 7), fil: filCit || c.filial }).catch(() => null); if (r) return r; }
   // A6 · SUGESTAO (com ou sem dois pontos) — registra e agradece; nunca vira consulta
   if (/^\W*SUGEST(AO|OES)?\b/.test(t) && t.replace(/^\W*SUGEST(AO|OES)?\W*/, '').length > 3) {
     if (!B.seco) try { await B.env.DB.prepare('INSERT INTO bot_sugestoes (celular, nome, papel, filial, texto, sobre) VALUES (?,?,?,?,?,?)').bind(c.celular || '', c.nome || '', papel, c.filial || '', t.slice(0, 1000), 'sugestao').run(); } catch (e) { /* segue */ }

@@ -17,8 +17,8 @@ const CASOS = JSON.parse(fs.readFileSync(new URL('./gabarito_perguntas.json', im
 const npxDir = path.join(process.env.LOCALAPPDATA || '', 'npm-cache', '_npx');
 const WR = fs.readdirSync(npxDir).map((d) => path.join(npxDir, d, 'node_modules/wrangler/bin/wrangler.js')).find((x) => fs.existsSync(x));
 const cacheSql = new Map();
-function sql(q) {
-  if (cacheSql.has(q)) return cacheSql.get(q);
+function sql(q, semCache = false) {
+  if (!semCache && cacheSql.has(q)) return cacheSql.get(q);
   const r = spawnSync(process.execPath, [WR, 'd1', 'execute', 'ceven_noc_d1', '--remote', '--json', '--command', q], { encoding: 'utf8', maxBuffer: 1 << 28 });
   const s = r.stdout || ''; let out;
   try { out = JSON.parse(s.slice(s.indexOf('[')))[0].results; } catch { throw new Error('D1 falhou: ' + q.slice(0, 120) + ' :: ' + (r.stderr || s).slice(0, 300)); }
@@ -97,9 +97,10 @@ const V = {
   // dia (Clube): só confere quando há leitura de hoje; aceita as duas somas do Clube (3.13 ainda em decisão)
   clube_dia: (p) => {
     const w = [p.filial && `filial = '${p.filial}'`, p.rca && `CAST(rca AS INTEGER) = ${+p.rca}`, p.supervisor && `CAST(rca AS INTEGER) IN (${rcasEquipe(p.filial, p.supervisor).map(Number).join(',') || -1})`, p.grupo && `CAST(rca AS INTEGER) IN (${rcasGrupo(p.filial, p.grupo).map(Number).join(',') || -1})`].filter(Boolean);
-    const a = sql(`SELECT sum(total_pedido) v FROM clube_venda_dia WHERE dia = '${HOJE}'${w.length ? ' AND ' + w.join(' AND ') : ''}`)[0] || {};
-    const b = sql(`SELECT sum(total) v FROM clube_pedido WHERE dia = '${HOJE}'${w.length ? ' AND ' + w.join(' AND ') : ''}`)[0] || {};
-    return [{ rotulo: 'pedido colocado hoje (3.13)', tipo: 'rs', alternativas: [a.v || 0, b.v || 0] }];
+    // 23/11/2026: o Clube e lido a cada ~15 min; o valor certo e o da hora da resposta. Mede antes (p._antes) e depois da pergunta, sem cache, e aceita a faixa
+    const le = () => { const a = sql(`SELECT sum(total_pedido) v FROM clube_venda_dia WHERE dia = '${HOJE}'${w.length ? ' AND ' + w.join(' AND ') : ''}`, true)[0] || {}; const b = sql(`SELECT sum(total) v FROM clube_pedido WHERE dia = '${HOJE}'${w.length ? ' AND ' + w.join(' AND ') : ''}`, true)[0] || {}; return [a.v || 0, b.v || 0]; };
+    const depois = le(), antes = p._antes || depois;
+    return [{ rotulo: 'pedido colocado hoje (3.13)', tipo: 'rs', alternativas: [...depois, ...antes], faixas: [[Math.min(antes[0], depois[0]), Math.max(antes[0], depois[0])], [Math.min(antes[1], depois[1]), Math.max(antes[1], depois[1])]] }];
   },
 };
 
@@ -115,6 +116,7 @@ function numeros(txt) {
 }
 function acha(esperado, toks) {
   const alvos = esperado.alternativas || [esperado.valor];
+  if (esperado.faixas && toks.some((t) => !t.pct && esperado.faixas.some(([a, b]) => t.v >= a - Math.max(t.prec, 1.01) && t.v <= b + Math.max(t.prec, 1.01)))) return true;
   return alvos.some((alvo) => toks.some((t) => {
     if (esperado.tipo === 'pct') return t.pct && Math.abs(t.v - alvo) <= Math.max(t.prec, 0.1) + 0.06;
     if (t.pct) return false;
@@ -131,7 +133,7 @@ function checaLinhas(resp) {
     if (!/^\W*(por|aberto por)\s+(filial|filiais|supervisor|supervisores|vendedor|vendedores|grupo|gerente)\b/i.test(ls[i].replace(/[*_]/g, ''))) continue;
     const linhas = []; let j = i + 1, cortado = false;
     for (; j < ls.length && ls[j].trim(); j++) { if (/e mais \d+/i.test(ls[j])) { cortado = true; break; } if (/^\s*[•\-▪·]/.test(ls[j])) linhas.push(ls[j]); }
-    if (cortado || linhas.length < 2) continue;
+    if (cortado || !linhas.length) continue;
     const vals = linhas.map((l) => { const m = l.match(/R\$\s*(-?[\d.,]+\s*(?:mi|mil)?)/i); return m ? numeros(m[1])[0] : null; });
     if (vals.some((x) => !x)) continue;
     const soma = vals.reduce((s, x) => s + x.v, 0), tol = vals.reduce((s, x) => s + x.prec, 0) + 1.01;
@@ -198,7 +200,7 @@ function avaliar(caso, resp) {
   for (const ch of caso.checagens || []) {
     if (diaSemNumero && ch.id === 'clube_dia') continue;
     let es; try { es = V[ch.id](ch.p || {}); } catch (e) { motivos.push({ c: 'b', m: `verificação ${ch.id} falhou no D1: ${e.message.slice(0, 80)}` }); r.b = false; continue; }
-    for (const e of es) { const ok = acha(e, toks); esperados.push({ ...e, ok }); if (!ok) { r.b = false; motivos.push({ c: 'b', m: `${e.rotulo}: esperado ${e.tipo === 'pct' ? fmt(e.valor) + '%' : (e.tipo === 'rs' ? 'R$ ' : '') + fmt(e.valor ?? e.alternativas.join(' ou '))} (${ch.id})` }); } }
+    for (const e of es) { const ok = acha(e, toks); esperados.push({ ...e, ok }); if (!ok) { r.b = false; motivos.push({ c: 'b', m: `${e.rotulo}: esperado ${e.tipo === 'pct' ? fmt(e.valor) + '%' : (e.tipo === 'rs' ? 'R$ ' : '') + (e.valor != null ? fmt(e.valor) : e.alternativas.map(fmt).join(' ou '))} (${ch.id})` }); } }
   }
   // (c)
   const blocos = checaLinhas(resp);
@@ -214,7 +216,7 @@ function avaliar(caso, resp) {
 // ---------- rodar ----------
 console.log(`hoje ${HOJE} · GEROT "${POSICAO}" · Clube hoje: ${SEM_LEITURA_HOJE ? 'sem leitura' : LEIT_CLUBE.l}${SEM_DIA_UTIL ? ' · DOMINGO/FERIADO' : ''} · ${CASOS.length} casos`);
 const res = []; let prox = 0;
-async function trab() { while (prox < CASOS.length) { const i = prox++, caso = CASOS[i]; const t0 = Date.now(); const resp = await perguntar(caso, i); const av = avaliar(caso, resp); res[i] = { caso, resp, ms: Date.now() - t0, ...av }; process.stdout.write(`\r${res.filter(Boolean).length}/${CASOS.length}`); } }
+async function trab() { while (prox < CASOS.length) { const i = prox++, caso = CASOS[i]; const t0 = Date.now(); for (const ch of caso.checagens || []) if (ch.id === 'clube_dia' && !SEM_DIA_UTIL && !SEM_LEITURA_HOJE) { try { const w = { ...(ch.p || {}) }; const r = V.clube_dia(w)[0]; ch.p = { ...(ch.p || {}), _antes: r.alternativas.slice(0, 2) }; } catch (e) { /* sem D1 */ } } const resp = await perguntar(caso, i); const av = avaliar(caso, resp); res[i] = { caso, resp, ms: Date.now() - t0, ...av }; process.stdout.write(`\r${res.filter(Boolean).length}/${CASOS.length}`); } }
 await Promise.all(Array.from({ length: 3 }, trab));
 console.log();
 

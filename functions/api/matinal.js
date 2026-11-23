@@ -220,6 +220,17 @@ export async function onRequestGet({ request, env }) {
       accInd(filIndMap, r.filial, ind, m);
       accInd(brIndMap, 'brasil', ind, m);
     }
+    // 23/11/2026 (docs/DICIONARIO_KPIS.md 3.22, conflito 7): positivacao por industria na filial e no Brasil = clientes distintos com faturado > 0
+    // (gerot_cliente_forn_mes), nunca a soma dos vendedores (o mesmo cliente de duas pastas contava 2x). Brasil = soma das filiais (CNPJ e por filial).
+    try {
+      const { results: PF } = await env.DB.prepare("SELECT filial, fornecedor, count(*) n FROM (SELECT filial, max(fornecedor) fornecedor, forn_cod, cliente, sum(json_extract(dados, '$.\"Faturado líquido (R$)\"')) f FROM gerot_cliente_forn_mes WHERE mes = ? GROUP BY filial, forn_cod, cliente) WHERE f > 0 GROUP BY filial, forn_cod").bind(mes).all();
+      const porFI = new Map();
+      for (const r of PF || []) { const ind = nomeForn(r.fornecedor); if (!ind) continue; const k = r.filial + '|' + ind; porFI.set(k, (porFI.get(k) || 0) + (Number(r.n) || 0)); }
+      if (porFI.size) {
+        for (const [fil, sub] of filIndMap) for (const [ind, cur] of sub) cur.pos = porFI.get(fil + '|' + ind) || 0;
+        const br = brIndMap.get('brasil'); if (br) for (const [ind, cur] of br) cur.pos = [...filIndMap.keys()].reduce((a, fil) => a + (porFI.get(fil + '|' + ind) || 0), 0);
+      }
+    } catch (e) { /* sem a tabela: fica a soma, que so vale como referencia */ }
     const fmtIndList = (sub) => [...(sub ? sub.values() : [])]
       .filter((x) => x.meta > 0 || x.fat !== 0 || x.pend !== 0 || x.pos > 0)
       .map((x) => {

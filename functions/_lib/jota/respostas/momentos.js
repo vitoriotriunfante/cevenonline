@@ -51,7 +51,7 @@ export function qualMomento(v) {
 }
 
 async function recorrenciaGerot(B, v) {
-  try { return await B.env.DB.prepare("SELECT sum(objetivo) objetivo, sum(meta) meta, sum(positivados) positivados FROM gerot_recorrencia_pasta WHERE mes = ? AND filial = ? AND nivel = 'vendedor' AND cod = ? HAVING count(*) > 0").bind(hojeSP().slice(0, 7), String(v.filial), String(v.rca)).first(); } catch (e) { return null; }
+  try { return await B.env.DB.prepare(/* 23/11/2026 (dicionario 3.18, conflito 13): so a pasta ATUAL (a do supervisor de hoje no GEROT), nunca a soma com a pasta velha */ "SELECT r.objetivo, r.meta, r.positivados FROM gerot_recorrencia_pasta r WHERE r.mes = ? AND r.filial = ? AND r.nivel = 'vendedor' AND r.cod = ? ORDER BY (r.sup = (SELECT g.cod_sup FROM gerot_vendedor_mes g WHERE g.mes = r.mes AND g.filial = r.filial AND CAST(g.rca AS INTEGER) = CAST(r.cod AS INTEGER) ORDER BY coalesce(json_extract(g.dados, '$."Faturado líquido (R$)"'), 0) DESC LIMIT 1)) DESC, r.em DESC LIMIT 1").bind(hojeSP().slice(0, 7), String(v.filial), String(v.rca)).first(); } catch (e) { return null; }
 }
 // Resultado do ultimo dia fechado no Clube da Venda (ontem) para compor o planejamento matinal (Vitorio, 13/11/2026)
 // PLANEJAMENTO DO DIA (Vitorio, 23/11/2026: 'de manha nao tem pedidos... coloque as oportunidades do dia: tags recorrencia hoje na rota,
