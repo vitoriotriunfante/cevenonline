@@ -92,6 +92,8 @@ export async function montarDossieSupervisor(db, Es, filial, bloqs, hhmm, envios
     metaDia = gerotSup.nec != null ? gerotSup.nec : gapTot / faltam;
     if (gerotSup.metaPos) { posReal = gerotSup.pos || 0; posMeta = gerotSup.metaPos; }
   }
+  // 23/11/2026 (dicionario conflitos 1/5/7): equipe = Gestao de Equipe; total = soma da equipe no GEROT; precisa/dia = (meta - captacao) / dias; positivacao = clientes distintos
+  try { const { kpisMes } = await import('../fatos/index.js'); const K = await kpisMes(db, { nivel: 'equipe', filiais: [filial], rcas: (Es.vend || []).concat(Es.ocultos || []).map((v) => v.rca), supCod: (vs.find((v) => v.supCod) || {}).supCod || null }); if (K && K.meta) { metaTot = K.meta; fatTot = K.fat; pendTot = K.cart; gapTot = Math.max(0, metaTot - fatTot - pendTot); metaDia = K.nec != null ? K.nec : 0; posReal = K.pos || 0; posMeta = K.metaPos || 0; } } catch (e) { /* fica o anterior */ }
   const pctReal = metaTot ? (fatTot / metaTot) * 100 : 0;
   const pctCart = metaTot ? ((fatTot + pendTot) / metaTot) * 100 : 0;
   const pctDia = metaDia > 0 ? (digHoje / metaDia) * 100 : 0;

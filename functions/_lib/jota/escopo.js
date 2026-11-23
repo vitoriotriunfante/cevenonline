@@ -33,7 +33,9 @@ export const sn = (nome, cod) => { const c = cod || SUPCOD.get(sem(nome)); retur
 export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
   const [snap, mostra, SG] = await Promise.all([B.snap(filial), B.mostra(), supervisorGestao(B, filial)]);
   const eq = new Map(); if (mostra && mostra.filiais) for (const [k, L] of Object.entries(mostra.filiais)) if (k.split('_')[0] === filial) for (const v of L) eq.set(String(v.rca), v);
-  if (SG) for (const [rca, v] of eq) { const s = SG.sup.get(rca); if (s != null && sem(s) !== sem(v.supervisor || '')) eq.set(rca, { ...v, supervisor: s, sup_cod: SG.cod.get(sem(s)) || '', supervisor_arvore: v.supervisor }); }
+  // 23/11/2026 (coordenador: Gestao de Equipe e a fonte): vendedor que so existe na arvore do CEVEN (novo no /api/tv-mostra, fora do config) NAO entra em equipe nem grupo -> 'fora das equipes'
+  if (SG && SG.sup.size) for (const [rca, v] of eq) if (!SG.sup.has(rca)) eq.set(rca, { ...v, supervisor: '', sup_cod: '', grupo: '', foraGestao: true, supervisor_arvore: v.supervisor });
+  if (SG) for (const [rca, v] of eq) { if (v.foraGestao) continue; const s = SG.sup.get(rca); if (s != null && sem(s) !== sem(v.supervisor || '')) eq.set(rca, { ...v, supervisor: s, sup_cod: SG.cod.get(sem(s)) || '', supervisor_arvore: v.supervisor }); }
   const vend = [], ocultos = [], outros = []; const macro = { pedidos: 0, dig: 0, devHoje: 0 };
   // DIGITADO DO DIA = PEDIDOS GRAVADOS (Vitorio, 11/11/2026, plano aprovado): a produtividade do CEVEN sai pela cota de 3-4 chamadas/min e atrasava horas
   // (08h45: pedidos gravados R$ 386 mil x produtividade R$ 68 mil). Cada pedido tem numero e valor (pedido_status: Winthor + historico do cliente).
@@ -159,6 +161,11 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
 export async function rcasEquipeGestao(B, filial, supNome) {
   const SG = await supervisorGestao(B, filial); if (!SG) return [];
   const s = sem(supNome || ''); return [...SG.sup.entries()].filter(([, x]) => sem(x) === s).map(([r]) => r);
+}
+// RCAs de um grupo de gerente (MCD/TPH) NA GESTAO DE EQUIPE
+export async function rcasGrupoGestao(B, filial, grupo) {
+  const SG = await supervisorGestao(B, filial); if (!SG) return []; const g = sem(grupo || '');
+  return [...SG.grp.entries()].filter(([, x]) => sem(x) === g).map(([r]) => r);
 }
 // KPIs DO MÊS DO ESCOPO pela camada única (functions/_lib/fatos): Brasil, filial(is), grupo, equipe (supervisor = soma da equipe da Gestão) ou vendedor.
 // Total e linhas da MESMA tabela (gerot_vendedor_mes / gerot_filial_mes). null = sem GEROT.

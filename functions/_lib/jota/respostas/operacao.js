@@ -28,8 +28,9 @@ export async function operacao(B, E) {
     if (!dentro(v.filial, v.rca)) continue;
     const x = g(chave(v.filial, v.rca)), vc = valorCorte(v);
     if (vc > 0) { x.cortes += vc; x.nCortes++; }
-    if (v.status_pedido === 'BLOQUEADO') { const of = parseFloat(v.vl_faturado_winthor || 0) || 0; x.bloq += of > 0 ? of : (parseFloat(v.total_clube || v.valor_original || 0) || 0); x.nBloq++; }
   }
+  // 23/11/2026 (dicionario 3.11, conflito 8): bloqueados = gerot_carteira (situacao do Winthor, valor do GEROT), nunca o status do pedido do CEVEN
+  if (B.env && B.env.DB) { try { const { results } = await B.env.DB.prepare(`SELECT filial, rca, COUNT(*) n, SUM(valor) v FROM gerot_carteira WHERE situacao LIKE 'Bloqueado%' AND filial IN (${E.filiais.map(() => '?').join(',')}) GROUP BY filial, rca`).bind(...E.filiais).all(); for (const r of results || []) { const rc = String(Number(r.rca)); if (!dentro(r.filial, rc)) continue; const x = g(chave(r.filial, rc)); x.bloq += Number(r.v) || 0; x.nBloq += Number(r.n) || 0; } } catch (e) { /* sem carteira */ } }
   for (const l of (lc && lc.lances) || []) {
     if (!dentro(l.filial, String(l.rca))) continue;
     const tipo = String(l.chave || '').replace(/^[A-Z]{3}\|/, '').split('|')[0];

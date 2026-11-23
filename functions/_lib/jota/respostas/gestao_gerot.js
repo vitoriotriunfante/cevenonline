@@ -116,12 +116,16 @@ export async function respCarteiraNivel(B, esc, { papel = 'diretoria', modo = 'b
     if (forn && forn.length) { const nn = (x) => String(x || '').toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/^[A-Z]\s*-\s*/, '').replace(/\b(LTDA|S\.?A\.?|SA|ME)\b\.?/g, '').replace(/\s+/g, ' ').trim(); const alvo = forn.map(nn).filter(Boolean); R = R.filter((r) => { let fs = []; try { fs = JSON.parse(r.fornecedores || '[]'); } catch (e) { fs = []; } return fs.some((f) => alvo.some((a) => nn(f).includes(a) || a.includes(nn(f)))); }); }
     NM = (await db.prepare(`SELECT filial, rca, MAX(supervisor) sup FROM gerot_vendedor_mes WHERE mes = ? AND filial IN (${qs(F)}) GROUP BY filial, rca`).bind(mesAtual(), ...F).all()).results || [];
   } catch (e) { return null; }
-  const supDe = new Map(NM.map((x) => [x.filial + '|' + x.rca, nomeCurto(String(x.sup || '').replace(/^\s*\d+\s*-\s*/, '')) || 'Sem supervisor']));
+  // 23/11/2026 (equipe = Gestao de Equipe, config_equipe_soberana): supervisor da linha = o da Gestao; RCA sem equipe = 'fora das equipes' (total = linhas)
+  const supDe = new Map(); void NM;
+  try { const c = JSON.parse(((await db.prepare('SELECT conteudo_json FROM config_equipe_soberana LIMIT 1').first()) || {}).conteudo_json || '{}'); for (const [k, Lc] of Object.entries(c.filiais || {})) for (const v of Lc || []) if (v && v.supervisor) supDe.set(k.split('_')[0] + '|' + String(Number(v.rca)), nomeCurto(String(v.supervisor))); } catch (e) { /* sem Gestao */ }
   const ehBloq = (s) => /BLOQ/i.test(s), tipoOk = (s) => !tipo || new RegExp(tipo, 'i').test(s);
   const A = R.filter((r) => (modo === 'total' || ehBloq(r.situacao)) && tipoOk(r.situacao));
   const indN = forn && forn.length ? ' · ' + titulo(String(forn[0]).replace(/\b(LTDA|S\.?A\.?|SA)\b\.?/gi, '').toLowerCase()).trim() : '';
   const tag = modo === 'bloq' ? `🚫 *Pedidos bloqueados${indN}${tipo ? (/COMERC/.test(tipo) ? ' (comercial)' : ' (financeiro)') : ''} — ${esc.nome}*` : `💼 *Carteira${indN ? ' em aberto' + indN : ' total'} — ${esc.nome}*`;
-  if (!A.length) return `${tag}: nenhum pedido ${modo === 'bloq' ? 'bloqueado ' : ''}na Carteira Total do GEROT agora. ✅`;
+  if (!A.length) { const t0 = R.reduce((a, r) => a + (Number(r.valor) || 0), 0); return `${tag}: nenhum pedido ${modo === 'bloq' ? 'bloqueado ' : ''}na Carteira Total do GEROT agora. ✅` + (modo === 'bloq' && R.length ? `
+Carteira em aberto: *${R$(t0)}* · ${N(R.length)} ped. (nenhum travado)` : '') + `
+_Carteira Total do GEROT · ${await fontesG(db) || 'sem hora'}_`; }
   const soma = (L) => ({ n: L.length, v: L.reduce((a, r) => a + (Number(r.valor) || 0), 0) });
   const fmt = (x) => `*${R$(x.v)}* · ${N(x.n)} ped.`;
   const grp = (L, key) => { const m = new Map(); for (const r of L) { const k = key(r); const o = m.get(k) || []; o.push(r); m.set(k, o); } return [...m].map(([k, L2]) => [k, soma(L2), L2]).sort((a, b) => b[1].v - a[1].v); };
@@ -129,7 +133,7 @@ export async function respCarteiraNivel(B, esc, { papel = 'diretoria', modo = 'b
   const tot = soma(A), L = [`${tag}: ${fmt(tot)}`];
   const linhaSit = (Ls) => SIT.filter(([s]) => modo === 'total' || /BLOQ/i.test(s)).filter(([s]) => tipoOk(s)).map(([s, ic]) => { const x = soma(Ls.filter((r) => r.situacao === s)); return x.n ? `${ic} ${s === 'Pendente' ? 'Pendente (ainda sem carga)' : s}: ${fmt(x)}` : null; }).filter(Boolean);
   L.push(...linhaSit(A));
-  if (modo === 'total') { const fat = soma(A.filter((r) => /MONTAD|LIBERAD/i.test(r.situacao))); L.push(`✅ Faturável (montado + liberado): ${fmt(fat)}`); }
+  if (modo === 'total') { const fat = soma(A.filter((r) => /MONTAD|LIBERAD/i.test(r.situacao))), bq = soma(A.filter((r) => /BLOQ/i.test(r.situacao))); if (!tipo && bq.n) L.push(`🚫 Bloqueados (financeiro + comercial): ${fmt(bq)}`); L.push(`✅ Faturável (montado + liberado): ${fmt(fat)}`); }
   const nac = papel === 'diretoria' && F.length > 1 && !abrir;
   if (nac) {
     L.push('', '*Por filial:*');
@@ -143,7 +147,7 @@ export async function respCarteiraNivel(B, esc, { papel = 'diretoria', modo = 'b
       const lm = (m) => titulo(String(m).replace(/:\s*\d{5,}/g, '').replace(/\s+/g, ' ').trim().toLowerCase()) || 'Sem motivo';
       const gm = grp(B0, (r) => r.situacao.replace('Bloqueado ', '').slice(0, 3) + '. · ' + lm(r.motivo)); for (const [m, x] of gm.slice(0, 8)) L.push(`• ${m}: ${fmt(x)}`); if (gm.length > 8) L.push(`_… e mais ${gm.length - 8} motivo(s)_`);
     }
-    if (papel === 'gerente' || papel === 'diretoria') { L.push('', '*Por supervisor:*'); for (const [s, x] of grp(A, (r) => supDe.get(r.filial + '|' + r.rca) || 'Sem supervisor').slice(0, 12)) L.push(`• ${s}: ${fmt(x)}`); }
+    if (papel === 'gerente' || papel === 'diretoria') { L.push('', '*Por supervisor:*'); for (const [s, x] of grp(A, (r) => supDe.get(r.filial + '|' + String(Number(r.rca))) || '_fora das equipes_')) L.push(`• ${s}: ${fmt(x)}`); }
     if (papel !== 'vendedor') { L.push('', '*Por vendedor:*'); const gv = grp(A, (r) => `${r.rca || 'sem código'} - ${nomeCurto(String(r.vendedor || '').replace(/^\s*\d+\s*-\s*/, ''))}`); for (const [v, x] of gv.slice(0, 15)) L.push(`• ${v}: ${fmt(x)}`); if (gv.length > 15) L.push(`_… e mais ${gv.length - 15} vendedores_`); }
     // os mais antigos travados (bloqueados; na carteira total, tambem montado/liberado parado ha 8+ dias)
     const hj = Date.parse(hojeSP() + 'T12:00:00Z'), dias = (r) => Math.round((hj - Date.parse(String(r.entrada) + 'T12:00:00Z')) / 864e5);
@@ -389,12 +393,16 @@ export async function respDevolucaoMotivoVend(B, esc) {
   const tot = X.reduce((a, x) => a + (Number(x.valor) || 0), 0), um = R && R.length === 1;
   const mot = new Map(); for (const x of X) mot.set(x.motivo, (mot.get(x.motivo) || 0) + (Number(x.valor) || 0));
   const marca = (m) => (LIGA_VERMELHO.test(m) ? '🟥' : LIGA_GOLCONTRA.test(m) ? '⚽' : '•');
-  const L = [`↩️ *Devolução por motivo — ${esc.nome}* · ${mesAtual().slice(5)}/${mesAtual().slice(0, 4)}`, `Total *${R$(tot)}*`, '_🟥 = cartão vermelho na Liga · ⚽ = gol contra na Liga_', ''];
+  // 23/11/2026 (dicionario 3.3): o VALOR do mes e o do GEROT por nivel (Devolucao R$); a tela de motivos pode estar numa carga diferente
+  let devG = null; try { const { kpisMes } = await import('../../fatos/index.js'); const K = await kpisMes(db, R ? { nivel: R.length === 1 ? 'vendedor' : 'grupo', filiais: [fil], rcas: R } : { nivel: 'filial', filiais: [fil] }); devG = K ? K.dev : null; } catch (e) { devG = null; }
+  const L = [`↩️ *Devolução por motivo — ${esc.nome}* · ${mesAtual().slice(5)}/${mesAtual().slice(0, 4)}`, ...(devG != null ? [`Devolução do mês (GEROT): *${R$(devG)}*`] : []), `Total com motivo lido: *${R$(tot)}*`, '_🟥 = cartão vermelho na Liga · ⚽ = gol contra na Liga_', ''];
   for (const [m, v] of [...mot].sort((a, b) => b[1] - a[1]).slice(0, 10)) L.push(`${marca(m)} ${titulo(String(m).toLowerCase())}: *${R$(v)}* (${pc(v, tot)})`);
   if (!um) {
     const pv = new Map(); for (const x of X) { const o = pv.get(x.rca) || { nome: `${x.rca} - ${nomeCurto(x.vendedor)}`, v: 0, m: new Map() }; o.v += Number(x.valor) || 0; o.m.set(x.motivo, (o.m.get(x.motivo) || 0) + (Number(x.valor) || 0)); pv.set(x.rca, o); }
     L.push('', '*Por vendedor (maior motivo):*');
-    for (const o of [...pv.values()].sort((a, b) => b.v - a.v).slice(0, 12)) { const [m1, v1] = [...o.m].sort((a, b) => b[1] - a[1])[0]; L.push(`• *${o.nome}*: ${R$(o.v)} · ${marca(m1)} ${titulo(String(m1).toLowerCase())} ${R$(v1)}`); }
+    const PV = [...pv.values()].sort((a, b) => b.v - a.v);
+    for (const o of PV.slice(0, 12)) { const [m1, v1] = [...o.m].sort((a, b) => b[1] - a[1])[0]; L.push(`• *${o.nome}*: ${R$(o.v)} · ${marca(m1)} ${titulo(String(m1).toLowerCase())} ${R$(v1)}`); }
+    if (PV.length > 12) L.push(`… e mais ${PV.length - 12} vendedores (${R$(PV.slice(12).reduce((a, o) => a + o.v, 0))})`);
   }
   L.push('', `_GEROT · tela Devoluções (motivo › filial › supervisor › vendedor)${em ? ' · lido ' + new Date(em).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : ''}._`);
   return L.join(String.fromCharCode(10));

@@ -59,10 +59,10 @@ async function montarComplemento360(env, escIA) {
         : db.prepare('SELECT filial, rca, cod_sup, supervisor, dados FROM gerot_vendas WHERE mes = ?').bind(mes)
       ).all().catch(() => ({ results: [] })),
     soRca && filiais[0]
-      ? db.prepare("SELECT status, COUNT(*) qtd, SUM(valor) vlr FROM pedido_status WHERE filial = ? AND rca = ? AND data_pedido >= date('now', '-3 hours', '-7 days') AND status IN ('BLOQUEADO','CANCELADO') GROUP BY status").bind(filiais[0], soRca).all().catch(() => ({ results: [] }))
+      ? /* 23/11/2026 (dicionario 3.11, conflito 8): bloqueados = gerot_carteira, nunca pedido_status (esparso) */ db.prepare("SELECT 'BLOQUEADO' status, COUNT(*) qtd, SUM(valor) vlr FROM gerot_carteira WHERE filial = ? AND CAST(rca AS INTEGER) = ? AND situacao LIKE 'Bloqueado%'").bind(filiais[0], Number(soRca)).all().catch(() => ({ results: [] }))
       : (temFil
-        ? db.prepare(`SELECT status, COUNT(*) qtd, SUM(valor) vlr FROM pedido_status WHERE filial IN (${qs}) AND data_pedido >= date('now', '-3 hours', '-7 days') AND status IN ('BLOQUEADO','CANCELADO') GROUP BY status`).bind(...filiais)
-        : db.prepare("SELECT status, COUNT(*) qtd, SUM(valor) vlr FROM pedido_status WHERE data_pedido >= date('now', '-3 hours', '-7 days') AND status IN ('BLOQUEADO','CANCELADO') GROUP BY status")
+        ? db.prepare(`SELECT 'BLOQUEADO' status, COUNT(*) qtd, SUM(valor) vlr FROM gerot_carteira WHERE filial IN (${qs}) AND situacao LIKE 'Bloqueado%'`).bind(...filiais)
+        : db.prepare("SELECT 'BLOQUEADO' status, COUNT(*) qtd, SUM(valor) vlr FROM gerot_carteira WHERE situacao LIKE 'Bloqueado%'")
       ).all().catch(() => ({ results: [] })),
     carregarContextoAprendido(db, 6)
   ]);

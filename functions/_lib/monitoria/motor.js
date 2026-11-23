@@ -153,7 +153,8 @@ export function formataS1Excecao(rawMatinal, Es) {
   const metaTot = vs.reduce((a, v) => a + (v.meta || 0), 0);
   const fatCart = vs.reduce((a, v) => a + (v.fat || 0) + (v.pend || 0), 0);
   const gapEquipe = Math.max(0, metaTot - fatCart);
-  const metaDiaEquipe = gapEquipe / faltam;
+  // 23/11/2026 (dicionario 3.8): precisa/dia = (meta - captacao) / dias restantes do GEROT, nao (meta - fat - cart) / dias
+  const capEq = vs.some((v) => v.cap != null) ? vs.reduce((a, v) => a + (v.cap || 0), 0) : null, metaDiaEquipe = capEq != null ? Math.max(0, metaTot - capEq) / faltam : gapEquipe / faltam;
   const posReal = vs.reduce((a, v) => a + (v.pos || 0), 0);
   const posMeta = vs.reduce((a, v) => a + (v.metaPos || 0), 0);
   const rotaHoje = vs.reduce((a, v) => a + (v.visP || 0), 0);

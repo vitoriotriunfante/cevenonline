@@ -366,8 +366,10 @@ export async function rotearIntencao(B, c, t, info) {
     const escG = async () => {
       if (papel === 'diretoria' || papel === 'ceo') return { filiais: filCit ? [filCit] : FILIAIS, nome: filCit || 'Brasil', nacional: !filCit };
       const Ev = await carregaEscopo(B, esc), V = (Ev && Ev.vend) || [];
-      if (papel === 'gerente') return { filiais: [c.filial], nome: Ev && Ev.nome || c.filial, rcas: c.grupo ? V.map((v) => String(v.rca)) : null };
-      return { filiais: [c.filial], nome: Ev && Ev.nome || 'Equipe', rcas: V.map((v) => String(v.rca)), supCod: (V.find((v) => v.supCod) || {}).supCod || null };
+      // 23/11/2026: grupo/equipe = Gestao de Equipe (config_equipe_soberana), inclusive quem nao esta na leitura do CEVEN
+      const { rcasGrupoGestao, rcasEquipeGestao } = await import('./escopo.js'), un = (L) => [...new Set(L.map((r) => String(Number(r))))];
+      if (papel === 'gerente') return { filiais: [c.filial], nome: Ev && Ev.nome || c.filial, grupo: c.grupo || null, rcas: c.grupo ? un(V.map((v) => v.rca).concat(await rcasGrupoGestao(B, c.filial, c.grupo))) : null };
+      return { filiais: [c.filial], nome: Ev && Ev.nome || 'Equipe', rcas: un(V.map((v) => v.rca).concat(V[0] ? await rcasEquipeGestao(B, c.filial, V[0].supervisor) : [])), supCod: (V.find((v) => v.supCod) || {}).supCod || null };
     };
     // margem: so diretoria e gerente (Evandro, 18/11: "disponibilizar apenas para diretoria e gerentes")
     if (/\bMARGE[MN]/.test(t) && (papel === 'diretoria' || papel === 'ceo' || papel === 'gerente')) { const e = await escG(); const r = await (await G()).respMargemGerot(B, e.filiais, e.nome, e.rcas).catch(() => null); if (r) return r; }
@@ -419,6 +421,7 @@ export async function rotearIntencao(B, c, t, info) {
   }
   // C4 · POSITIVACAO COMPARADA (Brasil/filial): faturado + carteira e o mes anterior, pelo GEROT (nunca a base de vendas parada)
   if (/POSITIVA/.test(t) && /(COMPARA|MES(ES)? ANTERIOR|MES PASSADO|MELHOR|PIOR|OUTUBRO|CARTEIRA|BRASIL|FILIAIS|COMO ESTA|COMO ESTAMOS|\bA-?1\b|BENCH|\b3M\b|\bM-?1\b)/.test(t) && (papel === 'diretoria' || papel === 'ceo' || papel === 'gerente')) {
+    if (papel === 'gerente' && c.grupo && !filCit) { const { respPositivacao } = await import('./respostas/rota.js'); const r0 = await respPositivacao(B, await carregaEscopo(B, esc)).catch(() => null); if (r0) return r0; }   /* 23/11/2026: grupo ve o grupo (regra 4), nunca a filial inteira */
     const r = await respPositivacaoComparada(B, filCit || (papel === 'gerente' ? c.filial : null)); if (r) return r;
   }
   // F2 · METAS DAS INDUSTRIAS do vendedor / da equipe = painel do GEROT (17/11/2026, auditoria: liam a Premiacao/RV, fora do ar, com 'apuracao ate 20/11')

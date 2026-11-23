@@ -140,13 +140,15 @@ export async function respResumo(B, E) {
     `🏁 Meta batida no mês (fat.+pend.): ${V.filter((v) => v.meta && v.fat + v.pend >= v.meta).length} de ${V.length} vendedores`, `↩️ Devoluções no mês: ${R$(devTotal)}`);
   const lc = await B.lances(); if (lc) { const Lf = (lc.lances || []).filter((l) => l.filial === fil && (!(E.grupo || E.supervisor || E.rca) || V.some((v) => v.rca === String(l.rca)))); L.push(`⚽ Hoje: ${Lf.filter((l) => l.nivel === 'gol').length} gol(s) · ${Lf.filter((l) => l.nivel === 'penalti').length} pênalti(s) · ${Lf.filter((l) => l.nivel === 'impedimento').length} impedimento(s)`); }
   // TOTAL E LINHAS FECHAM (dicionario §0 regra 2, 23/11/2026): as linhas sao da mesma tabela do total (GEROT por vendedor) e a sobra vira 'fora das equipes'
-  if (K && !(E.supervisor || E.rca)) {
+  if (K && !E.rca) {
     const { linhasQueFecham } = await import('../../fatos/index.js');
     const linhaF = (nome, x) => x.fora ? `• _${nome}_: ${R$(x.fat)} · carteira ${R$(x.cart)} _(${x.negativo ? 'devolução lançada em RCA sem equipe: venda indústrias, histórico' : 'vendedores sem equipe na Gestão, histórico, vaga'})_` : `• ${nome}: ${R$(x.fat)} · carteira ${R$(x.cart)}` + (x.meta ? ` (${pctTxt((x.fat + x.cart) / x.meta * 100)})` : ' · sem meta');
     const tot = { fat, cart: pend, meta };
-    if (!E.grupo) { const Gr = [...agrupa(Vtotais.filter((v) => v.grupo), (v) => v.grupo)]; if (Gr.length > 1) { L.push('', '*Por gerente:*'); for (const x of linhasQueFecham(tot, Gr.map(([g, y]) => ({ nome: titulo(g), fat: y.fat, cart: y.pend, meta: y.meta })))) L.push(linhaF(x.nome, x)); } }
+    // supervisor: a equipe aberta por vendedor (mesma tabela do total; sobra = vendedor da Gestao fora da leitura)
+    if (E.supervisor) { const VS = Vtotais.filter((v) => v.fat || v.pend || v.meta).map((v) => ({ nome: vn(v), fat: v.fat || 0, cart: v.pend || 0, meta: v.meta || 0 })).sort((x, y) => y.fat - x.fat); if (VS.length) { L.push('', '*Por vendedor:*'); for (const x of linhasQueFecham(tot, VS)) L.push(linhaF(x.nome, x)); } }
+    else if (!E.grupo) { const Gr = [...agrupa(Vtotais.filter((v) => v.grupo), (v) => v.grupo)]; if (Gr.length > 1) { L.push('', '*Por gerente:*'); for (const x of linhasQueFecham(tot, Gr.map(([g, y]) => ({ nome: titulo(g), fat: y.fat, cart: y.pend, meta: y.meta })))) L.push(linhaF(x.nome, x)); } }
     const S = [...agrupa(Vtotais, (v) => v.supervisor || 'sem supervisor')].map(([s, y]) => ({ nome: supReal(s) ? 'sup. ' + supNome(s) : 'Ligados ao gerente', fat: y.fat, cart: y.pend, meta: y.meta })).sort((a, b) => b.fat - a.fat);
-    if (S.length > 1) { L.push('', '*Por supervisor:*'); for (const x of linhasQueFecham(tot, S.filter((y) => y.fat || y.cart))) L.push(linhaF(x.nome, x)); }
+    if (!E.supervisor && S.length > 1) { L.push('', '*Por supervisor:*'); for (const x of linhasQueFecham(tot, S.filter((y) => y.fat || y.cart))) L.push(linhaF(x.nome, x)); }
   }
   const lg = await B.liga(); const lf = lg && (lg.filiais || []).find((x) => x.sigla === fil); if (lf) L.push(`🏆 Liga: ${lf.pos}º de 11, ${lf.pts_tabela} pontos (${lf.vitorias}V ${lf.empates}E ${lf.derrotas}D)`);
   if (V.some((v) => v.visP > 0)) L.push(`⚠️ Zerados hoje (varejo com rota): *${z.length}*` + (z.length ? ' — ' + listaNomes(z) : ''));   /* dia sem rota nao fala de zerado (31/10/2026) */
@@ -308,7 +310,7 @@ export async function respVendedor(B, E, v, opt = {}) {   /* opt.tudo = "ver mai
   } else if (opt.tudo) return `${vn(v)}: sem positivação faltando ou sem o roteiro do mês na base.`;
   // acao concreta do dia (cliente parado ou sem visita, pelo Clube); sem isso, a conta do mes
   let acao = null; if (DC) { try { const { linhasDiaClube } = await import('./momentos.js'); acao = linhasDiaClube(DC, 'fechamento').L.find((x) => /^👉/.test(x)); } catch (e) { acao = null; } }
-  L.push('', acao || (SUGESTAO + (v.necDia > 0 ? `precisa captar ${R$(v.necDia)} por dia útil (GEROT); peça "como foi o dia" para ver quem ficou sem pedido.` : falta > 0 ? 'peça "como foi o dia" para ver quem ficou sem pedido.' : 'meta financeira batida; buscar positivação e mix.')));
+  L.push('', acao || (SUGESTAO + (v.necDia > 0 ? 'bater a necessidade do dia acima; peça "como foi o dia" para ver quem ficou sem pedido.' : falta > 0 ? 'peça "como foi o dia" para ver quem ficou sem pedido.' : 'meta financeira batida; buscar positivação e mix.')));
   return L.join('\n');
 }
 export async function totaisOficiais(B, E) {
