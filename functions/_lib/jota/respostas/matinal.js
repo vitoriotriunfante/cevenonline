@@ -9,6 +9,7 @@
 // =========================================================================
 import { N, R$, hojeSP, titulo, vn } from '../base.js';
 import { diasUteisMes } from './gestao.js';
+import { diasUteis as diasUteisGerot } from '../../fatos/dias.js';
 
 const DSEM = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
 const far = (r) => (r == null ? '⚪' : r >= 1 ? '🟢' : r >= 0.85 ? '🟡' : '🔴');
@@ -25,16 +26,14 @@ export async function respPlanoDia(B, E) {
   let GR = [];
   try { GR = (await db.prepare(`SELECT filial, rca, supervisor, vendedor, dados FROM gerot_vendedor_mes WHERE mes = ? AND filial IN (${filE.map(() => '?').join(',')})`).bind(mes, ...filE).all()).results || []; } catch (e) { GR = []; }
   const semAc = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/\s+/g, ' ').trim();
-  if (E.supervisor) {
-    const sAlvo = semAc(typeof E.supervisor === 'object' ? (E.supervisor.nome || '') : E.supervisor), toks = sAlvo.split(' ').filter((w) => w.length > 2);
-    GR = GR.filter((x) => { const sx = semAc(x.supervisor); return sx && (sx.includes(sAlvo) || sAlvo.includes(sx) || (toks.length && toks.every((w) => sx.includes(w)))); });
-  } else if (E.grupo) { const kg = new Set(E.vend.map((v) => v.filial + '|' + v.rca)); GR = GR.filter((x) => kg.has(x.filial + '|' + x.rca)); }
+  // 23/11/2026 (decisao do Vitorio: equipe = Gestao de Equipe; docs/DICIONARIO_KPIS.md 3.27): supervisor e grupo = os vendedores do escopo (Gestao), pelo codigo
+  if (E.supervisor || E.grupo) { const kg = new Set(E.vend.concat(E.ocultos || []).map((v) => v.filial + '|' + String(Number(v.rca)))); GR = GR.filter((x) => kg.has(x.filial + '|' + String(Number(x.rca)))); }
   const EV = new Map(E.vend.map((v) => [v.filial + '|' + v.rca, v]));
-  const V = GR.map((x) => { let d = {}; try { d = JSON.parse(x.dados || '{}'); } catch (e) { d = {}; } const e = EV.get(x.filial + '|' + x.rca) || {}; return { filial: x.filial, rca: String(x.rca), nome: x.vendedor || e.nome || '', canal: e.canal || '', rotaHoje: e.rotaHoje || [], meta: Number(d['Meta (R$)']) || 0, fat: Number(d['Faturado líquido (R$)']) || 0, pend: Number(d['Carteira pendente (R$)']) || 0, metaPos: Number(d['Meta de positivação']) || 0 }; })
+  const V = GR.map((x) => { let d = {}; try { d = JSON.parse(x.dados || '{}'); } catch (e) { d = {}; } const e = EV.get(x.filial + '|' + x.rca) || {}; return { filial: x.filial, rca: String(x.rca), nome: x.vendedor || e.nome || '', canal: e.canal || '', rotaHoje: e.rotaHoje || [], meta: Number(d['Meta (R$)']) || 0, fat: Number(d['Faturado líquido (R$)']) || 0, pend: Number(d['Carteira pendente (R$)']) || 0, metaPos: Number(d['Meta de positivação']) || 0, cap: d['Captação (R$)'] == null ? null : Number(d['Captação (R$)']), ideal: Number(d['Meta Ideal captação (R$)']) || 0 }; })
     .filter((v) => (v.meta > 0 || v.fat > 0) && !/^VAGO\b/i.test(String(v.nome)));
   if (!V.length) return null;
   const fil = [...new Set(V.map((v) => v.filial))], qs = fil.map(() => '?').join(','), ks = new Set(V.map((v) => v.filial + '|' + v.rca));
-  const { tot, pass } = diasUteisMes(); const ritmo = tot ? pass / tot : 0, falt = Math.max(1, tot - pass);
+  const DU = diasUteisGerot(), tot = DU.total, pass = DU.decorridos; const ritmo = tot ? pass / tot : 0, falt = Math.max(1, DU.restantes);   /* 23/11/2026: convencao do GEROT (dicionario §2) */
   const q = async (sql, ...b) => { try { return (await db.prepare(sql).bind(...b).all()).results || []; } catch (e) { return []; } };
   const [GC, GV, CH] = await Promise.all([
     q(`SELECT filial, rca, cliente, nome, dados FROM gerot_cliente_mes WHERE mes = ? AND filial IN (${qs})`, mes, ...fil),
@@ -48,17 +47,19 @@ export async function respPlanoDia(B, E) {
     if (d && d.dia) { const R = (await q(`SELECT filial, rca, total_pedido v, ped_total n FROM clube_venda_dia WHERE dia = ? AND filial IN (${qs})`, d.dia, ...fil)).filter((x) => ks.has(x.filial + '|' + x.rca)); ont = { d: d.dia, v: R.reduce((a, x) => a + (Number(x.v) || 0), 0), n: R.reduce((a, x) => a + (Number(x.n) || 0), 0), quem: R.filter((x) => Number(x.v) > 0).length }; }
   } catch (e) { ont = null; }
   // carteira por cliente (GEROT): positivacao da equipe sem contar o mesmo cliente duas vezes; quem esta sem compra e sem pedido
-  const semCompra = new Map(), posCli = new Set(), cartCli = new Set();
+  const semCompra = new Map(), posCli = new Set(), cartCli = new Set(), fatCli = new Map();
   for (const x of GC) {
     if (!ks.has(x.filial + '|' + x.rca)) continue;
     let d = {}; try { d = JSON.parse(x.dados || '{}'); } catch (e) { d = {}; }
     const k = x.filial + '|' + x.cliente, pos = Number(d['Positivação (filial + CNPJ)']) || 0, pc = Number(d['Positivação + Carteira']) || 0, m1 = Number(d['Positivação M-1']) || 0;
-    cartCli.add(k); if (pos > 0) posCli.add(k);
+    cartCli.add(k); fatCli.set(k, (fatCli.get(k) || 0) + (Number(d['Faturado líquido (R$)']) || 0));
     if (!(pos > 0) && !(pc > 0)) { const kk = x.filial + '|' + x.rca; if (!semCompra.has(kk)) semCompra.set(kk, new Map()); semCompra.get(kk).set(String(x.cliente), { nome: titulo(String(x.nome || 'Cliente').toLowerCase()), m1 }); }
   }
-  const metaPos = V.reduce((a, v) => a + (Number(v.metaPos) || 0), 0);
+  for (const [k, f] of fatCli) if (f > 0) posCli.add(k);   /* regra 4 do dicionario: faturado liquido somado no grupo > 0 */
+  // meta de positivacao: a soma dos vendedores NAO e a meta da equipe (3.10). Equipe da Gestao: a do supervisor no GEROT; grupo: nao definida
+  let metaPos = 0; if (E.supervisor && !E.grupo) { try { const sc = (E.vend.find((v) => v.supCod) || {}).supCod; const r = sc ? await db.prepare('SELECT json_extract(dados, \'$."Meta de positivação"\') m FROM gerot_supervisor_mes WHERE mes = ? AND filial = ? AND cod_sup = ?').bind(mes, filE[0], String(sc)).first() : null; metaPos = r && r.m != null ? Number(r.m) : 0; } catch (e) { metaPos = 0; } } else if (E.rca) metaPos = V.reduce((a, v) => Math.max(a, Number(v.metaPos) || 0), 0);
   // mes da equipe (GEROT)
-  const meta = V.reduce((a, v) => a + (v.meta || 0), 0), vend = V.reduce((a, v) => a + (v.fat || 0) + (v.pend || 0), 0), esp = meta * ritmo, gap = Math.max(0, esp - vend), porDia = Math.max(0, meta - vend) / falt;
+  const meta = V.reduce((a, v) => a + (v.meta || 0), 0), vend = V.reduce((a, v) => a + (v.fat || 0) + (v.pend || 0), 0), esp = meta * ritmo, gap = Math.max(0, esp - vend), capT = V.some((v) => v.cap != null) ? V.reduce((a, v) => a + (v.cap || 0), 0) : null, idealT = V.reduce((a, v) => a + (v.ideal || 0), 0), ritG = capT != null && idealT ? capT / idealT : null, porDia = capT != null && DU.restantes > 0 ? Math.max(0, meta - capT) / DU.restantes : null;   /* 23/11/2026: ritmo = captacao / meta ideal; precisa/dia = (meta - captacao) / dias restantes (GEROT, 3.7/3.8) */
   // rota de hoje: roteiros do Clube + clientes planejados sem compra no mes
   const ch = CH.filter((x) => ks.has(x.filial + '|' + x.rca)), rot = ch.reduce((a, x) => a + (Number(x.roteiros) || 0), 0), comRota = ch.filter((x) => Number(x.roteiros) > 0).length;
   const lido = ch.map((x) => x.lido_em).filter(Boolean).sort().pop();
@@ -74,7 +75,7 @@ export async function respPlanoDia(B, E) {
   const hora = lido ? new Date(lido).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }) : null;
   const L = [`☀️ *Matinal · ${E.nome || 'Equipe'}* · ${DSEM[new Date(hoje + 'T12:00:00Z').getUTCDay()]} ${dm(hoje)}`];
   if (ont) L.push(`📅 Último dia útil (${DSEM[new Date(ont.d + 'T12:00:00Z').getUTCDay()]} ${dm(ont.d)}): *${R$(ont.v)}* em *${N(ont.n)}* pedidos · ${N(ont.quem)} de ${N(V.length)} vendedores venderam`);
-  if (meta) L.push(`📊 Mês: *${Math.round(vend / meta * 100)}%* da meta ${far(esp ? vend / esp : null)} · ritmo pede ${Math.round(ritmo * 100)}%` + (gap ? ` · *R$ ${N(Math.round(gap))} abaixo do ritmo*` : ' · no ritmo') + ` · precisa ${R$(porDia)}/dia útil`);
+  if (meta) L.push(`📊 Mês: fat. + carteira *${Math.round(vend / meta * 100)}%* da meta` + (ritG != null ? ` · ritmo do GEROT ${far(ritG)} *${Math.round(ritG * 100)}%* do ideal` : ' · sem ritmo do GEROT') + (porDia != null ? ` · precisa captar ${R$(porDia)}/dia útil` : ''));
   if (ehAS && meta) { const alvo = meta * 0.6; L.push(`📐 Faseamento AS (60% até o dia 20): ${R$(vend)} de ${R$(alvo)} (${Math.round(vend / alvo * 100)}%)`); }
   if (posCli.size || metaPos) L.push(`👥 Positivação: *${N(posCli.size)}*` + (metaPos ? ` de ${N(Math.round(metaPos))} ${far(metaPos * ritmo ? posCli.size / (metaPos * ritmo) : null)} · meta até hoje ${N(Math.round(metaPos * ritmo))}` : '') + (cartCli.size ? ` · carteira ${N(cartCli.size)}` : ''));
   if (ch.length) L.push(rot ? `🚶 Hoje: *${N(rot)}* clientes na rota · ${N(comRota)} vendedores` + (totNaRotaSem ? ` · *${N(totNaRotaSem)} sem compra no mês* — prioridade na visita` : '') : `🚶 Ninguém da equipe com rota hoje${ehAS ? ' (equipe AS)' : ''}.`);

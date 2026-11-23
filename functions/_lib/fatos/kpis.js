@@ -153,8 +153,9 @@ export function linhasQueFecham(total, linhas, campos = ['fat', 'cart', 'meta'],
     const s = linhas.reduce((a, l) => a + (Number(l[c]) || 0), 0), dif = total[c] - s;
     resto[c] = dif; if (Math.abs(dif) > 1) tem = true;
   }
-  // 23/11/2026 (auditoria: 'fora das equipes: R$ -37.63x' na API): sobra NEGATIVA nao vira linha (linhas maiores que o total = vendedor do GEROT
-  //   em mais de uma equipe/filial; investigar a causa) — nunca mostrar valor negativo como se fosse uma equipe
-  if (campos.some((c) => (Number(resto[c]) || 0) < -1)) return linhas;
+  // 23/11/2026 (auditoria: 'fora das equipes: R$ -37.63x' na API) — CAUSA medida no D1: RCAs que nao estao em nenhuma equipe tem faturado NEGATIVO
+  //   (devolucao lancada neles: API RCA 2 'venda industrias' -R$ 35.451, RCA 261 -R$ 1.877, 61, 247). Soma de TODOS os vendedores do GEROT = total da filial
+  //   centavo a centavo. A sobra negativa e verdadeira e fica, com o nome certo (resto.negativo), para total = soma das linhas.
+  resto.negativo = campos.some((c) => (Number(resto[c]) || 0) < -1);
   return tem ? linhas.concat([resto]) : linhas;
 }

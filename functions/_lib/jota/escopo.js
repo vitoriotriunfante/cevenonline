@@ -49,7 +49,7 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
   // 23/11/2026 (docs/DICIONARIO_KPIS.md, camada functions/_lib/fatos): o vendedor sai da LINHA DELE no GEROT (gerot_vendedor_mes), a mesma tabela do total
   // da equipe/grupo/filial. Antes somava as indústrias (gerot_vendas), inclusive a 'Necessidade dia' de cada indústria (conflito 5: TPH 100 R$ 269,81 x R$ 0 do GEROT).
   // Filial com a carga do GEROT do mês: vendedor sem linha = sem venda e sem meta (nunca a meta_hierarquia de 03/11: conflito 4, MCD 416 R$ 0 x R$ 1.636.296).
-  const gerotVend = new Map(); let gerotCarregado = false;
+  const gerotVend = new Map(), usadosGerot = new Set(); let gerotCarregado = false;
   if (B.env && B.env.DB) {
     const VG = await vendedoresGerot(B.env.DB, filial).catch(() => null);
     if (VG && VG.length) {
@@ -90,7 +90,9 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
     const comVenda = (varejo && ehVendReal) ? (pd.visitas_com_venda || 0) : 0;
     const vendeuHoje = (pd.dig_pedido || 0) > 0 || (pd.positivacao || 0) > 0 || (pd.visitas_com_venda || 0) > 0;
     // GEROT carregado na filial: o vendedor vem só do GEROT (sem linha = zero no mês). Sem carga do GEROT na filial: reserva do CEVEN (rotulada no rodapé)
-    const gv = gerotVend.get(String(Number(rca))) || (gerotCarregado ? { meta: 0, fat: 0, pend: 0, dev: 0, cap: 0, ideal: 0, pos: 0, metaPos: null, nec: null, ritmo: null, semLinha: true } : null);
+    /* 23/11/2026 (sobra negativa de R$ 37 mil na API): o snapshot pode ter o mesmo RCA em duas chaves ('283' e '0283'); a linha do GEROT entra UMA vez so */
+    const kG = String(Number(rca)), gv0 = usadosGerot.has(kG) ? null : gerotVend.get(kG); if (gv0) usadosGerot.add(kG);
+    const gv = gv0 || (gerotCarregado ? { meta: 0, fat: 0, pend: 0, dev: 0, cap: 0, ideal: 0, pos: 0, metaPos: null, nec: null, ritmo: null, semLinha: true } : null);
     const metaFinal = gv ? gv.meta : (r.meta_hier != null ? r.meta_hier : fi.meta || 0);
     const fatFinal = gv ? gv.fat : (fi.faturado || 0);
     const pendFinal = gv ? gv.pend : (fi.pendente || 0);

@@ -16,6 +16,7 @@ import { semCompraNaRota } from './rota.js';
 const visitouC = (c) => minHM(c.checkin_horario) != null || /VISITADO|JUSTIFICADO|POSITIVADO|EFETIVADO/i.test(String(c.status || ''));
 import { posGerotFiliais } from './resumo.js';
 import { diasUteisMes } from './gestao.js';
+import { diasUteis as diasUteisGerot } from '../../fatos/dias.js';
 
 const hhmm = () => new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date());
 const minHM = (s) => { const m = String(s || '').match(/^(\d{1,2}):(\d{2})/); return m ? +m[1] * 60 + +m[2] : null; };
@@ -274,7 +275,7 @@ export async function respMomento(B, c, Ev, momentoForcado = null) {
   const comprouMes = (id) => !sem.some((x) => String(x.c.id_cliente) === String(id));
   const L = [ABRE[momento][ix](n), ''];
   // mesma conta do CEVEN e do item 1 do Jota (11/11): % = (faturado + a faturar) / meta; falta = meta - faturado - a faturar
-  const vend = (v.fat || 0) + (v.pend || 0), falta = Math.max(0, (v.meta || 0) - vend), du = diasUteisRestantes(), porDia = du ? falta / du : 0;
+  const vend = (v.fat || 0) + (v.pend || 0), falta = Math.max(0, (v.meta || 0) - vend), du = diasUteisGerot().restantes, porDia = v.necDia != null ? v.necDia : null;   /* 23/11/2026: precisa/dia = Necessidade dia captacao do GEROT (3.8), nunca (meta - fat - cart) / dias */
   if (momento === 'plano') {
     const [g, ont] = await Promise.all([recorrenciaGerot(B, v), ontemClubeResumo(B, [v])]);
     if (ont) L.push(`📅 *Último dia útil (${ont.fmt}):* ${ont.val > 0 ? `*${R$(ont.val)}* em ${N(ont.ped)} ped.` : 'sem pedido no Clube'}${ont.rot ? ` · ${ont.vis}/${ont.rot} visitas` : ''}`);
@@ -283,7 +284,7 @@ export async function respMomento(B, c, Ev, momentoForcado = null) {
     if (v.metaPos) L.push(`👥 Positivação: *${N(v.pos || 0)} de ${N(v.metaPos)}* clientes`);
     if (v.mixMes && v.mixMes.clientes_distintos) L.push(`🧺 Mix: *${(v.mixMes.soma_skus_por_cliente / v.mixMes.clientes_distintos).toFixed(1).replace('.', ',')}* produtos por cliente`);
     if (g && g.meta) L.push(`🔄 Recorrência: *${N(g.positivados || 0)} de ${N(g.meta)}* da meta`);
-    if (v.meta > 0) L.push(porDia > 0 ? `🎯 *Projeção de hoje:* precisa de *${R$(porDia)}* para o ritmo da meta (${du}d úteis)` : `🏆 *Meta do mês batida!* Foco hoje em positivação e mix.`);
+    if (v.meta > 0 && porDia != null) L.push(porDia > 0 ? `🎯 *Hoje:* precisa captar *${R$(porDia)}* por dia útil para a meta (GEROT, ${du}d úteis)` : `🏆 *Meta do mês batida!* Foco hoje em positivação e mix.`);
     // ROTA x 20 VISITAS (Vitorio, 17/11/2026: "varejo tem que ter no minimo 20 visitas por dia... sugerir pelo menos uns 2 cadastros proximos a rota").
     // Tamanho da rota = Clube da Venda de hoje (roteiros); sem leitura do Clube, a rota do mes gravada. Cadastros = prospects_mapa mais perto dos clientes de hoje.
     let nRota = rota.length;
@@ -432,7 +433,7 @@ export async function respMomentoSupervisor(B, c, Ev, momentoForcado = null) {
     linhas.push(x);
   }
   const L = [ABRE_S[momento][ix](n), ''];
-  const meta = soma((v) => v.meta), vd = soma(vend), du = diasUteisRestantes(), porDia = du ? Math.max(0, meta - vd) / du : 0;
+  const meta = soma((v) => v.meta), vd = soma(vend), du = diasUteisGerot().restantes, temCap = TODOS.some((v) => v.cap != null), porDia = du && temCap ? Math.max(0, meta - soma((v) => v.cap)) / du : 0;   /* 23/11/2026: (meta - captacao) / dias restantes, a conta do GEROT para grupo (3.8) */
   const dig = soma((v) => v.dig), prog = linhas.reduce((a, x) => a + x.prog, 0), feitas = linhas.reduce((a, x) => a + x.feitas, 0);
   const fTot = linhas.reduce((a, x) => a + x.foco.length, 0), fOk = linhas.reduce((a, x) => a + x.focoOk, 0);
   const lista = [];
@@ -442,7 +443,7 @@ export async function respMomentoSupervisor(B, c, Ev, momentoForcado = null) {
     if (ont) L.push(`📅 *Último dia útil (${ont.fmt}):* *${R$(ont.val)}* em ${N(ont.ped)} ped. (${ont.com} vendedores com venda${ont.rot ? ` · ${ont.vis}/${ont.rot} visitas` : ''})`);
     // as duas partes explicitas (11/11: o item 2 mostra so o faturado em %; aqui faturado + a faturar, como o CEVEN)
     if (meta > 0) L.push(`💰 *Acumulado:* *${pc(vd, meta)}* da meta · fat. ${R$(soma((v) => v.fat))} (${pc(soma((v) => v.fat), meta)}) + a fat. ${R$(soma((v) => v.pend))} de ${R$(meta)}`);
-    if (porDia > 0) L.push(`🎯 *Projeção de hoje:* a equipe precisa de *${R$(porDia)}* para o ritmo (${du}d úteis)`);
+    if (porDia > 0) L.push(`🎯 *Hoje:* a equipe precisa captar *${R$(porDia)}* por dia útil para a meta (GEROT, ${du}d úteis)`);
     const vAS = TODOS.filter(ehAS);
     if (vAS.length) { const m = vAS.reduce((a, v) => a + (v.meta || 0), 0), f = vAS.reduce((a, v) => a + (v.fat || 0), 0); if (m > 0) L.push(`📐 Faseamento AS (60% até o dia 20): *${pc(f, m * 0.6)}* do alvo (${R$(f)} de ${R$(m * 0.6)})`); }
     const mp = soma((v) => v.metaPos); if (mp) L.push(`👥 Positivação: *${N(soma((v) => v.pos))} de ${N(mp)}* clientes`);
@@ -515,7 +516,8 @@ export async function respMomentoGerente(B, c, Ev, momentoForcado = null) {
   // visitas = mesma conta do supervisor e do vendedor: check-in individual OU tem_checkin na rota do gerente (11/11: 67 x 69 na equipe do Eder)
   const RGf = new Map(); try { const { results } = await B.env.DB.prepare('SELECT json FROM rota_gerente_dia WHERE data_ref = ? AND filial = ?').bind(hojeSP(), filial).all(); for (const r of results || []) { let a2 = []; try { a2 = JSON.parse(r.json); } catch (e) { continue; } for (const x of a2) RGf.set(String(x.id_representante) + '|' + String(x.id_cliente), x); } } catch (e) { /* sem rota do gerente */ }
   const visitas = (L) => { let p = 0, f = 0; for (const v of L) { const vis = new Set(), R = Array.isArray(v.rotaHoje) ? v.rotaHoje.filter((x) => !/FORA/i.test(String(x.status || '')) && !vis.has(String(x.id_cliente)) && vis.add(String(x.id_cliente))) : []; p += R.length; f += R.filter((x) => visitouC(x) || Number((RGf.get(String(v.rca) + '|' + String(x.id_cliente)) || {}).tem_checkin) === 1).length; } return { p, f }; };
-  const S = supervisoresDaEquipe(V), meta = soma(TODOS, (v) => v.meta), vd = soma(TODOS, vend), du = diasUteisRestantes(), porDia = du ? Math.max(0, meta - vd) / du : 0;
+  const S = supervisoresDaEquipe(V), meta = soma(TODOS, (v) => v.meta), vd = soma(TODOS, vend), du = diasUteisGerot().restantes;
+  let porDia = 0; try { const { kpisMes } = await import('../../fatos/index.js'); const K = await kpisMes(B.env.DB, { nivel: 'filial', filiais: [filial] }); porDia = K && K.nec != null ? K.nec : 0; } catch (e) { porDia = 0; }   /* 23/11/2026: Necessidade dia captacao da filial no GEROT (3.8) */
   const st = momento === 'abertura' ? await Promise.all(S.map(([s]) => statusSupervisor(B, filial, s))) : [];
   const L = [ABRE_G[momento][ix](n, nomeF), ''];
   if (momento === 'abertura') {
@@ -532,13 +534,13 @@ export async function respMomentoGerente(B, c, Ev, momentoForcado = null) {
     try { const gf = (await posGerotFiliais(B)).get(filial); if (gf) { if (gf.pos != null) posG = gf.pos; if (gf.metaPos != null) mp = gf.metaPos; } } catch (e) { /* usa soma */ }
   }
   if (momento === 'abertura') {
-    if (porDia > 0) L.push(`🎯 *Projeção de hoje:* a ${filial} precisa de *${R$(porDia)}* para o ritmo (${du}d úteis)`);
+    if (porDia > 0) L.push(`🎯 *Hoje:* a ${filial} precisa captar *${R$(porDia)}* por dia útil para a meta (GEROT, ${du}d úteis)`);
     if (mp) L.push(`👥 Positivação: *${N(posG)} de ${N(mp)}* clientes`);
     const vAS = TODOS.filter(ehAS); if (vAS.length) { const m = soma(vAS, (v) => v.meta), f = soma(vAS, (v) => v.fat); if (m > 0) L.push(`📐 Faseamento AS (60% até o dia 20): *${pc(f, m * 0.6)}* do alvo`); }
     try { const g = await B.env.DB.prepare("SELECT objetivo, meta, positivados FROM gerot_recorrencia_pasta WHERE mes = ? AND filial = ? AND nivel = 'filial' LIMIT 1").bind(hojeSP().slice(0, 7), filial).first(); if (g && g.meta && !c.grupo) L.push(`🔄 Recorrência: *${N(g.positivados || 0)} de ${N(g.meta)}* da meta`); } catch (e) { /* sem GEROT */ }
     const semComp = S.filter((x, i) => st[i] && st[i].compromisso === false).map(([s]) => titulo(s.split(' ')[0]));
     if (st.length) L.push(`🗓️ Compromisso: *${S.length - semComp.length} de ${S.length}* supervisores` + (semComp.length ? ` · faltam: ${semComp.join(', ')}` : ' ✅'));
-    if (porDia > 0) L.push(`💡 Para o ritmo da meta, a ${filial} precisa de *${R$(porDia)}* por dia útil.`);
+    if (porDia > 0) L.push(`💡 Para a meta, a ${filial} precisa captar *${R$(porDia)}* por dia útil (GEROT).`);
   } else {
     if (mp) L.push(`👥 Positivação: *${N(posG)} de ${N(mp)}* clientes`);
     if (porDia > 0) { const fh = Math.max(0, porDia - dig); L.push(fh > 0 ? `🎯 *Ritmo de hoje:* meta *${R$(porDia)}* · faltam *${R$(fh)}*` : `🎯 *Ritmo de hoje:* *batido!* (meta ${R$(porDia)}) 🎉`); }
@@ -634,7 +636,7 @@ export async function respMomentoDiretoria(B, c, Ev, momentoForcado = null) {
     if (mF > 0 || dF > 0) porFil.push({ sig, mF, fF, pF, vdF, dF, pedF, zF, pct: mF ? vdF / mF : 0 });
   }
   const fat = porFil.reduce((a, f) => a + f.fF, 0), pend = porFil.reduce((a, f) => a + f.pF, 0), meta = porFil.reduce((a, f) => a + f.mF, 0), vd = fat + pend;
-  const du = diasUteisRestantes(), porDia = du ? Math.max(0, meta - vd) / du : 0;
+  const du = diasUteisGerot().restantes; let porDia = 0; try { const { kpisMes } = await import('../../fatos/index.js'); const K = await kpisMes(B.env.DB, { nivel: 'brasil' }); porDia = K && K.nec != null ? K.nec : 0; } catch (e) { porDia = 0; }   /* 23/11/2026: max(0, soma das metas - soma das captacoes) / dias restantes (3.8) */
   const { tot, pass } = diasUteisMes(), esp = tot ? (pass / tot * 100) : 0;
   const prVd = meta ? (vd / meta * 100) : 0;
 

@@ -50,14 +50,26 @@ export async function respCarteira(B, E) {
   out.push('', '_"Faturado + carteira" são pedidos liberados; pedidos bloqueados/crédito aguardam liberação financeira._');
   return out.join('\n');
 }
-export async function respRitmo(B, E) {
-  const x = await totaisOficiais(B, E); if (!x.meta) return 'Sem dado agora.';
-  const { tot, pass } = diasUteisMes(), esp = tot ? pass / tot * 100 : 0, real = x.fat / x.meta * 100;
-  const tom = real >= esp ? '🟢 *No ritmo ou acima.* Golaço, mantém.' : real >= esp * 0.9 ? '🟡 *Jogo apertado*, dá para virar no segundo tempo.' : '🔴 *Abaixo do ritmo.* Precisamos reagir.';
-  const G = [...agrupa(E.vend, (v) => (E.nacional ? v.filial : supChave(v, false)))].filter(([k]) => E.nacional || supReal(k)).map(([k, y]) => [k, y.meta ? y.fat / y.meta * 100 - esp : null]).sort((a, b) => (a[1] ?? 0) - (b[1] ?? 0));
-  return [`⏱️ *Ritmo da meta — ${E.nome}*`, `Dias úteis: ${pass} de ${tot} passados → o ritmo pede *${pctTxt(esp)}* da meta hoje (seg–sex, sem feriados)`, `Faturado: *${pctTxt(real)}* da meta`, tom, '',
-    `*Mais atrás do ritmo (${E.nacional ? 'filiais' : 'supervisores'}):*`, ...G.slice(0, 6).map(([k, d]) => `• ${E.nacional ? k : nome2(k)}: ${d == null ? 'sem dado' : (d >= 0 ? '+' : '') + d.toFixed(1).replace('.', ',') + ' p.p.'}`)].join('\n');
+// ---------- RITMO E NECESSIDADE = SO O GEROT (23/11/2026, docs/DICIONARIO_KPIS.md 3.7/3.8, conflitos 5 e 6) ----------
+// ritmo = captacao / meta ideal de captacao de hoje; necessidade/dia = max(0, meta - captacao) / dias uteis restantes (convencao do GEROT).
+// No nivel com linha propria (vendedor, filial) = o campo do GEROT; grupo/equipe/Brasil = soma das captacoes / soma das metas ideais. Sem captacao = sem ritmo (nunca a tendencia linear).
+function ritmoDe(y, du) {
+  const cap = y.cap, ideal = y.ideal, meta = y.meta || 0;
+  if (cap == null || !ideal) return { pct: null, nec: null };
+  return { pct: y.ritmo != null ? y.ritmo : cap / ideal * 100, nec: y.nec != null ? y.nec : (du.restantes > 0 ? Math.max(0, meta - cap) / du.restantes : null) };
 }
+// linhas um nivel abaixo, da MESMA tabela do total: Brasil -> filiais (gerot_filial_mes); filial/grupo -> equipes da Gestao (soma dos vendedores); supervisor -> vendedores
+async function linhasRitmo(B, E, K) {
+  if (E.nacional) return Object.entries(K.porFilial || {}).map(([k, y]) => ({ k, fat: y.fat, cart: y.cart, meta: y.meta, cap: y.cap, ideal: y.ideal, ritmo: y.ritmo, nec: y.nec }));
+  if (E.rca) return [];
+  const V = (E.vend || []).concat(E.ocultos || []).filter((v) => v.gerot);
+  const chave = E.supervisor ? (v) => vn(v) : (v) => (supReal(v.supervisor || 'sem supervisor') ? 'sup. ' + supNome(supChave(v, false)) : 'Ligados ao gerente');
+  const m = new Map();
+  for (const v of V) { const k = chave(v), x = m.get(k) || { k, fat: 0, cart: 0, meta: 0, cap: 0, ideal: 0, n: 0, v }; x.fat += v.fat || 0; x.cart += v.pend || 0; x.meta += v.meta || 0; x.cap += v.cap || 0; x.ideal += v.ideal || 0; x.n++; m.set(k, x); }
+  return [...m.values()].map((x) => (E.supervisor && x.n === 1 ? { ...x, ritmo: x.v.ritmo, nec: x.v.necDia } : x));
+}
+export async function respRitmo(B, E) { return respTendencia(B, E); }
+
 export function respMaiorGap(E) {
   const V = E.vend.filter((v) => v.meta > 0 && pessoaReal(v)).map((v) => ({ v, gap: Math.max(0, v.meta - v.fat - v.pend) })).sort((a, b) => b.gap - a.gap).slice(0, 10);
   return [`🕳️ *Maior gap para a meta — ${E.nome}* (meta − faturado − carteira)`, ...V.map(({ v, gap }, i) => `${i + 1}. ${vn(v)}${E.nacional ? ' (' + v.filial + ')' : ''} — falta *${R$(gap)}* · ${pctTxt(v.pct)} · setor/sup. ${sn(v.supervisor, v.supCod)}`), '', SUGESTAO + `sentar com ${sn(V[0] && V[0].v.supervisor, V[0].v.supCod)} sobre ${nome2(V[0] && V[0].v.nome)} hoje.`].join('\n');
@@ -124,77 +136,28 @@ export async function respInfoEquipe(env, c, texto) {
 // pura... so deixa claro que isso e tendencia... e da para atualizar diario"). Conta: ritmo = (faturado + pendente) / dias uteis decorridos (hoje conta);
 // tendencia = ritmo x dias uteis do mes. Necessario = (meta - faturado - pendente) / dias uteis que faltam. Seg-sex, sem descontar feriado. Sempre rotulado TENDENCIA.
 export async function respTendencia(B, E) {
-  let x = null, G = null, fonteTxt = '_Dias úteis seg–sex (sem feriados); atualiza a cada consulta com o faturado + pendente de agora._';
-  const { tot, dec, falt } = diasUteisAgora();
-  // 17/11/2026 (Vitorio: 'ta errado sua tendencia... precisa pegar os dados do GEROT'): com captacao e meta ideal do GEROT, o ritmo e o do GEROT
-  // (captacao / meta ideal de hoje) e a necessidade e a do GEROT; a carteira pendente nao e mais multiplicada como se fosse ritmo de venda.
-  const tend = (y) => { const s = (y.fat || 0) + (y.pend || 0); if (y.cap != null && y.ideal > 0) { const r = y.cap / y.ideal; return { s, t: y.meta * r, pct: y.meta ? r * 100 : null, nec: y.nec != null ? y.nec : (falt ? Math.max(0, y.meta - y.cap) / falt : 0), rit: dec ? y.cap / dec : y.cap, gerot: true }; } const t = dec ? s / dec * tot : s; return { s, t, pct: y.meta ? t / y.meta * 100 : null, nec: falt ? Math.max(0, y.meta - s) / falt : 0, rit: dec ? s / dec : s }; };
-  if (B && B.env && B.env.DB) {
-    try {
-      const mes = hojeSP().slice(0, 7), db = B.env.DB;
-      const ler = (s) => { try { const d = JSON.parse(s || '{}'); const n = (k) => (d[k] == null || d[k] === '' ? null : Number(d[k])); return { meta: Number(d['Meta (R$)']) || 0, fat: Number(d['Faturado líquido (R$)']) || 0, pend: Number(d['Carteira pendente (R$)']) || 0, cap: n('Captação (R$)'), ideal: n('Meta Ideal captação (R$)'), nec: n('Necessidade dia captação (R$)'), capM1: n('Captação M-1 (R$)') }; } catch { return { meta: 0, fat: 0, pend: 0 }; } };
-      const sN = (a, b) => (a == null && b == null ? null : (a || 0) + (b || 0));
-      const somaG = (arr) => arr.reduce((a, b) => ({ meta: a.meta + b.meta, fat: a.fat + b.fat, pend: a.pend + b.pend, cap: sN(a.cap, b.cap), ideal: sN(a.ideal, b.ideal), nec: sN(a.nec, b.nec), capM1: sN(a.capM1, b.capM1) }), { meta: 0, fat: 0, pend: 0, cap: null, ideal: null, nec: null, capM1: null });
-      const st = await db.prepare('SELECT posicao FROM gerot_coleta_status WHERE mes = ? ORDER BY id DESC LIMIT 1').bind(mes).first().catch(() => null);
-      const pos = st && st.posicao ? ` (${st.posicao.replace(/^Atual\s*·\s*/, 'posição ')})` : '';
-      if (E.nacional) {
-        const { results } = await db.prepare('SELECT filial, dados FROM gerot_filial_mes WHERE mes = ?').bind(mes).all();
-        if (results && results.length) {
-          const rows = results.map((r) => [r.filial, ler(r.dados)]).filter(([, y]) => y.meta > 0);
-          x = somaG(rows.map(([, y]) => y));
-          G = rows.map(([k, y]) => [k, y, tend(y)]).sort((a, b) => (a[2].pct ?? 0) - (b[2].pct ?? 0));
-        }
-      } else if (!E.supervisor && !E.rca && E.filiais && E.filiais.length === 1) {
-        const fil = E.filiais[0];
-        const fRow = await db.prepare('SELECT dados FROM gerot_filial_mes WHERE mes = ? AND filial = ?').bind(mes, fil).first();
-        const { results: sRows } = await db.prepare('SELECT cod_sup, supervisor, dados FROM gerot_supervisor_mes WHERE mes = ? AND filial = ?').bind(mes, fil).all();
-        if (fRow) {
-          x = ler(fRow.dados);
-          G = (sRows || []).map((r) => [titulo(r.supervisor || r.cod_sup), ler(r.dados)]).filter(([, y]) => y.meta > 0).map(([k, y]) => [k, y, tend(y)]).sort((a, b) => (a[2].pct ?? 0) - (b[2].pct ?? 0));
-        }
-      } else if (E.supervisor && E.filiais && E.filiais.length) {
-        const { results: vRows } = await db.prepare('SELECT rca, supervisor, vendedor, dados FROM gerot_vendedor_mes WHERE mes = ? AND filial = ?').bind(mes, E.filiais[0]).all();
-        const alvoSup = sem(E.supervisor);
-        const meus = (vRows || []).filter((r) => sem(r.supervisor || '').includes(alvoSup) || alvoSup.includes(sem(r.supervisor || '')));
-        if (meus.length) {
-          const rows = meus.map((r) => [`${r.rca} - ${titulo(r.vendedor || '')}`, ler(r.dados)]);
-          x = somaG(rows.map(([, y]) => y));
-          G = rows.filter(([, y]) => y.meta > 0).map(([k, y]) => [k, y, tend(y)]).sort((a, b) => (a[2].pct ?? 0) - (b[2].pct ?? 0));
-        }
-      } else if (E.rca && E.filiais && E.filiais.length) {
-        const { results: vRows } = await db.prepare('SELECT rca, vendedor, dados FROM gerot_vendedor_mes WHERE mes = ? AND filial = ? AND rca = ?').bind(mes, E.filiais[0], String(E.rca)).all();
-        if (vRows && vRows.length) { x = somaG(vRows.map((r) => ler(r.dados))); G = []; }
-      }
-      if (x && x.meta > 0) fonteTxt = `_Fonte: GEROT${pos} · dias úteis seg–sex (sem feriados); tendência = ritmo × ${tot} dias úteis._`;
-    } catch { /* fallback totaisOficiais */ }
+  const { kpisDoEscopo } = await import('../escopo.js'), { diasUteis, linhasQueFecham } = await import('../../fatos/index.js');
+  const K = await kpisDoEscopo(B, E), du = diasUteis();
+  if (!K || !K.meta) return 'Sem dado do GEROT agora para ' + E.nome + '.';
+  const pc1 = (x) => x.toFixed(1).replace('.', ',') + '%';
+  const T = ritmoDe(K, du), fc = (K.fat || 0) + (K.cart || 0);
+  const L0 = await linhasRitmo(B, E, K);
+  const L = linhasQueFecham({ fat: K.fat, cart: K.cart, meta: K.meta }, L0.filter((x) => x.fat || x.cart || x.meta).map((x) => ({ ...x })), ['fat', 'cart', 'meta']).map((x) => (x.fora ? { ...x, k: 'fora das equipes' } : { ...x, r: ritmoDe(x, du) }));
+  L.sort((a, b) => (a.fora ? 1 : b.fora ? -1 : (a.r.pct ?? 1e9) - (b.r.pct ?? 1e9)));
+  const nivel = E.nacional ? 'filial' : E.supervisor ? 'vendedor' : 'supervisor';
+  const out = [`📈 *Ritmo do mês — ${E.nome}* _(régua do GEROT: captação ÷ meta ideal de hoje)_`,
+    `💰 Faturado *${R$(K.fat)}* + carteira ${R$(K.cart)} = *${R$(fc)}* = *${P(fc, K.meta)}* da meta (${R$(K.meta)})`,
+    T.pct != null ? `📈 Captação do mês *${R$(K.cap)}* = *${pc1(T.pct)}* do ideal para hoje (${R$(K.ideal)}) → no ritmo de hoje fecha em *${pc1(T.pct)}* da meta` : '📈 Ritmo: sem captação do GEROT para este recorte (sem ritmo, não estimo).',
+    du.restantes > 0 ? (T.nec != null ? `🎯 Precisa captar *${R$(T.nec)}* por dia útil nos ${du.restantes} dias úteis que faltam (necessidade do GEROT)` : '') : '🏁 Último dia útil do mês.',
+    ...(K.capM1 ? [`📅 Mês passado até o mesmo dia: captação ${R$(K.capM1)} → hoje *${(K.cap / K.capM1 - 1) * 100 >= 0 ? '▲ +' : '▼ '}${((K.cap / K.capM1 - 1) * 100).toFixed(1).replace('.', ',')}%*`] : [])].filter(Boolean);
+  if (L.length > 1) {
+    out.push('', `*Por ${nivel} (pior ritmo primeiro):*`);
+    for (const x of L.slice(0, 15)) out.push(x.fora ? `• _fora das equipes_: ${R$(x.fat)} faturado · carteira ${R$(x.cart)} _(${x.negativo ? 'devolução lançada em RCA sem equipe: venda indústrias, histórico' : 'sem equipe na Gestão, histórico, vaga'})_` : `• ${x.k}: ${R$(x.fat)} faturado · ritmo ${x.r.pct == null ? 'sem captação' : pc1(x.r.pct) + ' do ideal'}${x.r.nec ? ' · precisa ' + R$(x.r.nec) + '/dia' : ''}`);
+    if (L.length > 15) out.push(`… e mais ${L.length - 15}`);
   }
-  if (!x || !x.meta) {
-    x = await totaisOficiais(B, E); if (!x.meta) return 'Sem dado agora.';
-    G = [...agrupa(E.vend, (v) => (E.nacional ? v.filial : E.supervisor ? v.filial + '|' + v.rca : supChave(v, false)))].filter(([k]) => E.nacional || E.supervisor || supReal(k))
-      .map(([k, y]) => [k, y, tend(y)]).filter(([, y]) => y.meta > 0).sort((a, b) => (a[2].pct ?? 0) - (b[2].pct ?? 0));
-  }
-  const T = tend(x);
-  const nome = (k) => (fonteTxt.startsWith('_Fonte: GEROT') ? k : (E.nacional ? k : E.supervisor ? vn(E.vend.find((v) => v.filial + '|' + v.rca === k) || { nome: k }) : supNome(k)));
-  if (T.gerot) {
-    const dl = (a, b) => { const d = (a / b - 1) * 100; return `${d >= 0 ? '▲ +' : '▼ '}${d.toFixed(1).replace('.', ',')}%`; };
-    return [`📈 *Ritmo do mês — ${E.nome}* _(régua do GEROT: captação ÷ meta ideal de hoje)_`,
-      `💰 Faturado + carteira: *${R$(T.s)}* = *${P(T.s, x.meta)}* da meta (${R$(x.meta)})`,
-      `📈 Captação do mês *${R$(x.cap)}* = *${T.pct.toFixed(1).replace('.', ',')}%* do ideal para hoje (${R$(x.ideal)}) → no ritmo de hoje fecha em *${T.pct.toFixed(1).replace('.', ',')}%* da meta`,
-      falt ? `🎯 Precisa captar *${R$(T.nec)}* por dia útil até o fim do mês` : '🏁 Último dia útil do mês.',
-      ...(x.capM1 ? [`📅 Mês passado até o mesmo dia: captação ${R$(x.capM1)} → hoje *${dl(x.cap, x.capM1)}*`] : []),
-      ...(G && G.length ? ['', `*Ritmo por ${E.nacional ? 'filial' : E.supervisor ? 'vendedor' : 'supervisor'} (do pior para o melhor):*`,
-        ...G.slice(0, 12).map(([k, , r]) => `• ${nome(k)}: ${r.pct == null ? 'sem meta' : r.pct.toFixed(1).replace('.', ',') + '%'} do ideal · precisa ${R$(r.nec)}/dia`)] : []),
-      '', fonteTxt.replace(/ · dias úteis.*$/, ' · ritmo e necessidade = os do GEROT._'),
-      SUGESTAO + (G && G[0] ? `atacar ${nome(G[0][0])}, o pior ritmo.` : 'manter o ritmo.')].join('\n');
-  }
-  return [`📈 *TENDÊNCIA de fechamento — ${E.nome}* _(conta, não é número real: mantém o ritmo de hoje até o fim do mês)_`,
-    `💰 Faturado + carteira: *${R$(T.s)}* em ${dec} de ${tot} dias úteis → ritmo de *${R$(T.rit)}/dia*`,
-    `📈 Se mantiver esse ritmo: fecha em *${R$(T.t)}* = *${P(T.t, x.meta)}* da meta (${R$(x.meta)})`,
-    falt ? `🎯 Para bater a meta: precisa de *${R$(T.nec)}/dia* nos ${falt} dias úteis que faltam (${T.rit ? (T.nec / T.rit).toFixed(1).replace('.', ',') + 'x o ritmo atual' : 'sem ritmo'})` : '🏁 Último dia útil do mês.',
-    ...(G && G.length ? ['', `*Tendência por ${E.nacional ? 'filial' : E.supervisor ? 'vendedor' : 'supervisor'} (do pior para o melhor):*`,
-      ...G.slice(0, 12).map(([k, , r]) => `• ${nome(k)}: ${r.pct == null ? 'sem meta' : r.pct.toFixed(1).replace('.', ',') + '%'} · precisa ${R$(r.nec)}/dia`)] : []),
-    '', fonteTxt,
-    SUGESTAO + (G && G[0] ? `atacar ${nome(G[0][0])}, a pior tendência.` : 'manter o ritmo.')].join('\n');
+  const pior = L.find((x) => !x.fora && x.r && x.r.pct != null);
+  out.push('', `_Fonte: GEROT${K.posicao ? ' (posição ' + K.posicao + ')' : ''} · ritmo e necessidade = os do GEROT · dias úteis: ${du.decorridos} de ${du.total} (seg–sex, sem feriados)._`, SUGESTAO + (pior ? `atacar ${pior.k}, o pior ritmo.` : 'manter o ritmo.'));
+  return out.join('\n');
 }
 
 export async function respMaiorAtrasoMeta(B, E) {
@@ -206,7 +169,7 @@ export async function respMaiorAtrasoMeta(B, E) {
   let rows = (results || []).map((r) => {
     let d = {}; try { d = JSON.parse(r.dados || '{}'); } catch {}
     const meta = Number(d['Meta (R$)']) || 0, fat = Number(d['Faturado líquido (R$)']) || 0, pend = Number(d['Carteira pendente (R$)']) || 0, vend = fat + pend;
-    return { filial: r.filial, rca: r.rca, sup: r.supervisor || '', nome: r.vendedor || '', meta, vend, pct: meta > 0 ? (vend / meta) * 100 : null, falta: Math.max(0, meta - vend) };
+    return { filial: r.filial, rca: r.rca, sup: r.supervisor || '', nome: r.vendedor || '', meta, vend, pct: meta > 0 ? (vend / meta) * 100 : null, falta: Math.max(0, meta - vend), nec: d['Necessidade dia captação (R$)'] == null ? null : Number(d['Necessidade dia captação (R$)']) };   /* 23/11/2026: precisa/dia = o do GEROT (3.8) */
   }).filter((x) => x.meta > 0 && x.falta > 0);
   if (E.supervisor) {
     const sAlvo = sem(E.supervisor);
@@ -218,7 +181,7 @@ export async function respMaiorAtrasoMeta(B, E) {
     `🐢 *Vendedores com maior atraso para a meta — ${E.nome}*`,
     `_Critério: menor % vendido (faturado + carteira) no GEROT · ${falt} dia(s) útil(eis) restante(s)_`,
     '',
-    ...rows.slice(0, 12).map((x, i) => `${i + 1}. *${x.rca} - ${titulo(x.nome)}*${E.nacional ? ' (' + x.filial + ')' : ''}: *${x.pct.toFixed(1).replace('.', ',')}%* (${R$(x.vend)} de ${R$(x.meta)}) · falta ${R$(x.falta)} (${R$(x.falta / falt)}/d)`),
+    ...rows.slice(0, 12).map((x, i) => `${i + 1}. *${x.rca} - ${titulo(x.nome)}*${E.nacional ? ' (' + x.filial + ')' : ''}: *${x.pct.toFixed(1).replace('.', ',')}%* (${R$(x.vend)} de ${R$(x.meta)}) · falta ${R$(x.falta)}${x.nec != null ? ` · precisa captar ${R$(x.nec)}/dia (GEROT)` : ''}`),
     '',
     SUGESTAO + `cobrar plano de ação imediato de *${titulo(rows[0].nome)}* (${rows[0].pct.toFixed(1).replace('.', ',')}%).`
   ].join('\n');
