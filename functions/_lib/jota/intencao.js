@@ -71,7 +71,7 @@ export async function rotearIntencao(B, c, t, info) {
   if (/\b(HOJE|ZERAD\w*|ROTA|VISITA\w*|BOM DIA|MATINAL|FECHAMENTO DO DIA|QUANTO VENDI)\b/.test(t) && !/\b(MES|ONTEM|SEMANA)\b/.test(t)) {
     try { const { ehFeriado } = await import('../feriados.js'); const hj = hojeSP();
       // 22/11/2026 (regua de domingo: 'R$ 0', '0 de 0', 'sem rota gravada'): domingo nao tem rota (Vitorio: 'domingo sem rota') — avisa como no feriado
-      if (new Date(hj + 'T12:00:00Z').getUTCDay() === 0 && !/\b(ULTIMO DIA|SEXTA|SABADO|MATINAL)\b/.test(t) && !/COMO (ESTOU|EU ESTOU|TO|EU TO|Q EU TO|QUE EU TO|TA MEU|ESTA MEU)|LIGA|CHAMPIONS|PONTUA|CARTAO|CARTOES|MIX|RECORR|META|DEVOLU|PENDENT|FATURA|CARTEIRA|BLOQUE|POSITIVA|INDUSTRI|SEM COMPRA|CURVA|NO MES|DO MES|MES PASSADO|OUTUBRO|NOVEMBRO|SETEMBRO|ULTIMOS? \d+ DIAS/.test(t))   /* 22/11/2026 (bateria real): domingo so barra pergunta do DIA; assunto do mes/liga/mix segue para a resposta normal */ return `📅 Hoje (${hj.slice(8, 10)}/${hj.slice(5, 7)}) é *domingo*: sem rota e sem cobrança do dia.\n\nPergunte do *mês* (ex.: "como estou no mês") ou de *sábado* (ex.: "como foi sábado").`;
+      if (new Date(hj + 'T12:00:00Z').getUTCDay() === 0 && !/\b(ULTIMO DIA|SEXTA|SABADO|MATINAL)\b/.test(t) && !/AMANHA|PLANEJ|COMO (ESTOU|EU ESTOU|TO|EU TO|Q EU TO|QUE EU TO|TA MEU|ESTA MEU)|LIGA|CHAMPIONS|PONTUA|CARTAO|CARTOES|MIX|RECORR|META|DEVOLU|PENDENT|FATURA|CARTEIRA|BLOQUE|POSITIVA|INDUSTRI|SEM COMPRA|CURVA|NO MES|DO MES|MES PASSADO|OUTUBRO|NOVEMBRO|SETEMBRO|ULTIMOS? \d+ DIAS/.test(t))   /* 22/11/2026 (bateria real): domingo so barra pergunta do DIA; assunto do mes/liga/mix segue para a resposta normal */ return `📅 Hoje (${hj.slice(8, 10)}/${hj.slice(5, 7)}) é *domingo*: sem rota e sem cobrança do dia.\n\nPergunte do *mês* (ex.: "como estou no mês") ou de *sábado* (ex.: "como foi sábado").`;
       if (ehFeriado(hj)) return `📅 Hoje (${hj.slice(8, 10)}/${hj.slice(5, 7)}) é *feriado nacional*: sem rota e sem cobrança do dia. Os dias úteis do mês já não contam hoje.\n\nPergunte do *mês* (ex.: "como estou no mês") ou de *ontem*.`; } catch (e) { /* segue */ }
   }
   // A8 · RESPOSTA A UM ALERTA DO MONITOR.IA (piloto 21/11/2026): "ok/feito" ou "nao procede" ate 4 h depois do alerta = registra no alerta e confirma
@@ -113,6 +113,30 @@ export async function rotearIntencao(B, c, t, info) {
       else if (/MES (PASSADO|ANTERIOR)|ULTIMO MES/.test(t) && !/ATUAL/.test(t)) { const d = new Date(hj.slice(0, 7) + '-15T12:00:00Z'); d.setUTCMonth(d.getUTCMonth() - 1); mesQ = d.toISOString().slice(0, 7); }
       if (e) { const r = await respMixGerot(B, e, mesQ, /\bMETA\b/.test(t)); if (r) return /\bROTA\b/.test(t) ? r + '\n_Para a rota de hoje, peça *minha rota*._' : r; }
     } catch (err) { /* segue o roteamento normal */ }
+  }
+  // A1 · PLANEJAMENTO / ROTA DE AMANHA (23/11/2026, Tamara/TCV no domingo: 'meu planejamento para amanha', 'minha rota amanha', 'meu dia amanha'):
+  //   rota planejada do CEVEN dos gerentes (rota_planejada, hoje a +7 dias). Vendedor: os clientes; supervisor: por vendedor; gerente/diretoria: por filial.
+  if (/PLANEJAMENTO|PLANEJAD|(ROTA|ROTEIRO|VISITAS?|AGENDA|MEU DIA|CLIENTES?) (DE |PARA |PRA |DO DIA DE )?(AMANHA|SEGUNDA|TERCA|QUARTA|QUINTA|SEXTA)/.test(t) && B.env && B.env.DB) {
+    try {
+      const { ehFeriado } = await import('../feriados.js');
+      const hj = hojeSP(); let alvo = hj; const DIAS = { SEGUNDA: 1, TERCA: 2, QUARTA: 3, QUINTA: 4, SEXTA: 5 }, dS = Object.keys(DIAS).find((d) => t.includes(d));
+      const prox = (d) => { const x = new Date(d + 'T12:00:00Z'); do { x.setUTCDate(x.getUTCDate() + 1); } while ([0, 6].includes(x.getUTCDay()) || ehFeriado(x.toISOString().slice(0, 10))); return x.toISOString().slice(0, 10); };
+      if (/AMANHA/.test(t) || new Date(hj + 'T12:00:00Z').getUTCDay() === 0 || new Date(hj + 'T12:00:00Z').getUTCDay() === 6) alvo = prox(hj);
+      if (dS) { let x = hj; for (let i = 0; i < 7 && new Date(x + 'T12:00:00Z').getUTCDay() !== DIAS[dS]; i++) x = prox(x); alvo = x; }
+      const pp = papel === 'ceo' ? 'diretoria' : papel; let F = [], rc = null, nome = '';
+      if (pp === 'vendedor' && rcaV) { F = [c.filial]; rc = [String(rcaV)]; nome = `${rcaV} - ${nome2(c.nome || '')}`; }
+      else if (pp === 'diretoria') { F = filCit ? [filCit] : FILIAIS; nome = filCit || 'Brasil'; }
+      else { const Ev = await carregaEscopo(B, esc), V = (Ev && Ev.vend) || []; F = [c.filial]; nome = (Ev && Ev.nome) || c.filial; if (pp === 'supervisor' || c.grupo) rc = V.map((v) => String(v.rca)); }
+      const q = `SELECT r.filial, r.rca, r.cliente, r.nome, r.ult_compra, (SELECT 1 FROM cliente_focos f WHERE f.filial = r.filial AND f.id_cliente = r.cnpj AND f.tag LIKE '%RECORR%' LIMIT 1) rec FROM rota_planejada r WHERE r.dia = ? AND r.filial IN (${F.map(() => '?').join(',')})${rc ? ` AND r.rca IN (${rc.map(() => '?').join(',')})` : ''}`;
+      const R0 = (await B.env.DB.prepare(q).bind(alvo, ...F, ...(rc || [])).all()).results || [];
+      const dd = `${alvo.slice(8, 10)}/${alvo.slice(5, 7)}`, sem = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'][new Date(alvo + 'T12:00:00Z').getUTCDay()];
+      if (!R0.length) { const lidas = await B.env.DB.prepare(`SELECT COUNT(*) n FROM rota_planejada WHERE filial IN (${F.map(() => '?').join(',')}) AND dia >= ?`).bind(...F, hj).first().catch(() => null); return `🗓️ *Planejamento de ${sem} ${dd} — ${nome}*: ${lidas && lidas.n ? 'nenhuma visita planejada para esse dia no roteiro do CEVEN.' : 'a rota planejada desta filial ainda está sendo lida do CEVEN (em rodízio, a cada 15 min). Tente de novo em instantes.'}`; }
+      const recN = R0.filter((x) => x.rec).length, L = [`🗓️ *Planejamento de ${sem} ${dd} — ${nome}*: *${N(R0.length)}* visitas · 🔄 *${N(recN)}* com TAG de recorrência`];
+      if (pp === 'vendedor') { const hd = Date.parse(hj + 'T12:00:00Z'); L.push(''); R0.sort((a, b) => (b.rec || 0) - (a.rec || 0) || String(a.ult_compra || '').localeCompare(String(b.ult_compra || ''))).slice(0, 40).forEach((x, i) => { const dias = x.ult_compra ? Math.round((hd - Date.parse(x.ult_compra + 'T12:00:00Z')) / 864e5) : null; L.push(`${i + 1}. ${x.rec ? '🔄 ' : ''}${titulo(String(x.nome || '').toLowerCase()) || 'Cliente'} (#${x.cliente})${x.ult_compra ? ` · última compra ${x.ult_compra.slice(8, 10)}/${x.ult_compra.slice(5, 7)} (${dias} dias)` : ' · sem compra registrada'}`); }); if (R0.length > 40) L.push(`… e mais ${R0.length - 40}`); }
+      else { const g = new Map(); for (const x of R0) { const k = pp === 'diretoria' && !filCit ? x.filial : x.rca; const o = g.get(k) || { n: 0, rec: 0 }; o.n++; if (x.rec) o.rec++; g.set(k, o); } L.push('', pp === 'diretoria' && !filCit ? '*Por filial:*' : '*Por vendedor (menos visitas primeiro):*'); [...g].sort((a, b) => (pp === 'diretoria' && !filCit ? b[1].n - a[1].n : a[1].n - b[1].n)).slice(0, 40).forEach(([k, o]) => L.push(`• ${k}: ${N(o.n)} visitas · 🔄 ${N(o.rec)}${!(pp === 'diretoria' && !filCit) && o.n < 20 ? ' · ⚠️ menos de 20' : ''}`)); }
+      L.push('', '_Roteiro planejado do CEVEN (via gerentes) · 🔄 = TAG de recorrência do admin._');
+      return L.join('\n');
+    } catch (err) { /* segue */ }
   }
   // A2 · RECORRENCIA DE MES QUE JA FECHOU (22/11/2026, Vanessa/TCV 'recorrencias resgatadas em outubro' recebia a de HOJE): o GEROT so tem a lista do mes atual gravada
   { const mR0 = t.match(/\b(JANEIRO|FEVEREIRO|MARCO|ABRIL|MAIO|JUNHO|JULHO|AGOSTO|SETEMBRO|OUTUBRO)\b/);
