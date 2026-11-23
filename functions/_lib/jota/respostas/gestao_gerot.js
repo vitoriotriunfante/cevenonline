@@ -131,6 +131,7 @@ _Carteira Total do GEROT · ${await fontesG(db) || 'sem hora'}_`; }
   const grp = (L, key) => { const m = new Map(); for (const r of L) { const k = key(r); const o = m.get(k) || []; o.push(r); m.set(k, o); } return [...m].map(([k, L2]) => [k, soma(L2), L2]).sort((a, b) => b[1].v - a[1].v); };
   const SIT = [['Bloqueado Financeiro', '🔴'], ['Bloqueado Comercial', '🟠'], ['Pendente', '⏳'], ['Montado', '📦'], ['Liberado', '🟢']];
   const tot = soma(A), L = [`${tag}: ${fmt(tot)}`];
+  if (modo === 'bloq' && papel === 'vendedor') L.push(`Carteira em aberto: ${fmt(soma(R))}`);   /* 23/11/2026: vendedor ve o bloqueado e a carteira inteira dele (3.11/3.12) */
   const linhaSit = (Ls) => SIT.filter(([s]) => modo === 'total' || /BLOQ/i.test(s)).filter(([s]) => tipoOk(s)).map(([s, ic]) => { const x = soma(Ls.filter((r) => r.situacao === s)); return x.n ? `${ic} ${s === 'Pendente' ? 'Pendente (ainda sem carga)' : s}: ${fmt(x)}` : null; }).filter(Boolean);
   L.push(...linhaSit(A));
   if (modo === 'total') { const fat = soma(A.filter((r) => /MONTAD|LIBERAD/i.test(r.situacao))), bq = soma(A.filter((r) => /BLOQ/i.test(r.situacao))); if (!tipo && bq.n) L.push(`🚫 Bloqueados (financeiro + comercial): ${fmt(bq)}`); L.push(`✅ Faturável (montado + liberado): ${fmt(fat)}`); }
@@ -315,7 +316,7 @@ export async function respDevolucaoMotivo(B, filiais, nome) {
   for (const x of R.slice(0, 14)) L.push(`${LIGA_VERMELHO.test(x.motivo) ? '🟥' : LIGA_GOLCONTRA.test(x.motivo) ? '⚽' : '•'} ${titulo(String(x.motivo).toLowerCase())}: *${R$(x.valor)}* (${pc(x.valor, tot)})${uma ? '' : ` · ${N(x.notas)} nota(s)`} · ${N(x.clientes)} cliente(s)`   /* 18/11: notas por filial nao bate com o total do GEROT (valor e clientes batem); fica fora ate corrigir a leitura */);
   if (R.length > 14) L.push(`… e mais ${R.length - 14} motivo(s)`);
   if (!uma) { try { const { results: F } = await db.prepare("SELECT filial, valor FROM gerot_devolucao_motivo WHERE mes = ? AND motivo = 'CLIENTE NAO PEDIU' AND filial <> '' ORDER BY valor DESC").bind(mesAtual()).all(); if (F && F.length) L.push('', '*"Cliente não pediu" por filial:* ' + F.map((x) => `${x.filial} ${R$(x.valor)}`).join(' · ')); } catch (e) { /* sem filial */ } }
-  L.push('', `_GEROT · tela Devoluções, por motivo${em ? ' · lido ' + new Date(em).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : ''}. Peça "devolução por motivo TPH" para uma filial._`);
+  L.push('', `_GEROT · tela Devoluções, por motivo${em ? ' · lido ' + new Date(em).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : ''}${F.length > 1 ? '. Peça "devolução por motivo" + a sigla da filial para abrir uma.' : ''}_`);
   return L.join(String.fromCharCode(10));
 }
 
