@@ -188,29 +188,27 @@ export async function respMaiorAtrasoMeta(B, E) {
 }
 
 export async function respBloqueioComercial(B, E) {
+  // 23/11/2026 (docs/DICIONARIO_KPIS.md 3.11, conflito 8): bloqueados = gerot_carteira (pedido a pedido, situacao do Winthor; soma bate com a Carteira pendente
+  // do GEROT centavo a centavo). Antes: pedido_status dos ultimos 7 dias (esparso: TPH 26 ped. R$ 200 mil x 303 ped. R$ 550 mil no GEROT).
   if (!B || !B.env || !B.env.DB) return null;
-  const fil = (E.filiais || []).length ? E.filiais : ['ABC', 'API', 'MCD', 'TBE', 'TBL', 'TCA', 'TCG', 'TCV', 'TPA', 'TPH', 'TSJ'];
-  const qs = fil.map(() => '?').join(',');
-  let sql = `SELECT filial, rca, num, id_cliente, data_pedido, valor, status FROM pedido_status WHERE filial IN (${qs}) AND data_pedido >= date('now', '-3 hours', '-7 days') AND status LIKE '%BLOQUEAD%'`;
-  const bind = [...fil];
-  if (E.rca) { sql += ' AND rca = ?'; bind.push(String(E.rca)); }
-  else if (E.supervisor && E.vend && E.vend.length) {
-    const rcas = E.vend.map((v) => String(v.rca)).filter(Boolean);
-    if (rcas.length) { sql += ` AND rca IN (${rcas.map(() => '?').join(',')})`; bind.push(...rcas); }
-  }
-  sql += ' ORDER BY valor DESC LIMIT 200';
-  const { results } = await B.env.DB.prepare(sql).bind(...bind).all().catch(() => ({ results: [] }));
-  if (!results || !results.length) return `✅ *Bloqueios — ${E.nome}*: nenhum pedido bloqueado nos últimos 7 dias na base.`;
-  const tot = results.reduce((a, p) => a + (Number(p.valor) || 0), 0);
-  const nomeV = (f, r) => { const v = (E.vend || []).find((x) => x.filial === f && String(x.rca) === String(r)); return v ? `${r} - ${titulo(v.nome)}` : `RCA ${r}`; };
+  const fil = (E.filiais || []).length && !E.nacional ? E.filiais : ['ABC', 'API', 'MCD', 'TBE', 'TBL', 'TCA', 'TCG', 'TCV', 'TPA', 'TPH', 'TSJ'];
+  const rcas = E.rca ? [String(E.rca)] : (E.supervisor || E.grupo) && E.vend && E.vend.length ? E.vend.concat(E.ocultos || []).map((v) => String(v.rca)) : null;
+  const { carteira, posicaoGerot } = await import('../../fatos/index.js');
+  const C = await carteira(B.env.DB, { filiais: fil, rcas }); if (!C) return 'Sem leitura da carteira do GEROT agora.';
+  const qs = fil.map(() => '?').join(','), fr = rcas ? ` AND CAST(rca AS INTEGER) IN (${rcas.map(Number).filter((x) => !Number.isNaN(x)).join(',') || -1})` : '';
+  const { results } = await B.env.DB.prepare(`SELECT filial, rca, vendedor, pedido, cliente, entrada, valor, situacao, motivo FROM gerot_carteira WHERE situacao LIKE 'Bloqueado%' AND filial IN (${qs})${fr} ORDER BY valor DESC LIMIT 12`).bind(...fil).all().catch(() => ({ results: [] }));
+  const pos = await posicaoGerot(B.env.DB);
+  if (!C.bloqueado.n) return `✅ *Bloqueios — ${E.nome}*: nenhum pedido bloqueado na carteira do GEROT.\n_Carteira Total do GEROT · ${pos || 'sem hora'}_`;
+  const dm = (d) => (d ? `${String(d).slice(8, 10)}/${String(d).slice(5, 7)}` : '');
   return [
-    `🚫 *Pedidos bloqueados (últimos 7 dias) — ${E.nome}*`,
-    `Total: *${N(results.length)} pedido(s)* · *${R$(tot)}*`,
-    '',
-    ...results.slice(0, 12).map((p) => `• Ped. *${p.num}* · ${nomeV(p.filial, p.rca)} · cli. #${p.id_cliente} · *${R$(p.valor || 0)}* (${String(p.data_pedido).slice(8, 10)}/${String(p.data_pedido).slice(5, 7)})`),
-    ...(results.length > 12 ? [`_… e mais ${results.length - 12} pedido(s) bloqueado(s)._`] : []),
-    '',
-    SUGESTAO + 'priorizar o destrave dos pedidos de maior valor com o financeiro/comercial.'
+    `🚫 *Pedidos bloqueados na carteira — ${E.nome}*`,
+    `Total: *${N(C.bloqueado.n)} pedido(s)* · *${R$(C.bloqueado.v)}*`,
+    `🔴 Bloqueado financeiro: *${R$(C.bloqFin.v)}* · ${N(C.bloqFin.n)} ped.`,
+    `🟠 Bloqueado comercial: *${R$(C.bloqCom.v)}* · ${N(C.bloqCom.n)} ped.`,
+    '', '*Maiores:*',
+    ...(results || []).map((p) => `• Ped. *${p.pedido}* · ${p.rca} - ${titulo(String(p.vendedor || '').toLowerCase())} · ${titulo(String(p.cliente || '').toLowerCase()).slice(0, 30)} · *${R$(p.valor || 0)}* · ${String(p.situacao || '').replace(/^Bloqueado\s*/i, '').toLowerCase()}${p.entrada ? ' (' + dm(p.entrada) + ')' : ''}`),
+    '', SUGESTAO + 'priorizar o destrave dos pedidos de maior valor com o financeiro/comercial.',
+    `_Carteira Total do GEROT · ${pos || 'sem hora'}_`,
   ].join('\n');
 }
 
@@ -248,7 +246,7 @@ export async function respMatinal(B, E) {
     B.env.DB.prepare('SELECT posicao, em FROM gerot_coleta_status WHERE mes = ? ORDER BY id DESC LIMIT 1').bind(mes).first().catch(() => null),
     B.env.DB.prepare(`SELECT filial, rca, cod_sup, supervisor, vendedor, dados FROM gerot_vendedor_mes WHERE mes = ? AND filial IN (${qs})`).bind(mes, ...fil).all().catch(() => ({ results: [] })),
     /* 16/11/2026 (mapa de dados: 'Rota 0 PDVs' em 57 respostas — a tabela roteiro_dia nao existe): rota do dia = roteiros do Clube de hoje */ B.env.DB.prepare(`SELECT filial, rca, roteiros n FROM clube_venda_dia WHERE dia = ? AND filial IN (${qs})`).bind(hoje, ...fil).all().catch(() => ({ results: [] })),
-    /* 17/11/2026: bloqueados = Carteira Total do GEROT (situacao 'Bloqueado Comercial/Financeiro'), nao a linha do tempo parada do CEVEN */ B.env.DB.prepare(`SELECT c.filial, c.rca, COUNT(*) qtd, SUM(p.total) vlr FROM gerot_carteira c LEFT JOIN clube_pedido p ON p.filial = c.filial AND p.pedido_winthor = c.pedido WHERE c.filial IN (${qs}) AND c.situacao LIKE 'Bloqueado%' GROUP BY c.filial, c.rca`).bind(...fil)   /* valor = total do pedido no Clube (o da Carteira Total esta errado, 17/11) */.all().catch(() => ({ results: [] })),
+    /* 17/11/2026: bloqueados = Carteira Total do GEROT (situacao 'Bloqueado Comercial/Financeiro'), nao a linha do tempo parada do CEVEN */ B.env.DB.prepare(`SELECT c.filial, c.rca, COUNT(*) qtd, SUM(c.valor) vlr FROM gerot_carteira c WHERE c.filial IN (${qs}) AND c.situacao LIKE 'Bloqueado%' GROUP BY c.filial, c.rca`).bind(...fil)   /* 23/11/2026 (dicionario 3.11, conflito 8): valor = gerot_carteira.valor, que bate centavo a centavo com a Carteira pendente do GEROT (antes: total do Clube, TPH R$ 487.703 x 549.971) */.all().catch(() => ({ results: [] })),
     B.env.DB.prepare(`SELECT filial, rca, COUNT(*) qtd FROM prospects_mapa WHERE filial IN (${qs}) GROUP BY filial, rca`).bind(...fil).all().catch(() => ({ results: [] })),
     B.env.DB.prepare(`SELECT filial, rca, vend_nome FROM arvore_supervisores WHERE filial IN (${qs})`).bind(...fil).all().catch(() => ({ results: [] }))
   ]);
