@@ -536,7 +536,20 @@ async function respUmaIndustria(B, c, t, filCit, esc) {
     tot.m ? `💰 Faturado *${R$(tot.fa)}* + a faturar ${R$(tot.ca)} = *${R$(tot.fa + tot.ca)}* de ${R$(tot.m)} (*${pct(tot.fa + tot.ca, tot.m)}*)` : `💰 Faturado *${R$(tot.fa)}* + a faturar ${R$(tot.ca)} · _sem meta no GEROT_`,
     `👥 Clientes que compraram: *${N(tot.p)}*`];
   if ((!filCit || filsCit.length > 1) && !(esc && (esc.supervisor || esc.rca)) && fil.length > 1) { const pf = new Map(); for (const x of R) { const y = pf.get(x.filial) || { m: 0, v: 0 }; y.m += Number(x.m) || 0; y.v += (Number(x.fa) || 0) + (Number(x.ca) || 0); pf.set(x.filial, y); } out.push('', '*Por filial:*', ...[...pf.entries()].sort((a, b) => (a[1].v / (a[1].m || 1)) - (b[1].v / (b[1].m || 1))).map(([f, y]) => `• *${f}*: ${R$(y.v)}${y.m ? ` de ${R$(y.m)} (${pct(y.v, y.m)})` : ''}`)); }
-  else { const ps = new Map(); for (const x of R) { const k = titulo(nome2(x.supervisor || 'sem supervisor')); const y = ps.get(k) || { m: 0, v: 0 }; y.m += Number(x.m) || 0; y.v += (Number(x.fa) || 0) + (Number(x.ca) || 0); ps.set(k, y); } if (ps.size > 1) out.push('', '*Por supervisor:*', ...[...ps.entries()].sort((a, b) => (a[1].v / (a[1].m || 1)) - (b[1].v / (b[1].m || 1))).map(([k, y]) => `• *${k}*: ${R$(y.v)}${y.m ? ` de ${R$(y.m)} (${pct(y.v, y.m)})` : ''}`)); }
+  else {
+    // 23/11/2026 (Vitorio: 'Heinz TPH' listava quem nao vende a industria, 'Venda (interno)', 'Gerente Tph', '(historico)' e supervisor de outra filial):
+    // supervisor = o da Gestao de Equipe DA FILIAL; so aparece quem ATENDE a industria (meta > 0 ou venda relevante); interno/historico/gerente/negativo
+    // e quem nao esta na Gestao vao numa linha so ('fora das equipes / ajustes') para o total fechar.
+    let cfgS = new Map(); try { const cc = JSON.parse(((await B.env.DB.prepare('SELECT conteudo_json FROM config_equipe_soberana LIMIT 1').first()) || {}).conteudo_json || '{}'); for (const [k, Lc] of Object.entries(cc.filiais || {})) for (const v of Lc || []) if (v && v.supervisor) cfgS.set(k.split('_')[0] + '|' + String(Number(v.rca)), String(v.supervisor)); } catch (e) { cfgS = new Map(); }
+    const ps = new Map(), FORA = 'fora das equipes / ajustes';
+    for (const x of R) { const sg = cfgS.get(x.filial + '|' + String(Number(x.rca))); const k = sg && !/^(GERENTE|VAGO|SUPERVISOR d)/i.test(sg) ? titulo(nome2(sg)) : FORA; const y = ps.get(k) || { m: 0, v: 0 }; y.m += Number(x.m) || 0; y.v += (Number(x.fa) || 0) + (Number(x.ca) || 0); ps.set(k, y); }
+    const totV = Math.abs(tot.fa + tot.ca) || 1, fora = ps.get(FORA) || { m: 0, v: 0 };
+    for (const [k, y] of [...ps]) if (k !== FORA && !(y.m > 0) && !(y.v > 0 && y.v >= totV * 0.01)) { fora.m += y.m; fora.v += y.v; ps.delete(k); }   /* nao atende a industria: soma no 'fora' */
+    ps.delete(FORA);
+    const linhas = [...ps.entries()].sort((a, b) => (a[1].v / (a[1].m || 1)) - (b[1].v / (b[1].m || 1))).map(([k, y]) => `• *${k}*: ${R$(y.v)}` + (y.m ? ` de ${R$(y.m)} (${pct(y.v, y.m)})` : ' · sem meta'));
+    if (Math.abs(fora.v) > 1 || fora.m > 0) linhas.push(`• _${FORA}_: ${R$(fora.v)}` + (fora.m ? ` de ${R$(fora.m)}` : ''));
+    if (linhas.length > 1) out.push('', '*Por supervisor (quem atende a indústria; fat. + a faturar):*', ...linhas);
+  }
   out.push('_GEROT_');
   return out.join('\n');
 }
