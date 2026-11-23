@@ -1,0 +1,4220 @@
+{
+ "gerado_em": "2026-11-23T11:22:50.895Z",
+ "fonte": "perguntas reais de bot_msgs + contatos de bot_contatos (D1) e docs/CATALOGO_PERGUNTAS_REAIS.md; linha = linha das tabelas 3, 4 e 5 de docs/CONTRATO_RESPOSTAS.md; checagens = ids calculados no D1 por testes/gabarito.mjs",
+ "casos": [
+  {
+   "id": "V001",
+   "linha": "3.meta",
+   "contato": {
+    "nome": "PRISCILA DE BONFIM CORDEIRO",
+    "papel": "vendedor",
+    "filial": "TPH",
+    "rca": "66",
+    "grupo": null
+   },
+   "pergunta": "Como estou",
+   "assunto": "meta|faturad",
+   "proibido": "por dia[\\s\\S]*por dia",
+   "checagens": [
+    {
+     "id": "fat_liq_vendedor_mes",
+     "p": {
+      "filial": "TPH",
+      "rca": "66"
+     }
+    },
+    {
+     "id": "necessidade_vendedor",
+     "p": {
+      "filial": "TPH",
+      "rca": "66"
+     }
+    },
+    {
+     "id": "positivacao_vendedor",
+     "p": {
+      "filial": "TPH",
+      "rca": "66"
+     }
+    }
+   ]
+  },
+  {
+   "id": "V002",
+   "linha": "3.meta",
+   "contato": {
+    "nome": "PATRIK SANTOS",
+    "papel": "vendedor",
+    "filial": "ABC",
+    "rca": "212",
+    "grupo": null
+   },
+   "pergunta": "Como estou ?",
+   "assunto": "meta|faturad",
+   "proibido": "por dia[\\s\\S]*por dia",
+   "checagens": [
+    {
+     "id": "fat_liq_vendedor_mes",
+     "p": {
+      "filial": "ABC",
+      "rca": "212"
+     }
+    },
+    {
+     "id": "necessidade_vendedor",
+     "p": {
+      "filial": "ABC",
+      "rca": "212"
+     }
+    },
+    {
+     "id": "positivacao_vendedor",
+     "p": {
+      "filial": "ABC",
+      "rca": "212"
+     }
+    }
+   ]
+  },
+  {
+   "id": "V003",
+   "linha": "3.meta",
+   "contato": {
+    "nome": "ANDRÉ MARTINS RODRIGUES",
+    "papel": "vendedor",
+    "filial": "TSJ",
+    "rca": "25",
+    "grupo": null
+   },
+   "pergunta": "Jota qual é minha meta desse mês",
+   "assunto": "meta|faturad",
+   "proibido": "por dia[\\s\\S]*por dia",
+   "checagens": [
+    {
+     "id": "fat_liq_vendedor_mes",
+     "p": {
+      "filial": "TSJ",
+      "rca": "25"
+     }
+    },
+    {
+     "id": "necessidade_vendedor",
+     "p": {
+      "filial": "TSJ",
+      "rca": "25"
+     }
+    },
+    {
+     "id": "positivacao_vendedor",
+     "p": {
+      "filial": "TSJ",
+      "rca": "25"
+     }
+    }
+   ]
+  },
+  {
+   "id": "V004",
+   "linha": "3.meta",
+   "contato": {
+    "nome": "MARCELO LUIZ DE ALMEIDA GARRETT",
+    "papel": "vendedor",
+    "filial": "TPH",
+    "rca": "1039",
+    "grupo": null
+   },
+   "pergunta": "Minha meta este mes",
+   "assunto": "meta|faturad",
+   "proibido": "por dia[\\s\\S]*por dia",
+   "checagens": [
+    {
+     "id": "fat_liq_vendedor_mes",
+     "p": {
+      "filial": "TPH",
+      "rca": "1039"
+     }
+    },
+    {
+     "id": "necessidade_vendedor",
+     "p": {
+      "filial": "TPH",
+      "rca": "1039"
+     }
+    },
+    {
+     "id": "positivacao_vendedor",
+     "p": {
+      "filial": "TPH",
+      "rca": "1039"
+     }
+    }
+   ]
+  },
+  {
+   "id": "V005",
+   "linha": "3.meta",
+   "contato": {
+    "nome": "ALTEMIO HENRIQUE DIVINO",
+    "papel": "vendedor",
+    "filial": "TPH",
+    "rca": "1038",
+    "grupo": null
+   },
+   "pergunta": "Meta X realizado",
+   "assunto": "meta|faturad",
+   "proibido": "por dia[\\s\\S]*por dia",
+   "checagens": [
+    {
+     "id": "fat_liq_vendedor_mes",
+     "p": {
+      "filial": "TPH",
+      "rca": "1038"
+     }
+    },
+    {
+     "id": "necessidade_vendedor",
+     "p": {
+      "filial": "TPH",
+      "rca": "1038"
+     }
+    },
+    {
+     "id": "positivacao_vendedor",
+     "p": {
+      "filial": "TPH",
+      "rca": "1038"
+     }
+    }
+   ]
+  },
+  {
+   "id": "V006",
+   "linha": "3.liga",
+   "contato": {
+    "nome": "INOCENCIO DA SILVA",
+    "papel": "vendedor",
+    "filial": "TBL",
+    "rca": "184",
+    "grupo": null
+   },
+   "pergunta": "Como estou na champions",
+   "assunto": "liga|champions|posi[çc][ãa]o|pontos",
+   "checagens": [],
+   "escopo_livre": true
+  },
+  {
+   "id": "V007",
+   "linha": "3.liga",
+   "contato": {
+    "nome": "WILLIANS DE ALCANTRA CORREA",
+    "papel": "vendedor",
+    "filial": "API",
+    "rca": "255",
+    "grupo": null
+   },
+   "pergunta": "Liga chanpions",
+   "assunto": "liga|champions|posi[çc][ãa]o|pontos",
+   "checagens": [],
+   "escopo_livre": true
+  },
+  {
+   "id": "V008",
+   "linha": "3.liga",
+   "contato": {
+    "nome": "EDSON DOS SANTOS MACHADO",
+    "papel": "vendedor",
+    "filial": "TBE",
+    "rca": "1094",
+    "grupo": null
+   },
+   "pergunta": "Liga",
+   "assunto": "liga|champions|posi[çc][ãa]o|pontos",
+   "checagens": [],
+   "escopo_livre": true
+  },
+  {
+   "id": "V009",
+   "linha": "3.liga",
+   "contato": {
+    "nome": "ANDRÉ MARTINS RODRIGUES",
+    "papel": "vendedor",
+    "filial": "TSJ",
+    "rca": "25",
+    "grupo": null
+   },
+   "pergunta": "[áudio] Como estou na liga, então?",
+   "assunto": "liga|champions|posi[çc][ãa]o|pontos",
+   "checagens": [],
+   "escopo_livre": true
+  },
+  {
+   "id": "V010",
+   "linha": "3.rv",
+   "contato": {
+    "nome": "IRACEMA  RAFAGNIN",
+    "papel": "vendedor",
+    "filial": "TPH",
+    "rca": "62",
+    "grupo": null
+   },
+   "pergunta": "Quanto tenho de RV ate o momento?",
+   "assunto": "premia|RV|ainda n[ãa]o temos",
+   "proibido": "voc[êe] (vai )?receber R\\$",
+   "checagens": []
+  },
+  {
+   "id": "V011",
+   "linha": "3.rv",
+   "contato": {
+    "nome": "IRACEMA  RAFAGNIN",
+    "papel": "vendedor",
+    "filial": "TPH",
+    "rca": "62",
+    "grupo": null
+   },
+   "pergunta": "Como esta minha premiação RV desse mes, o que fiz d falta",
+   "assunto": "premia|RV|ainda n[ãa]o temos",
+   "proibido": "voc[êe] (vai )?receber R\\$",
+   "checagens": []
+  },
+  {
+   "id": "V012",
+   "linha": "3.rv",
+   "contato": {
+    "nome": "TAMARA GUEDES",
+    "papel": "vendedor",
+    "filial": "TCV",
+    "rca": "352",
+    "grupo": null
+   },
+   "pergunta": "Minha premiação / RV: metas e como estou até agora",
+   "assunto": "premia|RV|ainda n[ãa]o temos",
+   "proibido": "voc[êe] (vai )?receber R\\$",
+   "checagens": []
+  },
+  {
+   "id": "V013",
+   "linha": "3.bloq",
+   "contato": {
+    "nome": "WILLIANS DE ALCANTRA CORREA",
+    "papel": "vendedor",
+    "filial": "API",
+    "rca": "255",
+    "grupo": null
+   },
+   "pergunta": "Pedidos bloqueados",
+   "assunto": "bloque|carteira|pendente",
+   "checagens": [
+    {
+     "id": "carteira_vendedor",
+     "p": {
+      "filial": "API",
+      "rca": "255"
+     }
+    },
+    {
+     "id": "bloq_vendedor",
+     "p": {
+      "filial": "API",
+      "rca": "255"
+     }
+    }
+   ]
+  },
+  {
+   "id": "V014",
+   "linha": "3.bloq",
+   "contato": {
+    "nome": "ALTEMIO HENRIQUE DIVINO",
+    "papel": "vendedor",
+    "filial": "TPH",
+    "rca": "1038",
+    "grupo": null
+   },
+   "pergunta": "Pedidos pendentes",
+   "assunto": "bloque|carteira|pendente",
+   "checagens": [
+    {
+     "id": "carteira_vendedor",
+     "p": {
+      "filial": "TPH",
+      "rca": "1038"
+     }
+    },
+    {
+     "id": "bloq_vendedor",
+     "p": {
+      "filial": "TPH",
+      "rca": "1038"
+     }
+    }
+   ]
+  },
+  {
+   "id": "V015",
+   "linha": "3.bloq",
+   "contato": {
+    "nome": "POLIANA JÉSSICA DE ALMEIDA",
+    "papel": "vendedor",
+    "filial": "TBL",
+    "rca": "1087",
+    "grupo": null
+   },
+   "pergunta": "Pedidoa pendentes",
+   "assunto": "bloque|carteira|pendente",
+   "checagens": [
+    {
+     "id": "carteira_vendedor",
+     "p": {
+      "filial": "TBL",
+      "rca": "1087"
+     }
+    },
+    {
+     "id": "bloq_vendedor",
+     "p": {
+      "filial": "TBL",
+      "rca": "1087"
+     }
+    }
+   ]
+  },
+  {
+   "id": "V016",
+   "linha": "3.bloq",
+   "contato": {
+    "nome": "VANEZA DE LIMA KVASNEY",
+    "papel": "vendedor",
+    "filial": "TCV",
+    "rca": "354",
+    "grupo": null
+   },
+   "pergunta": "Pedidos travados",
+   "assunto": "bloque|carteira|pendente",
+   "checagens": [
+    {
+     "id": "carteira_vendedor",
+     "p": {
+      "filial": "TCV",
+      "rca": "354"
+     }
+    },
+    {
+     "id": "bloq_vendedor",
+     "p": {
+      "filial": "TCV",
+      "rca": "354"
+     }
+    }
+   ]
+  },
+  {
+   "id": "V017",
+   "linha": "3.bloq",
+   "contato": {
+    "nome": "TAMARA GUEDES",
+    "papel": "vendedor",
+    "filial": "TCV",
+    "rca": "352",
+    "grupo": null
+   },
+   "pergunta": "Pedidos bloqueados",
+   "assunto": "bloque|carteira|pendente",
+   "checagens": [
+    {
+     "id": "carteira_vendedor",
+     "p": {
+      "filial": "TCV",
+      "rca": "352"
+     }
+    },
+    {
+     "id": "bloq_vendedor",
+     "p": {
+      "filial": "TCV",
+      "rca": "352"
+     }
+    }
+   ]
+  },
+  {
+   "id": "V018",
+   "linha": "3.semcompra",
+   "contato": {
+    "nome": "PRISCILA DE BONFIM CORDEIRO",
+    "papel": "vendedor",
+    "filial": "TPH",
+    "rca": "66",
+    "grupo": null
+   },
+   "pergunta": "Curva negativa",
+   "assunto": "sem compra|curva negativa|n[ãa]o positivad",
+   "checagens": []
+  },
+  {
+   "id": "V019",
+   "linha": "3.semcompra",
+   "contato": {
+    "nome": "ALTEMIO HENRIQUE DIVINO",
+    "papel": "vendedor",
+    "filial": "TPH",
+    "rca": "1038",
+    "grupo": null
+   },
+   "pergunta": "Clientes sem compra nesse mes",
+   "assunto": "sem compra|curva negativa|n[ãa]o positivad",
+   "checagens": []
+  },
+  {
+   "id": "V020",
+   "linha": "3.semcompra",
+   "contato": {
+    "nome": "BRUNO AMARAL",
+    "papel": "vendedor",
+    "filial": "TPH",
+    "rca": "119",
+    "grupo": null
+   },
+   "pergunta": "Clientes sem compra",
+   "assunto": "sem compra|curva negativa|n[ãa]o positivad",
+   "checagens": []
+  },
+  {
+   "id": "V021",
+   "linha": "3.semcompra",
+   "contato": {
+    "nome": "VANEZA DE LIMA KVASNEY",
+    "papel": "vendedor",
+    "filial": "TCV",
+    "rca": "354",
+    "grupo": null
+   },
+   "pergunta": "Cnpj dos clientes sem compra",
+   "assunto": "sem compra|curva negativa|n[ãa]o positivad",
+   "checagens": []
+  },
+  {
+   "id": "V022",
+   "linha": "3.mix",
+   "contato": {
+    "nome": "EDSON DOS SANTOS MACHADO",
+    "papel": "vendedor",
+    "filial": "TBE",
+    "rca": "1094",
+    "grupo": null
+   },
+   "pergunta": "+mix",
+   "assunto": "\\+?MIX|oferecer",
+   "checagens": [],
+   "rodape": false
+  },
+  {
+   "id": "V023",
+   "linha": "3.mix",
+   "contato": {
+    "nome": "POLIANA JÉSSICA DE ALMEIDA",
+    "papel": "vendedor",
+    "filial": "TBL",
+    "rca": "1087",
+    "grupo": null
+   },
+   "pergunta": "Me manda o +mix da rota de hoje",
+   "assunto": "\\+?MIX|oferecer",
+   "checagens": [],
+   "rodape": false
+  },
+  {
+   "id": "V024",
+   "linha": "3.mix",
+   "contato": {
+    "nome": "MARCELO LUIZ DE ALMEIDA GARRETT",
+    "papel": "vendedor",
+    "filial": "TPH",
+    "rca": "1039",
+    "grupo": null
+   },
+   "pergunta": "Quais mix devo vender este mês",
+   "assunto": "\\+?MIX|oferecer",
+   "checagens": [],
+   "rodape": false
+  },
+  {
+   "id": "V025",
+   "linha": "3.fech",
+   "contato": {
+    "nome": "MARCELO LUIZ DE ALMEIDA GARRETT",
+    "papel": "vendedor",
+    "filial": "TPH",
+    "rca": "1039",
+    "grupo": null
+   },
+   "pergunta": "Faturamento mes passado",
+   "assunto": "outubro|out/26|10/2026|fechamento",
+   "checagens": [
+    {
+     "id": "fechamento_vendedor_mes",
+     "p": {
+      "filial": "TPH",
+      "rca": "1039",
+      "mes": "2026-10"
+     }
+    }
+   ]
+  },
+  {
+   "id": "V026",
+   "linha": "3.fech",
+   "contato": {
+    "nome": "ANDRÉ MARTINS RODRIGUES",
+    "papel": "vendedor",
+    "filial": "TSJ",
+    "rca": "25",
+    "grupo": null
+   },
+   "pergunta": "fechamento do mes passado",
+   "assunto": "outubro|out/26|10/2026|fechamento",
+   "checagens": [
+    {
+     "id": "fechamento_vendedor_mes",
+     "p": {
+      "filial": "TSJ",
+      "rca": "25",
+      "mes": "2026-10"
+     }
+    }
+   ]
+  },
+  {
+   "id": "V027",
+   "linha": "3.fech",
+   "contato": {
+    "nome": "PATRIK SANTOS",
+    "papel": "vendedor",
+    "filial": "ABC",
+    "rca": "212",
+    "grupo": null
+   },
+   "pergunta": "Fechamento outubro",
+   "assunto": "outubro|out/26|10/2026|fechamento",
+   "checagens": [
+    {
+     "id": "fechamento_vendedor_mes",
+     "p": {
+      "filial": "ABC",
+      "rca": "212",
+      "mes": "2026-10"
+     }
+    }
+   ]
+  },
+  {
+   "id": "V028",
+   "linha": "3.fech",
+   "contato": {
+    "nome": "TAMARA GUEDES",
+    "papel": "vendedor",
+    "filial": "TCV",
+    "rca": "352",
+    "grupo": null
+   },
+   "pergunta": "Quanto foi meu faturamento no mês de outubro ?",
+   "assunto": "outubro|out/26|10/2026|fechamento",
+   "checagens": [
+    {
+     "id": "fechamento_vendedor_mes",
+     "p": {
+      "filial": "TCV",
+      "rca": "352",
+      "mes": "2026-10"
+     }
+    }
+   ]
+  },
+  {
+   "id": "V029",
+   "linha": "3.rec",
+   "contato": {
+    "nome": "RENAN LECHUK",
+    "papel": "vendedor",
+    "filial": "TPH",
+    "rca": "128",
+    "grupo": null
+   },
+   "pergunta": "Quanto falta para positivar da recorrência?",
+   "assunto": "recorr",
+   "checagens": [
+    {
+     "id": "recorrencia_nivel",
+     "p": {
+      "filial": "TPH",
+      "nivel": "vendedor",
+      "cod": "128"
+     }
+    }
+   ]
+  },
+  {
+   "id": "V030",
+   "linha": "3.rec",
+   "contato": {
+    "nome": "BRUNO AMARAL",
+    "papel": "vendedor",
+    "filial": "TPH",
+    "rca": "119",
+    "grupo": null
+   },
+   "pergunta": "Recorrência",
+   "assunto": "recorr",
+   "checagens": [
+    {
+     "id": "recorrencia_nivel",
+     "p": {
+      "filial": "TPH",
+      "nivel": "vendedor",
+      "cod": "119"
+     }
+    }
+   ]
+  },
+  {
+   "id": "V031",
+   "linha": "3.rec",
+   "contato": {
+    "nome": "TAMARA GUEDES",
+    "papel": "vendedor",
+    "filial": "TCV",
+    "rca": "352",
+    "grupo": null
+   },
+   "pergunta": "Como estou indo com as recorrências??",
+   "assunto": "recorr",
+   "checagens": [
+    {
+     "id": "recorrencia_nivel",
+     "p": {
+      "filial": "TCV",
+      "nivel": "vendedor",
+      "cod": "352"
+     }
+    }
+   ]
+  },
+  {
+   "id": "V032",
+   "linha": "3.rota",
+   "contato": {
+    "nome": "TAMARA GUEDES",
+    "papel": "vendedor",
+    "filial": "TCV",
+    "rca": "352",
+    "grupo": null
+   },
+   "pergunta": "Minha rota hoje",
+   "assunto": "rota|roteiro|check",
+   "checagens": [],
+   "dia": true
+  },
+  {
+   "id": "V033",
+   "linha": "3.rota",
+   "contato": {
+    "nome": "MARIA AUXILIADORA TAVARES DE CAMPOS ESKELSEN",
+    "papel": "vendedor",
+    "filial": "TSJ",
+    "rca": "1191",
+    "grupo": null
+   },
+   "pergunta": "Quais clientes tenho na rota de hoje",
+   "assunto": "rota|roteiro|check",
+   "checagens": [],
+   "dia": true
+  },
+  {
+   "id": "V034",
+   "linha": "3.rota",
+   "contato": {
+    "nome": "PRISCILA DE BONFIM CORDEIRO",
+    "papel": "vendedor",
+    "filial": "TPH",
+    "rca": "66",
+    "grupo": null
+   },
+   "pergunta": "Minha rota de hoje",
+   "assunto": "rota|roteiro|check",
+   "checagens": [],
+   "dia": true
+  },
+  {
+   "id": "V035",
+   "linha": "3.prosp",
+   "contato": {
+    "nome": "TAMARA GUEDES",
+    "papel": "vendedor",
+    "filial": "TCV",
+    "rca": "352",
+    "grupo": null
+   },
+   "pergunta": "Prospecção",
+   "assunto": "prospec",
+   "checagens": [],
+   "rodape": false
+  },
+  {
+   "id": "V036",
+   "linha": "3.prosp",
+   "contato": {
+    "nome": "ALAN DIOGO PARDINHO",
+    "papel": "vendedor",
+    "filial": "TBL",
+    "rca": "199",
+    "grupo": null
+   },
+   "pergunta": "Prospecçao novos clientes",
+   "assunto": "prospec",
+   "checagens": [],
+   "rodape": false
+  },
+  {
+   "id": "V037",
+   "linha": "3.prosp",
+   "contato": {
+    "nome": "SEBASTIAN GARBELLOTTO",
+    "papel": "vendedor",
+    "filial": "TBE",
+    "rca": "315",
+    "grupo": null
+   },
+   "pergunta": "Prospect do dia",
+   "assunto": "prospec",
+   "checagens": [],
+   "rodape": false
+  },
+  {
+   "id": "V038",
+   "linha": "3.dev",
+   "contato": {
+    "nome": "POLIANA JÉSSICA DE ALMEIDA",
+    "papel": "vendedor",
+    "filial": "TBL",
+    "rca": "1087",
+    "grupo": null
+   },
+   "pergunta": "Tenho devolu",
+   "assunto": "devolu",
+   "checagens": [
+    {
+     "id": "devolucao_vendedor_mes",
+     "p": {
+      "filial": "TBL",
+      "rca": "1087"
+     }
+    }
+   ]
+  },
+  {
+   "id": "V039",
+   "linha": "3.dev",
+   "contato": {
+    "nome": "VANEZA DE LIMA KVASNEY",
+    "papel": "vendedor",
+    "filial": "TCV",
+    "rca": "354",
+    "grupo": null
+   },
+   "pergunta": "Devolução?",
+   "assunto": "devolu",
+   "checagens": [
+    {
+     "id": "devolucao_vendedor_mes",
+     "p": {
+      "filial": "TCV",
+      "rca": "354"
+     }
+    }
+   ]
+  },
+  {
+   "id": "V040",
+   "linha": "3.dev",
+   "contato": {
+    "nome": "ANA CAROLINA MARTINS DOURADO",
+    "papel": "vendedor",
+    "filial": "TCG",
+    "rca": "483",
+    "grupo": null
+   },
+   "pergunta": "Devolução",
+   "assunto": "devolu",
+   "checagens": [
+    {
+     "id": "devolucao_vendedor_mes",
+     "p": {
+      "filial": "TCG",
+      "rca": "483"
+     }
+    }
+   ]
+  },
+  {
+   "id": "V041",
+   "linha": "3.cli",
+   "contato": {
+    "nome": "EDSON DOS SANTOS MACHADO",
+    "papel": "vendedor",
+    "filial": "TBE",
+    "rca": "1094",
+    "grupo": null
+   },
+   "pergunta": "Cliente 157655 Histórico de compras e skus",
+   "assunto": "cliente|hist[óo]rico",
+   "proibido": "n[ãa]o achei",
+   "checagens": []
+  },
+  {
+   "id": "V042",
+   "linha": "3.cli",
+   "contato": {
+    "nome": "EDSON DOS SANTOS MACHADO",
+    "papel": "vendedor",
+    "filial": "TBE",
+    "rca": "1094",
+    "grupo": null
+   },
+   "pergunta": "O que oferecer para o cliente 157655",
+   "assunto": "cliente|hist[óo]rico",
+   "proibido": "n[ãa]o achei",
+   "checagens": []
+  },
+  {
+   "id": "V043",
+   "linha": "3.ind",
+   "contato": {
+    "nome": "JACKSON MARQUES",
+    "papel": "vendedor",
+    "filial": "MCD",
+    "rca": "431",
+    "grupo": null
+   },
+   "pergunta": "Como esta minha venda de colgate",
+   "assunto": "ind[úu]stria|fornecedor|colgate|mars|marilan",
+   "checagens": []
+  },
+  {
+   "id": "V044",
+   "linha": "3.ind",
+   "contato": {
+    "nome": "JOSEANNE DIAS",
+    "papel": "vendedor",
+    "filial": "TCA",
+    "rca": "408",
+    "grupo": null
+   },
+   "pergunta": "gostaria de saber como esta as minha positivações e faturamento por industrias ?",
+   "assunto": "ind[úu]stria|fornecedor|colgate|mars|marilan",
+   "checagens": []
+  },
+  {
+   "id": "V045",
+   "linha": "3.ind",
+   "contato": {
+    "nome": "ANA CAROLINA MARTINS DOURADO",
+    "papel": "vendedor",
+    "filial": "TCG",
+    "rca": "483",
+    "grupo": null
+   },
+   "pergunta": "Quanto falta a minha meta por indústria?",
+   "assunto": "ind[úu]stria|fornecedor|colgate|mars|marilan",
+   "checagens": []
+  },
+  {
+   "id": "V046",
+   "linha": "3.cart",
+   "contato": {
+    "nome": "ALAN DIOGO PARDINHO",
+    "papel": "vendedor",
+    "filial": "TBL",
+    "rca": "199",
+    "grupo": null
+   },
+   "pergunta": "Quantos clientes eu tenho ?",
+   "assunto": "clientes|carteira",
+   "checagens": [
+    {
+     "id": "positivacao_vendedor",
+     "p": {
+      "filial": "TBL",
+      "rca": "199"
+     }
+    }
+   ]
+  },
+  {
+   "id": "V047",
+   "linha": "3.cart",
+   "contato": {
+    "nome": "VANEZA DE LIMA KVASNEY",
+    "papel": "vendedor",
+    "filial": "TCV",
+    "rca": "354",
+    "grupo": null
+   },
+   "pergunta": "Carteira de cliente 354",
+   "assunto": "clientes|carteira",
+   "checagens": [
+    {
+     "id": "positivacao_vendedor",
+     "p": {
+      "filial": "TCV",
+      "rca": "354"
+     }
+    }
+   ]
+  },
+  {
+   "id": "V048",
+   "linha": "3.cart",
+   "contato": {
+    "nome": "ANDRÉ MARTINS RODRIGUES",
+    "papel": "vendedor",
+    "filial": "TSJ",
+    "rca": "25",
+    "grupo": null
+   },
+   "pergunta": "Jota quantos clientes já positivei esse mês?",
+   "assunto": "clientes|carteira",
+   "checagens": [
+    {
+     "id": "positivacao_vendedor",
+     "p": {
+      "filial": "TSJ",
+      "rca": "25"
+     }
+    }
+   ]
+  },
+  {
+   "id": "V049",
+   "linha": "3.tag",
+   "contato": {
+    "nome": "WILLIANS DE ALCANTRA CORREA",
+    "papel": "vendedor",
+    "filial": "API",
+    "rca": "255",
+    "grupo": null
+   },
+   "pergunta": "Pode passar o acompanhamento da campanha",
+   "assunto": "TAG|campanha|foco",
+   "checagens": []
+  },
+  {
+   "id": "V050",
+   "linha": "3.tag",
+   "contato": {
+    "nome": "TAMARA GUEDES",
+    "papel": "vendedor",
+    "filial": "TCV",
+    "rca": "352",
+    "grupo": null
+   },
+   "pergunta": "Campanhas",
+   "assunto": "TAG|campanha|foco",
+   "checagens": []
+  },
+  {
+   "id": "V051",
+   "linha": "3.tag",
+   "contato": {
+    "nome": "INOCENCIO DA SILVA",
+    "papel": "vendedor",
+    "filial": "TBL",
+    "rca": "184",
+    "grupo": null
+   },
+   "pergunta": "Tags do mês",
+   "assunto": "TAG|campanha|foco",
+   "checagens": []
+  },
+  {
+   "id": "V052",
+   "linha": "3.corte",
+   "contato": {
+    "nome": "TAMARA GUEDES",
+    "papel": "vendedor",
+    "filial": "TCV",
+    "rca": "352",
+    "grupo": null
+   },
+   "pergunta": "Meus cortes",
+   "assunto": "corte",
+   "checagens": [
+    {
+     "id": "cortes_vendedor_mes",
+     "p": {
+      "filial": "TCV",
+      "rca": "352"
+     }
+    }
+   ]
+  },
+  {
+   "id": "V053",
+   "linha": "3.corte",
+   "contato": {
+    "nome": "VANEZA DE LIMA KVASNEY",
+    "papel": "vendedor",
+    "filial": "TCV",
+    "rca": "354",
+    "grupo": null
+   },
+   "pergunta": "Cortes",
+   "assunto": "corte",
+   "checagens": [
+    {
+     "id": "cortes_vendedor_mes",
+     "p": {
+      "filial": "TCV",
+      "rca": "354"
+     }
+    }
+   ]
+  },
+  {
+   "id": "V054",
+   "linha": "3.corte",
+   "contato": {
+    "nome": "ANA CAROLINA MARTINS DOURADO",
+    "papel": "vendedor",
+    "filial": "TCG",
+    "rca": "483",
+    "grupo": null
+   },
+   "pergunta": "Corte",
+   "assunto": "corte",
+   "checagens": [
+    {
+     "id": "cortes_vendedor_mes",
+     "p": {
+      "filial": "TCG",
+      "rca": "483"
+     }
+    }
+   ]
+  },
+  {
+   "id": "V055",
+   "linha": "3.dia",
+   "contato": {
+    "nome": "ALAN DIOGO PARDINHO",
+    "papel": "vendedor",
+    "filial": "TBL",
+    "rca": "199",
+    "grupo": null
+   },
+   "pergunta": "Vendas hoje",
+   "assunto": "hoje|dia",
+   "checagens": [
+    {
+     "id": "clube_dia",
+     "p": {
+      "filial": "TBL",
+      "rca": "199"
+     }
+    }
+   ],
+   "dia": true
+  },
+  {
+   "id": "V056",
+   "linha": "3.dia",
+   "contato": {
+    "nome": "MARIA AUXILIADORA TAVARES DE CAMPOS ESKELSEN",
+    "papel": "vendedor",
+    "filial": "TSJ",
+    "rca": "1191",
+    "grupo": null
+   },
+   "pergunta": "Como está meu dia hoje?",
+   "assunto": "hoje|dia",
+   "checagens": [
+    {
+     "id": "clube_dia",
+     "p": {
+      "filial": "TSJ",
+      "rca": "1191"
+     }
+    }
+   ],
+   "dia": true
+  },
+  {
+   "id": "V057",
+   "linha": "3.dia",
+   "contato": {
+    "nome": "TAMARA GUEDES",
+    "papel": "vendedor",
+    "filial": "TCV",
+    "rca": "352",
+    "grupo": null
+   },
+   "pergunta": "Quanto vendi ontem",
+   "assunto": "hoje|dia",
+   "checagens": [
+    {
+     "id": "clube_dia",
+     "p": {
+      "filial": "TCV",
+      "rca": "352"
+     }
+    }
+   ],
+   "dia": true
+  },
+  {
+   "id": "V058",
+   "linha": "3.dia",
+   "contato": {
+    "nome": "PATRIK SANTOS",
+    "papel": "vendedor",
+    "filial": "ABC",
+    "rca": "212",
+    "grupo": null
+   },
+   "pergunta": "Venda de hoje",
+   "assunto": "hoje|dia",
+   "checagens": [
+    {
+     "id": "clube_dia",
+     "p": {
+      "filial": "ABC",
+      "rca": "212"
+     }
+    }
+   ],
+   "dia": true
+  },
+  {
+   "id": "V059",
+   "linha": "3.varios",
+   "contato": {
+    "nome": "SEBASTIAN GARBELLOTTO",
+    "papel": "vendedor",
+    "filial": "TBE",
+    "rca": "315",
+    "grupo": null
+   },
+   "pergunta": "Bom dia ,passando para perguntar da faturamento ,pendentes ,sem compras ,positivando,devolução",
+   "assunto": "faturad[\\s\\S]*(liga|pendente|devolu)",
+   "checagens": [
+    {
+     "id": "fat_liq_vendedor_mes",
+     "p": {
+      "filial": "TBE",
+      "rca": "315"
+     }
+    }
+   ]
+  },
+  {
+   "id": "V060",
+   "linha": "3.varios",
+   "contato": {
+    "nome": "ANDRÉ MARTINS RODRIGUES",
+    "papel": "vendedor",
+    "filial": "TSJ",
+    "rca": "25",
+    "grupo": null
+   },
+   "pergunta": "Quero ver como estamos, quanto falta pra meta, liga e mix",
+   "assunto": "faturad[\\s\\S]*(liga|pendente|devolu)",
+   "checagens": [
+    {
+     "id": "fat_liq_vendedor_mes",
+     "p": {
+      "filial": "TSJ",
+      "rca": "25"
+     }
+    }
+   ]
+  },
+  {
+   "id": "V061",
+   "linha": "3.saud",
+   "contato": {
+    "nome": "PATRIK SANTOS",
+    "papel": "vendedor",
+    "filial": "ABC",
+    "rca": "212",
+    "grupo": null
+   },
+   "pergunta": "Bom dia",
+   "assunto": "menu|como posso|ajud|bom dia|boa tarde|ol[áa]",
+   "checagens": [],
+   "rodape": false
+  },
+  {
+   "id": "V062",
+   "linha": "3.saud",
+   "contato": {
+    "nome": "EDSON DOS SANTOS MACHADO",
+    "papel": "vendedor",
+    "filial": "TBE",
+    "rca": "1094",
+    "grupo": null
+   },
+   "pergunta": "Ola",
+   "assunto": "menu|como posso|ajud|bom dia|boa tarde|ol[áa]",
+   "checagens": [],
+   "rodape": false
+  },
+  {
+   "id": "V063",
+   "linha": "3.saud",
+   "contato": {
+    "nome": "BRUNO AMARAL",
+    "papel": "vendedor",
+    "filial": "TPH",
+    "rca": "119",
+    "grupo": null
+   },
+   "pergunta": "Boa tarde",
+   "assunto": "menu|como posso|ajud|bom dia|boa tarde|ol[áa]",
+   "checagens": [],
+   "rodape": false
+  },
+  {
+   "id": "S064",
+   "linha": "4.meta",
+   "contato": {
+    "nome": "EDER LUCAS DAS FLORES DE OLIVEIRA",
+    "papel": "supervisor",
+    "filial": "ABC",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Como esta minha equipe?",
+   "assunto": "meta|faturad",
+   "checagens": [
+    {
+     "id": "fat_liq_equipe",
+     "p": {
+      "filial": "ABC",
+      "supervisor": "EDER LUCAS DAS FLORES DE OLIVEIRA"
+     }
+    },
+    {
+     "id": "positivacao_equipe",
+     "p": {
+      "filial": "ABC",
+      "supervisor": "EDER LUCAS DAS FLORES DE OLIVEIRA"
+     }
+    }
+   ],
+   "linhas": true
+  },
+  {
+   "id": "S065",
+   "linha": "4.meta",
+   "contato": {
+    "nome": "ANDERSON GIOVANI FERREIRA BOLTER",
+    "papel": "supervisor",
+    "filial": "TPA",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "como esta minha equipe",
+   "assunto": "meta|faturad",
+   "checagens": [
+    {
+     "id": "fat_liq_equipe",
+     "p": {
+      "filial": "TPA",
+      "supervisor": "ANDERSON GIOVANI FERREIRA BOLTER"
+     }
+    },
+    {
+     "id": "positivacao_equipe",
+     "p": {
+      "filial": "TPA",
+      "supervisor": "ANDERSON GIOVANI FERREIRA BOLTER"
+     }
+    }
+   ],
+   "linhas": true
+  },
+  {
+   "id": "S066",
+   "linha": "4.meta",
+   "contato": {
+    "nome": "IGOR RODRIGUES DUARTE",
+    "papel": "supervisor",
+    "filial": "TBL",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Minha equipe",
+   "assunto": "meta|faturad",
+   "checagens": [
+    {
+     "id": "fat_liq_equipe",
+     "p": {
+      "filial": "TBL",
+      "supervisor": "IGOR RODRIGUES DUARTE"
+     }
+    },
+    {
+     "id": "positivacao_equipe",
+     "p": {
+      "filial": "TBL",
+      "supervisor": "IGOR RODRIGUES DUARTE"
+     }
+    }
+   ],
+   "linhas": true
+  },
+  {
+   "id": "S067",
+   "linha": "4.meta",
+   "contato": {
+    "nome": "WASHINGTON FLORES DA ROSA",
+    "papel": "supervisor",
+    "filial": "API",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Mostrar resultado por vendedor,  faturado, pendentes e Positivação.",
+   "assunto": "meta|faturad",
+   "checagens": [
+    {
+     "id": "fat_liq_equipe",
+     "p": {
+      "filial": "API",
+      "supervisor": "WASHINGTON FLORES DA ROSA"
+     }
+    },
+    {
+     "id": "positivacao_equipe",
+     "p": {
+      "filial": "API",
+      "supervisor": "WASHINGTON FLORES DA ROSA"
+     }
+    }
+   ],
+   "linhas": true
+  },
+  {
+   "id": "S068",
+   "linha": "4.meta",
+   "contato": {
+    "nome": "JORGE BONI",
+    "papel": "supervisor",
+    "filial": "TCV",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Como está minha equipe no mês?",
+   "assunto": "meta|faturad",
+   "checagens": [
+    {
+     "id": "fat_liq_equipe",
+     "p": {
+      "filial": "TCV",
+      "supervisor": "JORGE BONI"
+     }
+    },
+    {
+     "id": "positivacao_equipe",
+     "p": {
+      "filial": "TCV",
+      "supervisor": "JORGE BONI"
+     }
+    }
+   ],
+   "linhas": true
+  },
+  {
+   "id": "S069",
+   "linha": "4.semcompra",
+   "contato": {
+    "nome": "MAICON PALU ENES",
+    "papel": "supervisor",
+    "filial": "TPH",
+    "rca": null,
+    "grupo": "VAGNER"
+   },
+   "pergunta": "curva negativa",
+   "assunto": "sem compra|curva negativa|n[ãa]o positivad",
+   "checagens": []
+  },
+  {
+   "id": "S070",
+   "linha": "4.semcompra",
+   "contato": {
+    "nome": "WASHINGTON FLORES DA ROSA",
+    "papel": "supervisor",
+    "filial": "API",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Curva negativa da equipe",
+   "assunto": "sem compra|curva negativa|n[ãa]o positivad",
+   "checagens": []
+  },
+  {
+   "id": "S071",
+   "linha": "4.semcompra",
+   "contato": {
+    "nome": "CRISTIANO RODRIGUES MACHADO",
+    "papel": "supervisor",
+    "filial": "TSJ",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Quem falta positivar na equipe?",
+   "assunto": "sem compra|curva negativa|n[ãa]o positivad",
+   "checagens": []
+  },
+  {
+   "id": "S072",
+   "linha": "4.dia",
+   "contato": {
+    "nome": "ALLISON ANTONIO FAGUNDES M PINHEIRO",
+    "papel": "supervisor",
+    "filial": "TPH",
+    "rca": null,
+    "grupo": "VAGNER"
+   },
+   "pergunta": "Hoje",
+   "assunto": "hoje|dia",
+   "checagens": [
+    {
+     "id": "clube_dia",
+     "p": {
+      "filial": "TPH",
+      "supervisor": "ALLISON ANTONIO FAGUNDES M PINHEIRO"
+     }
+    }
+   ],
+   "dia": true
+  },
+  {
+   "id": "S073",
+   "linha": "4.dia",
+   "contato": {
+    "nome": "CRISTIANO RODRIGUES MACHADO",
+    "papel": "supervisor",
+    "filial": "TSJ",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Time hoje",
+   "assunto": "hoje|dia",
+   "checagens": [
+    {
+     "id": "clube_dia",
+     "p": {
+      "filial": "TSJ",
+      "supervisor": "CRISTIANO RODRIGUES MACHADO"
+     }
+    }
+   ],
+   "dia": true
+  },
+  {
+   "id": "S074",
+   "linha": "4.dia",
+   "contato": {
+    "nome": "WASHINGTON FLORES DA ROSA",
+    "papel": "supervisor",
+    "filial": "API",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Como esta meu time hoje?",
+   "assunto": "hoje|dia",
+   "checagens": [
+    {
+     "id": "clube_dia",
+     "p": {
+      "filial": "API",
+      "supervisor": "WASHINGTON FLORES DA ROSA"
+     }
+    }
+   ],
+   "dia": true
+  },
+  {
+   "id": "S075",
+   "linha": "4.dia",
+   "contato": {
+    "nome": "VICTOR HUGO FONSECA CARVALHO",
+    "papel": "supervisor",
+    "filial": "TSJ",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Como foi a equipe ontem?",
+   "assunto": "hoje|dia",
+   "checagens": [
+    {
+     "id": "clube_dia",
+     "p": {
+      "filial": "TSJ",
+      "supervisor": "VICTOR HUGO FONSECA CARVALHO"
+     }
+    }
+   ],
+   "dia": true
+  },
+  {
+   "id": "S076",
+   "linha": "4.matinal",
+   "contato": {
+    "nome": "MAICON PALU ENES",
+    "papel": "supervisor",
+    "filial": "TPH",
+    "rca": null,
+    "grupo": "VAGNER"
+   },
+   "pergunta": "Matinal",
+   "assunto": "matinal|equipe",
+   "checagens": []
+  },
+  {
+   "id": "S077",
+   "linha": "4.matinal",
+   "contato": {
+    "nome": "JORGE BONI",
+    "papel": "supervisor",
+    "filial": "TCV",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Matinal",
+   "assunto": "matinal|equipe",
+   "checagens": []
+  },
+  {
+   "id": "S078",
+   "linha": "4.matinal",
+   "contato": {
+    "nome": "LUIZ AUGUSTO RAMOS",
+    "papel": "supervisor",
+    "filial": "TPH",
+    "rca": null,
+    "grupo": "VAGNER"
+   },
+   "pergunta": "Matinal",
+   "assunto": "matinal|equipe",
+   "checagens": []
+  },
+  {
+   "id": "S079",
+   "linha": "4.liga",
+   "contato": {
+    "nome": "ALLISON ANTONIO FAGUNDES M PINHEIRO",
+    "papel": "supervisor",
+    "filial": "TPH",
+    "rca": null,
+    "grupo": "VAGNER"
+   },
+   "pergunta": "liga",
+   "assunto": "liga|champions|posi[çc][ãa]o|pontos",
+   "checagens": [],
+   "escopo_livre": true
+  },
+  {
+   "id": "S080",
+   "linha": "4.liga",
+   "contato": {
+    "nome": "CRISTIANO RODRIGUES MACHADO",
+    "papel": "supervisor",
+    "filial": "TSJ",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Liga",
+   "assunto": "liga|champions|posi[çc][ãa]o|pontos",
+   "checagens": [],
+   "escopo_livre": true
+  },
+  {
+   "id": "S081",
+   "linha": "4.liga",
+   "contato": {
+    "nome": "WASHINGTON FLORES DA ROSA",
+    "papel": "supervisor",
+    "filial": "API",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Como está time em relação a pontuação liga ?",
+   "assunto": "liga|champions|posi[çc][ãa]o|pontos",
+   "checagens": [],
+   "escopo_livre": true
+  },
+  {
+   "id": "S082",
+   "linha": "4.rec",
+   "contato": {
+    "nome": "JONATHAN FERNANDES",
+    "papel": "supervisor",
+    "filial": "TPH",
+    "rca": null,
+    "grupo": "VAGNER"
+   },
+   "pergunta": "qual a minha meta de recorrência?",
+   "assunto": "recorr",
+   "checagens": [
+    {
+     "id": "recorrencia_nivel",
+     "p": {
+      "filial": "TPH",
+      "nivel": "supervisor",
+      "nome": "JONATHAN FERNANDES"
+     }
+    }
+   ]
+  },
+  {
+   "id": "S083",
+   "linha": "4.rec",
+   "contato": {
+    "nome": "WASHINGTON FLORES DA ROSA",
+    "papel": "supervisor",
+    "filial": "API",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Recorrência da equipe",
+   "assunto": "recorr",
+   "checagens": [
+    {
+     "id": "recorrencia_nivel",
+     "p": {
+      "filial": "API",
+      "nivel": "supervisor",
+      "nome": "WASHINGTON FLORES"
+     }
+    }
+   ]
+  },
+  {
+   "id": "S084",
+   "linha": "4.rec",
+   "contato": {
+    "nome": "EDER LUCAS DAS FLORES DE OLIVEIRA",
+    "papel": "supervisor",
+    "filial": "ABC",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Recorrência",
+   "assunto": "recorr",
+   "checagens": [
+    {
+     "id": "recorrencia_nivel",
+     "p": {
+      "filial": "ABC",
+      "nivel": "supervisor",
+      "nome": "EDER LUCAS"
+     }
+    }
+   ]
+  },
+  {
+   "id": "S085",
+   "linha": "4.bloq",
+   "contato": {
+    "nome": "CRISTIANO RODRIGUES MACHADO",
+    "papel": "supervisor",
+    "filial": "TSJ",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Pedidos bloqueados",
+   "assunto": "bloque|carteira|pendente",
+   "checagens": [
+    {
+     "id": "bloq_equipe",
+     "p": {
+      "filial": "TSJ",
+      "supervisor": "CRISTIANO RODRIGUES MACHADO"
+     }
+    }
+   ]
+  },
+  {
+   "id": "S086",
+   "linha": "4.bloq",
+   "contato": {
+    "nome": "WASHINGTON FLORES DA ROSA",
+    "papel": "supervisor",
+    "filial": "API",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Pedidos bloqueados da equipe",
+   "assunto": "bloque|carteira|pendente",
+   "checagens": [
+    {
+     "id": "bloq_equipe",
+     "p": {
+      "filial": "API",
+      "supervisor": "WASHINGTON FLORES DA ROSA"
+     }
+    }
+   ]
+  },
+  {
+   "id": "S087",
+   "linha": "4.bloq",
+   "contato": {
+    "nome": "ALLISON ANTONIO FAGUNDES M PINHEIRO",
+    "papel": "supervisor",
+    "filial": "TPH",
+    "rca": null,
+    "grupo": "VAGNER"
+   },
+   "pergunta": "Carteira da equipe",
+   "assunto": "bloque|carteira|pendente",
+   "checagens": [
+    {
+     "id": "bloq_equipe",
+     "p": {
+      "filial": "TPH",
+      "supervisor": "ALLISON ANTONIO FAGUNDES M PINHEIRO"
+     }
+    }
+   ]
+  },
+  {
+   "id": "S088",
+   "linha": "4.bloq",
+   "contato": {
+    "nome": "KLEBERSON BATISTA LIDUARIO",
+    "papel": "supervisor",
+    "filial": "TBL",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "pedidos pendentes",
+   "assunto": "bloque|carteira|pendente",
+   "checagens": [
+    {
+     "id": "bloq_equipe",
+     "p": {
+      "filial": "TBL",
+      "supervisor": "KLEBERSON BATISTA LIDUARIO"
+     }
+    }
+   ]
+  },
+  {
+   "id": "S089",
+   "linha": "4.comp",
+   "contato": {
+    "nome": "IVAYR PRINCIPE FREITAS DE MIRANDA",
+    "papel": "supervisor",
+    "filial": "TCA",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "jota, como esta o laçamento do meu compromisso",
+   "assunto": "compromisso|RET|domingo",
+   "checagens": [],
+   "dia": true
+  },
+  {
+   "id": "S090",
+   "linha": "4.comp",
+   "contato": {
+    "nome": "EDI CARLOS MEIRA",
+    "papel": "supervisor",
+    "filial": "TPH",
+    "rca": null,
+    "grupo": "FABIO"
+   },
+   "pergunta": "Compromisso de hoje",
+   "assunto": "compromisso|RET|domingo",
+   "checagens": [],
+   "dia": true
+  },
+  {
+   "id": "S091",
+   "linha": "4.comp",
+   "contato": {
+    "nome": "JONATHAN FERNANDES",
+    "papel": "supervisor",
+    "filial": "TPH",
+    "rca": null,
+    "grupo": "VAGNER"
+   },
+   "pergunta": "RET de hoje",
+   "assunto": "compromisso|RET|domingo",
+   "checagens": [],
+   "dia": true
+  },
+  {
+   "id": "S092",
+   "linha": "4.vendedor",
+   "contato": {
+    "nome": "EDER LUCAS DAS FLORES DE OLIVEIRA",
+    "papel": "supervisor",
+    "filial": "ABC",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Como está o vendedor 201",
+   "assunto": "meta|faturad",
+   "checagens": [
+    {
+     "id": "fat_liq_vendedor_mes",
+     "p": {
+      "filial": "ABC",
+      "rca": "201"
+     }
+    }
+   ]
+  },
+  {
+   "id": "S093",
+   "linha": "4.vendedor_fora",
+   "contato": {
+    "nome": "EDER LUCAS DAS FLORES DE OLIVEIRA",
+    "papel": "supervisor",
+    "filial": "ABC",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Como está o vendedor 207",
+   "assunto": ".",
+   "fora_escopo": true,
+   "checagens": []
+  },
+  {
+   "id": "S094",
+   "linha": "4.vendedor",
+   "contato": {
+    "nome": "ANDERSON GIOVANI FERREIRA BOLTER",
+    "papel": "supervisor",
+    "filial": "TPA",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Como está o vendedor 137",
+   "assunto": "meta|faturad",
+   "checagens": [
+    {
+     "id": "fat_liq_vendedor_mes",
+     "p": {
+      "filial": "TPA",
+      "rca": "137"
+     }
+    }
+   ]
+  },
+  {
+   "id": "S095",
+   "linha": "4.vendedor_fora",
+   "contato": {
+    "nome": "ANDERSON GIOVANI FERREIRA BOLTER",
+    "papel": "supervisor",
+    "filial": "TPA",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Como está o vendedor 138",
+   "assunto": ".",
+   "fora_escopo": true,
+   "checagens": []
+  },
+  {
+   "id": "S096",
+   "linha": "4.vendedor",
+   "contato": {
+    "nome": "ALLISON ANTONIO FAGUNDES M PINHEIRO",
+    "papel": "supervisor",
+    "filial": "TPH",
+    "rca": null,
+    "grupo": "VAGNER"
+   },
+   "pergunta": "Como está o vendedor 59",
+   "assunto": "meta|faturad",
+   "checagens": [
+    {
+     "id": "fat_liq_vendedor_mes",
+     "p": {
+      "filial": "TPH",
+      "rca": "59"
+     }
+    }
+   ]
+  },
+  {
+   "id": "S097",
+   "linha": "4.vendedor_fora",
+   "contato": {
+    "nome": "ALLISON ANTONIO FAGUNDES M PINHEIRO",
+    "papel": "supervisor",
+    "filial": "TPH",
+    "rca": null,
+    "grupo": "VAGNER"
+   },
+   "pergunta": "Como está o vendedor 111",
+   "assunto": ".",
+   "fora_escopo": true,
+   "checagens": []
+  },
+  {
+   "id": "S098",
+   "linha": "4.vendedor",
+   "contato": {
+    "nome": "CRISTIANO RODRIGUES MACHADO",
+    "papel": "supervisor",
+    "filial": "TSJ",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Como está o vendedor 6",
+   "assunto": "meta|faturad",
+   "checagens": [
+    {
+     "id": "fat_liq_vendedor_mes",
+     "p": {
+      "filial": "TSJ",
+      "rca": "6"
+     }
+    }
+   ]
+  },
+  {
+   "id": "S099",
+   "linha": "4.vendedor_fora",
+   "contato": {
+    "nome": "CRISTIANO RODRIGUES MACHADO",
+    "papel": "supervisor",
+    "filial": "TSJ",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Como está o vendedor 5",
+   "assunto": ".",
+   "fora_escopo": true,
+   "checagens": []
+  },
+  {
+   "id": "S100",
+   "linha": "4.vendedor",
+   "contato": {
+    "nome": "IGOR RODRIGUES DUARTE",
+    "papel": "supervisor",
+    "filial": "TBL",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Como está o vendedor 177",
+   "assunto": "meta|faturad",
+   "checagens": [
+    {
+     "id": "fat_liq_vendedor_mes",
+     "p": {
+      "filial": "TBL",
+      "rca": "177"
+     }
+    }
+   ]
+  },
+  {
+   "id": "S101",
+   "linha": "4.vendedor_fora",
+   "contato": {
+    "nome": "IGOR RODRIGUES DUARTE",
+    "papel": "supervisor",
+    "filial": "TBL",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Como está o vendedor 199",
+   "assunto": ".",
+   "fora_escopo": true,
+   "checagens": []
+  },
+  {
+   "id": "G102",
+   "linha": "5.dia",
+   "contato": {
+    "nome": "MARCELO",
+    "papel": "gerente",
+    "filial": "API",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Qual o resultado de hoje?",
+   "assunto": "hoje|dia",
+   "proibido": "digitado da macro",
+   "checagens": [
+    {
+     "id": "clube_dia",
+     "p": {
+      "filial": "API"
+     }
+    }
+   ],
+   "dia": true,
+   "linhas": true
+  },
+  {
+   "id": "G103",
+   "linha": "5.dia",
+   "contato": {
+    "nome": "MARCELO",
+    "papel": "gerente",
+    "filial": "API",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Venda hoje",
+   "assunto": "hoje|dia",
+   "proibido": "digitado da macro",
+   "checagens": [
+    {
+     "id": "clube_dia",
+     "p": {
+      "filial": "API"
+     }
+    }
+   ],
+   "dia": true,
+   "linhas": true
+  },
+  {
+   "id": "G104",
+   "linha": "5.mes",
+   "contato": {
+    "nome": "MARCELO",
+    "papel": "gerente",
+    "filial": "API",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Como estamos?",
+   "assunto": "meta|faturad",
+   "checagens": [
+    {
+     "id": "fat_liq_filial_mes",
+     "p": {
+      "filial": "API"
+     }
+    }
+   ],
+   "linhas": true
+  },
+  {
+   "id": "G105",
+   "linha": "5.mes",
+   "contato": {
+    "nome": "MARCELO",
+    "papel": "gerente",
+    "filial": "API",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Qual o resultado atualizado",
+   "assunto": "meta|faturad",
+   "checagens": [
+    {
+     "id": "fat_liq_filial_mes",
+     "p": {
+      "filial": "API"
+     }
+    }
+   ],
+   "linhas": true
+  },
+  {
+   "id": "G106",
+   "linha": "5.pos",
+   "contato": {
+    "nome": "MARCELO",
+    "papel": "gerente",
+    "filial": "API",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Como estamos em positivacao",
+   "assunto": "positiva",
+   "checagens": [
+    {
+     "id": "positivacao_filial",
+     "p": {
+      "filial": "API"
+     }
+    }
+   ]
+  },
+  {
+   "id": "G107",
+   "linha": "5.pos",
+   "contato": {
+    "nome": "MARCELO",
+    "papel": "gerente",
+    "filial": "API",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Positivação",
+   "assunto": "positiva",
+   "checagens": [
+    {
+     "id": "positivacao_filial",
+     "p": {
+      "filial": "API"
+     }
+    }
+   ]
+  },
+  {
+   "id": "G108",
+   "linha": "5.bloq",
+   "contato": {
+    "nome": "MARCELO",
+    "papel": "gerente",
+    "filial": "API",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Quanto temos de pedidos bloqueados?",
+   "assunto": "bloque|carteira|pendente",
+   "checagens": [
+    {
+     "id": "bloq_total_filial",
+     "p": {
+      "filial": "API"
+     }
+    }
+   ],
+   "linhas": true
+  },
+  {
+   "id": "G109",
+   "linha": "5.bloq",
+   "contato": {
+    "nome": "MARCELO",
+    "papel": "gerente",
+    "filial": "API",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Temos pedidos bloqueados no comercial",
+   "assunto": "bloque|carteira|pendente",
+   "checagens": [
+    {
+     "id": "bloq_comercial_filial",
+     "p": {
+      "filial": "API"
+     }
+    }
+   ],
+   "linhas": true
+  },
+  {
+   "id": "G110",
+   "linha": "5.ind",
+   "contato": {
+    "nome": "MARCELO",
+    "papel": "gerente",
+    "filial": "API",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Como está o resultado por indústria?",
+   "assunto": "ind[úu]stria|fornecedor|colgate|mars|marilan",
+   "checagens": []
+  },
+  {
+   "id": "G111",
+   "linha": "5.margem",
+   "contato": {
+    "nome": "MARCELO",
+    "papel": "gerente",
+    "filial": "API",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Qual a margem",
+   "assunto": "margem",
+   "checagens": [
+    {
+     "id": "margem_filial",
+     "p": {
+      "filial": "API"
+     }
+    }
+   ]
+  },
+  {
+   "id": "G112",
+   "linha": "5.rank",
+   "contato": {
+    "nome": "MARCELO",
+    "papel": "gerente",
+    "filial": "API",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Quais os vendedores com maior atraso para a meta",
+   "assunto": "meta|%",
+   "checagens": []
+  },
+  {
+   "id": "G113",
+   "linha": "5.liga",
+   "contato": {
+    "nome": "MARCELO",
+    "papel": "gerente",
+    "filial": "API",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "tem os resultados da campanha champions",
+   "assunto": "liga|champions|posi[çc][ãa]o|pontos",
+   "checagens": [],
+   "escopo_livre": true
+  },
+  {
+   "id": "G114",
+   "linha": "5.dev",
+   "contato": {
+    "nome": "MARCELO",
+    "papel": "gerente",
+    "filial": "API",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Devolução por motivo",
+   "assunto": "devolu",
+   "checagens": [
+    {
+     "id": "devolucao_filial_mes",
+     "p": {
+      "filial": "API"
+     }
+    }
+   ]
+  },
+  {
+   "id": "G115",
+   "linha": "5.dia",
+   "contato": {
+    "nome": "DIEGO",
+    "papel": "gerente",
+    "filial": "TBE",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Qual o resultado de hoje?",
+   "assunto": "hoje|dia",
+   "proibido": "digitado da macro",
+   "checagens": [
+    {
+     "id": "clube_dia",
+     "p": {
+      "filial": "TBE"
+     }
+    }
+   ],
+   "dia": true,
+   "linhas": true
+  },
+  {
+   "id": "G116",
+   "linha": "5.dia",
+   "contato": {
+    "nome": "DIEGO",
+    "papel": "gerente",
+    "filial": "TBE",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Venda hoje",
+   "assunto": "hoje|dia",
+   "proibido": "digitado da macro",
+   "checagens": [
+    {
+     "id": "clube_dia",
+     "p": {
+      "filial": "TBE"
+     }
+    }
+   ],
+   "dia": true,
+   "linhas": true
+  },
+  {
+   "id": "G117",
+   "linha": "5.mes",
+   "contato": {
+    "nome": "DIEGO",
+    "papel": "gerente",
+    "filial": "TBE",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Como estamos?",
+   "assunto": "meta|faturad",
+   "checagens": [
+    {
+     "id": "fat_liq_filial_mes",
+     "p": {
+      "filial": "TBE"
+     }
+    }
+   ],
+   "linhas": true
+  },
+  {
+   "id": "G118",
+   "linha": "5.mes",
+   "contato": {
+    "nome": "DIEGO",
+    "papel": "gerente",
+    "filial": "TBE",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Qual o resultado atualizado",
+   "assunto": "meta|faturad",
+   "checagens": [
+    {
+     "id": "fat_liq_filial_mes",
+     "p": {
+      "filial": "TBE"
+     }
+    }
+   ],
+   "linhas": true
+  },
+  {
+   "id": "G119",
+   "linha": "5.pos",
+   "contato": {
+    "nome": "DIEGO",
+    "papel": "gerente",
+    "filial": "TBE",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Como estamos em positivacao",
+   "assunto": "positiva",
+   "checagens": [
+    {
+     "id": "positivacao_filial",
+     "p": {
+      "filial": "TBE"
+     }
+    }
+   ]
+  },
+  {
+   "id": "G120",
+   "linha": "5.pos",
+   "contato": {
+    "nome": "DIEGO",
+    "papel": "gerente",
+    "filial": "TBE",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Positivação",
+   "assunto": "positiva",
+   "checagens": [
+    {
+     "id": "positivacao_filial",
+     "p": {
+      "filial": "TBE"
+     }
+    }
+   ]
+  },
+  {
+   "id": "G121",
+   "linha": "5.bloq",
+   "contato": {
+    "nome": "DIEGO",
+    "papel": "gerente",
+    "filial": "TBE",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Quanto temos de pedidos bloqueados?",
+   "assunto": "bloque|carteira|pendente",
+   "checagens": [
+    {
+     "id": "bloq_total_filial",
+     "p": {
+      "filial": "TBE"
+     }
+    }
+   ],
+   "linhas": true
+  },
+  {
+   "id": "G122",
+   "linha": "5.bloq",
+   "contato": {
+    "nome": "DIEGO",
+    "papel": "gerente",
+    "filial": "TBE",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Temos pedidos bloqueados no comercial",
+   "assunto": "bloque|carteira|pendente",
+   "checagens": [
+    {
+     "id": "bloq_comercial_filial",
+     "p": {
+      "filial": "TBE"
+     }
+    }
+   ],
+   "linhas": true
+  },
+  {
+   "id": "G123",
+   "linha": "5.ind",
+   "contato": {
+    "nome": "DIEGO",
+    "papel": "gerente",
+    "filial": "TBE",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Como está o resultado por indústria?",
+   "assunto": "ind[úu]stria|fornecedor|colgate|mars|marilan",
+   "checagens": []
+  },
+  {
+   "id": "G124",
+   "linha": "5.margem",
+   "contato": {
+    "nome": "DIEGO",
+    "papel": "gerente",
+    "filial": "TBE",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Qual a margem",
+   "assunto": "margem",
+   "checagens": [
+    {
+     "id": "margem_filial",
+     "p": {
+      "filial": "TBE"
+     }
+    }
+   ]
+  },
+  {
+   "id": "G125",
+   "linha": "5.rank",
+   "contato": {
+    "nome": "DIEGO",
+    "papel": "gerente",
+    "filial": "TBE",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Quais os vendedores com maior atraso para a meta",
+   "assunto": "meta|%",
+   "checagens": []
+  },
+  {
+   "id": "G126",
+   "linha": "5.liga",
+   "contato": {
+    "nome": "DIEGO",
+    "papel": "gerente",
+    "filial": "TBE",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "tem os resultados da campanha champions",
+   "assunto": "liga|champions|posi[çc][ãa]o|pontos",
+   "checagens": [],
+   "escopo_livre": true
+  },
+  {
+   "id": "G127",
+   "linha": "5.dev",
+   "contato": {
+    "nome": "DIEGO",
+    "papel": "gerente",
+    "filial": "TBE",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Devolução por motivo",
+   "assunto": "devolu",
+   "checagens": [
+    {
+     "id": "devolucao_filial_mes",
+     "p": {
+      "filial": "TBE"
+     }
+    }
+   ]
+  },
+  {
+   "id": "G128",
+   "linha": "5.dia",
+   "contato": {
+    "nome": "SALDANHA",
+    "papel": "gerente",
+    "filial": "TSJ",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Qual o resultado de hoje?",
+   "assunto": "hoje|dia",
+   "proibido": "digitado da macro",
+   "checagens": [
+    {
+     "id": "clube_dia",
+     "p": {
+      "filial": "TSJ"
+     }
+    }
+   ],
+   "dia": true,
+   "linhas": true
+  },
+  {
+   "id": "G129",
+   "linha": "5.dia",
+   "contato": {
+    "nome": "SALDANHA",
+    "papel": "gerente",
+    "filial": "TSJ",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Venda hoje",
+   "assunto": "hoje|dia",
+   "proibido": "digitado da macro",
+   "checagens": [
+    {
+     "id": "clube_dia",
+     "p": {
+      "filial": "TSJ"
+     }
+    }
+   ],
+   "dia": true,
+   "linhas": true
+  },
+  {
+   "id": "G130",
+   "linha": "5.mes",
+   "contato": {
+    "nome": "SALDANHA",
+    "papel": "gerente",
+    "filial": "TSJ",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Como estamos?",
+   "assunto": "meta|faturad",
+   "checagens": [
+    {
+     "id": "fat_liq_filial_mes",
+     "p": {
+      "filial": "TSJ"
+     }
+    }
+   ],
+   "linhas": true
+  },
+  {
+   "id": "G131",
+   "linha": "5.mes",
+   "contato": {
+    "nome": "SALDANHA",
+    "papel": "gerente",
+    "filial": "TSJ",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Qual o resultado atualizado",
+   "assunto": "meta|faturad",
+   "checagens": [
+    {
+     "id": "fat_liq_filial_mes",
+     "p": {
+      "filial": "TSJ"
+     }
+    }
+   ],
+   "linhas": true
+  },
+  {
+   "id": "G132",
+   "linha": "5.pos",
+   "contato": {
+    "nome": "SALDANHA",
+    "papel": "gerente",
+    "filial": "TSJ",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Como estamos em positivacao",
+   "assunto": "positiva",
+   "checagens": [
+    {
+     "id": "positivacao_filial",
+     "p": {
+      "filial": "TSJ"
+     }
+    }
+   ]
+  },
+  {
+   "id": "G133",
+   "linha": "5.pos",
+   "contato": {
+    "nome": "SALDANHA",
+    "papel": "gerente",
+    "filial": "TSJ",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Positivação",
+   "assunto": "positiva",
+   "checagens": [
+    {
+     "id": "positivacao_filial",
+     "p": {
+      "filial": "TSJ"
+     }
+    }
+   ]
+  },
+  {
+   "id": "G134",
+   "linha": "5.bloq",
+   "contato": {
+    "nome": "SALDANHA",
+    "papel": "gerente",
+    "filial": "TSJ",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Quanto temos de pedidos bloqueados?",
+   "assunto": "bloque|carteira|pendente",
+   "checagens": [
+    {
+     "id": "bloq_total_filial",
+     "p": {
+      "filial": "TSJ"
+     }
+    }
+   ],
+   "linhas": true
+  },
+  {
+   "id": "G135",
+   "linha": "5.bloq",
+   "contato": {
+    "nome": "SALDANHA",
+    "papel": "gerente",
+    "filial": "TSJ",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Temos pedidos bloqueados no comercial",
+   "assunto": "bloque|carteira|pendente",
+   "checagens": [
+    {
+     "id": "bloq_comercial_filial",
+     "p": {
+      "filial": "TSJ"
+     }
+    }
+   ],
+   "linhas": true
+  },
+  {
+   "id": "G136",
+   "linha": "5.ind",
+   "contato": {
+    "nome": "SALDANHA",
+    "papel": "gerente",
+    "filial": "TSJ",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Como está o resultado por indústria?",
+   "assunto": "ind[úu]stria|fornecedor|colgate|mars|marilan",
+   "checagens": []
+  },
+  {
+   "id": "G137",
+   "linha": "5.margem",
+   "contato": {
+    "nome": "SALDANHA",
+    "papel": "gerente",
+    "filial": "TSJ",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Qual a margem",
+   "assunto": "margem",
+   "checagens": [
+    {
+     "id": "margem_filial",
+     "p": {
+      "filial": "TSJ"
+     }
+    }
+   ]
+  },
+  {
+   "id": "G138",
+   "linha": "5.rank",
+   "contato": {
+    "nome": "SALDANHA",
+    "papel": "gerente",
+    "filial": "TSJ",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Quais os vendedores com maior atraso para a meta",
+   "assunto": "meta|%",
+   "checagens": []
+  },
+  {
+   "id": "G139",
+   "linha": "5.liga",
+   "contato": {
+    "nome": "SALDANHA",
+    "papel": "gerente",
+    "filial": "TSJ",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "tem os resultados da campanha champions",
+   "assunto": "liga|champions|posi[çc][ãa]o|pontos",
+   "checagens": [],
+   "escopo_livre": true
+  },
+  {
+   "id": "G140",
+   "linha": "5.dev",
+   "contato": {
+    "nome": "SALDANHA",
+    "papel": "gerente",
+    "filial": "TSJ",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Devolução por motivo",
+   "assunto": "devolu",
+   "checagens": [
+    {
+     "id": "devolucao_filial_mes",
+     "p": {
+      "filial": "TSJ"
+     }
+    }
+   ]
+  },
+  {
+   "id": "G141",
+   "linha": "5.dia",
+   "contato": {
+    "nome": "VAGNER",
+    "papel": "gerente",
+    "filial": "TPH",
+    "rca": null,
+    "grupo": "VAGNER"
+   },
+   "pergunta": "Qual o resultado de hoje?",
+   "assunto": "hoje|dia",
+   "proibido": "digitado da macro",
+   "checagens": [
+    {
+     "id": "clube_dia",
+     "p": {
+      "filial": "TPH",
+      "grupo": "VAGNER"
+     }
+    }
+   ],
+   "dia": true,
+   "linhas": true
+  },
+  {
+   "id": "G142",
+   "linha": "5.dia",
+   "contato": {
+    "nome": "VAGNER",
+    "papel": "gerente",
+    "filial": "TPH",
+    "rca": null,
+    "grupo": "VAGNER"
+   },
+   "pergunta": "Venda hoje",
+   "assunto": "hoje|dia",
+   "proibido": "digitado da macro",
+   "checagens": [
+    {
+     "id": "clube_dia",
+     "p": {
+      "filial": "TPH",
+      "grupo": "VAGNER"
+     }
+    }
+   ],
+   "dia": true,
+   "linhas": true
+  },
+  {
+   "id": "G143",
+   "linha": "5.mes",
+   "contato": {
+    "nome": "VAGNER",
+    "papel": "gerente",
+    "filial": "TPH",
+    "rca": null,
+    "grupo": "VAGNER"
+   },
+   "pergunta": "Como estamos?",
+   "assunto": "meta|faturad",
+   "checagens": [
+    {
+     "id": "fat_liq_grupo",
+     "p": {
+      "filial": "TPH",
+      "grupo": "VAGNER"
+     }
+    }
+   ],
+   "linhas": true
+  },
+  {
+   "id": "G144",
+   "linha": "5.mes",
+   "contato": {
+    "nome": "VAGNER",
+    "papel": "gerente",
+    "filial": "TPH",
+    "rca": null,
+    "grupo": "VAGNER"
+   },
+   "pergunta": "Qual o resultado atualizado",
+   "assunto": "meta|faturad",
+   "checagens": [
+    {
+     "id": "fat_liq_grupo",
+     "p": {
+      "filial": "TPH",
+      "grupo": "VAGNER"
+     }
+    }
+   ],
+   "linhas": true
+  },
+  {
+   "id": "G145",
+   "linha": "5.pos",
+   "contato": {
+    "nome": "VAGNER",
+    "papel": "gerente",
+    "filial": "TPH",
+    "rca": null,
+    "grupo": "VAGNER"
+   },
+   "pergunta": "Como estamos em positivacao",
+   "assunto": "positiva",
+   "checagens": [
+    {
+     "id": "positivacao_grupo",
+     "p": {
+      "filial": "TPH",
+      "grupo": "VAGNER"
+     }
+    }
+   ]
+  },
+  {
+   "id": "G146",
+   "linha": "5.pos",
+   "contato": {
+    "nome": "VAGNER",
+    "papel": "gerente",
+    "filial": "TPH",
+    "rca": null,
+    "grupo": "VAGNER"
+   },
+   "pergunta": "Positivação",
+   "assunto": "positiva",
+   "checagens": [
+    {
+     "id": "positivacao_grupo",
+     "p": {
+      "filial": "TPH",
+      "grupo": "VAGNER"
+     }
+    }
+   ]
+  },
+  {
+   "id": "G147",
+   "linha": "5.bloq",
+   "contato": {
+    "nome": "VAGNER",
+    "papel": "gerente",
+    "filial": "TPH",
+    "rca": null,
+    "grupo": "VAGNER"
+   },
+   "pergunta": "Quanto temos de pedidos bloqueados?",
+   "assunto": "bloque|carteira|pendente",
+   "checagens": [
+    {
+     "id": "bloq_total_grupo",
+     "p": {
+      "filial": "TPH",
+      "grupo": "VAGNER"
+     }
+    }
+   ],
+   "linhas": true
+  },
+  {
+   "id": "G148",
+   "linha": "5.bloq",
+   "contato": {
+    "nome": "VAGNER",
+    "papel": "gerente",
+    "filial": "TPH",
+    "rca": null,
+    "grupo": "VAGNER"
+   },
+   "pergunta": "Temos pedidos bloqueados no comercial",
+   "assunto": "bloque|carteira|pendente",
+   "checagens": [
+    {
+     "id": "bloq_comercial_filial",
+     "p": {
+      "filial": "TPH",
+      "grupo": "VAGNER"
+     }
+    }
+   ],
+   "linhas": true
+  },
+  {
+   "id": "G149",
+   "linha": "5.ind",
+   "contato": {
+    "nome": "VAGNER",
+    "papel": "gerente",
+    "filial": "TPH",
+    "rca": null,
+    "grupo": "VAGNER"
+   },
+   "pergunta": "Como está o resultado por indústria?",
+   "assunto": "ind[úu]stria|fornecedor|colgate|mars|marilan",
+   "checagens": []
+  },
+  {
+   "id": "G150",
+   "linha": "5.margem",
+   "contato": {
+    "nome": "VAGNER",
+    "papel": "gerente",
+    "filial": "TPH",
+    "rca": null,
+    "grupo": "VAGNER"
+   },
+   "pergunta": "Qual a margem",
+   "assunto": "margem",
+   "checagens": [
+    {
+     "id": "margem_grupo",
+     "p": {
+      "filial": "TPH",
+      "grupo": "VAGNER"
+     }
+    }
+   ]
+  },
+  {
+   "id": "G151",
+   "linha": "5.rank",
+   "contato": {
+    "nome": "VAGNER",
+    "papel": "gerente",
+    "filial": "TPH",
+    "rca": null,
+    "grupo": "VAGNER"
+   },
+   "pergunta": "Quais os vendedores com maior atraso para a meta",
+   "assunto": "meta|%",
+   "checagens": []
+  },
+  {
+   "id": "G152",
+   "linha": "5.liga",
+   "contato": {
+    "nome": "VAGNER",
+    "papel": "gerente",
+    "filial": "TPH",
+    "rca": null,
+    "grupo": "VAGNER"
+   },
+   "pergunta": "tem os resultados da campanha champions",
+   "assunto": "liga|champions|posi[çc][ãa]o|pontos",
+   "checagens": [],
+   "escopo_livre": true
+  },
+  {
+   "id": "G153",
+   "linha": "5.dev",
+   "contato": {
+    "nome": "VAGNER",
+    "papel": "gerente",
+    "filial": "TPH",
+    "rca": null,
+    "grupo": "VAGNER"
+   },
+   "pergunta": "Devolução por motivo",
+   "assunto": "devolu",
+   "checagens": [
+    {
+     "id": "devolucao_grupo",
+     "p": {
+      "filial": "TPH",
+      "grupo": "VAGNER"
+     }
+    }
+   ]
+  },
+  {
+   "id": "G154",
+   "linha": "5.dia",
+   "contato": {
+    "nome": "CLEVERSON",
+    "papel": "gerente",
+    "filial": "MCD",
+    "rca": null,
+    "grupo": "CLEVERSON"
+   },
+   "pergunta": "Qual o resultado de hoje?",
+   "assunto": "hoje|dia",
+   "proibido": "digitado da macro",
+   "checagens": [
+    {
+     "id": "clube_dia",
+     "p": {
+      "filial": "MCD",
+      "grupo": "CLEVERSON"
+     }
+    }
+   ],
+   "dia": true,
+   "linhas": true
+  },
+  {
+   "id": "G155",
+   "linha": "5.dia",
+   "contato": {
+    "nome": "CLEVERSON",
+    "papel": "gerente",
+    "filial": "MCD",
+    "rca": null,
+    "grupo": "CLEVERSON"
+   },
+   "pergunta": "Venda hoje",
+   "assunto": "hoje|dia",
+   "proibido": "digitado da macro",
+   "checagens": [
+    {
+     "id": "clube_dia",
+     "p": {
+      "filial": "MCD",
+      "grupo": "CLEVERSON"
+     }
+    }
+   ],
+   "dia": true,
+   "linhas": true
+  },
+  {
+   "id": "G156",
+   "linha": "5.mes",
+   "contato": {
+    "nome": "CLEVERSON",
+    "papel": "gerente",
+    "filial": "MCD",
+    "rca": null,
+    "grupo": "CLEVERSON"
+   },
+   "pergunta": "Como estamos?",
+   "assunto": "meta|faturad",
+   "checagens": [
+    {
+     "id": "fat_liq_grupo",
+     "p": {
+      "filial": "MCD",
+      "grupo": "CLEVERSON"
+     }
+    }
+   ],
+   "linhas": true
+  },
+  {
+   "id": "G157",
+   "linha": "5.mes",
+   "contato": {
+    "nome": "CLEVERSON",
+    "papel": "gerente",
+    "filial": "MCD",
+    "rca": null,
+    "grupo": "CLEVERSON"
+   },
+   "pergunta": "Qual o resultado atualizado",
+   "assunto": "meta|faturad",
+   "checagens": [
+    {
+     "id": "fat_liq_grupo",
+     "p": {
+      "filial": "MCD",
+      "grupo": "CLEVERSON"
+     }
+    }
+   ],
+   "linhas": true
+  },
+  {
+   "id": "G158",
+   "linha": "5.pos",
+   "contato": {
+    "nome": "CLEVERSON",
+    "papel": "gerente",
+    "filial": "MCD",
+    "rca": null,
+    "grupo": "CLEVERSON"
+   },
+   "pergunta": "Como estamos em positivacao",
+   "assunto": "positiva",
+   "checagens": [
+    {
+     "id": "positivacao_grupo",
+     "p": {
+      "filial": "MCD",
+      "grupo": "CLEVERSON"
+     }
+    }
+   ]
+  },
+  {
+   "id": "G159",
+   "linha": "5.pos",
+   "contato": {
+    "nome": "CLEVERSON",
+    "papel": "gerente",
+    "filial": "MCD",
+    "rca": null,
+    "grupo": "CLEVERSON"
+   },
+   "pergunta": "Positivação",
+   "assunto": "positiva",
+   "checagens": [
+    {
+     "id": "positivacao_grupo",
+     "p": {
+      "filial": "MCD",
+      "grupo": "CLEVERSON"
+     }
+    }
+   ]
+  },
+  {
+   "id": "G160",
+   "linha": "5.bloq",
+   "contato": {
+    "nome": "CLEVERSON",
+    "papel": "gerente",
+    "filial": "MCD",
+    "rca": null,
+    "grupo": "CLEVERSON"
+   },
+   "pergunta": "Quanto temos de pedidos bloqueados?",
+   "assunto": "bloque|carteira|pendente",
+   "checagens": [
+    {
+     "id": "bloq_total_grupo",
+     "p": {
+      "filial": "MCD",
+      "grupo": "CLEVERSON"
+     }
+    }
+   ],
+   "linhas": true
+  },
+  {
+   "id": "G161",
+   "linha": "5.bloq",
+   "contato": {
+    "nome": "CLEVERSON",
+    "papel": "gerente",
+    "filial": "MCD",
+    "rca": null,
+    "grupo": "CLEVERSON"
+   },
+   "pergunta": "Temos pedidos bloqueados no comercial",
+   "assunto": "bloque|carteira|pendente",
+   "checagens": [
+    {
+     "id": "bloq_comercial_filial",
+     "p": {
+      "filial": "MCD",
+      "grupo": "CLEVERSON"
+     }
+    }
+   ],
+   "linhas": true
+  },
+  {
+   "id": "G162",
+   "linha": "5.ind",
+   "contato": {
+    "nome": "CLEVERSON",
+    "papel": "gerente",
+    "filial": "MCD",
+    "rca": null,
+    "grupo": "CLEVERSON"
+   },
+   "pergunta": "Como está o resultado por indústria?",
+   "assunto": "ind[úu]stria|fornecedor|colgate|mars|marilan",
+   "checagens": []
+  },
+  {
+   "id": "G163",
+   "linha": "5.margem",
+   "contato": {
+    "nome": "CLEVERSON",
+    "papel": "gerente",
+    "filial": "MCD",
+    "rca": null,
+    "grupo": "CLEVERSON"
+   },
+   "pergunta": "Qual a margem",
+   "assunto": "margem",
+   "checagens": [
+    {
+     "id": "margem_grupo",
+     "p": {
+      "filial": "MCD",
+      "grupo": "CLEVERSON"
+     }
+    }
+   ]
+  },
+  {
+   "id": "G164",
+   "linha": "5.rank",
+   "contato": {
+    "nome": "CLEVERSON",
+    "papel": "gerente",
+    "filial": "MCD",
+    "rca": null,
+    "grupo": "CLEVERSON"
+   },
+   "pergunta": "Quais os vendedores com maior atraso para a meta",
+   "assunto": "meta|%",
+   "checagens": []
+  },
+  {
+   "id": "G165",
+   "linha": "5.liga",
+   "contato": {
+    "nome": "CLEVERSON",
+    "papel": "gerente",
+    "filial": "MCD",
+    "rca": null,
+    "grupo": "CLEVERSON"
+   },
+   "pergunta": "tem os resultados da campanha champions",
+   "assunto": "liga|champions|posi[çc][ãa]o|pontos",
+   "checagens": [],
+   "escopo_livre": true
+  },
+  {
+   "id": "G166",
+   "linha": "5.dev",
+   "contato": {
+    "nome": "CLEVERSON",
+    "papel": "gerente",
+    "filial": "MCD",
+    "rca": null,
+    "grupo": "CLEVERSON"
+   },
+   "pergunta": "Devolução por motivo",
+   "assunto": "devolu",
+   "checagens": [
+    {
+     "id": "devolucao_grupo",
+     "p": {
+      "filial": "MCD",
+      "grupo": "CLEVERSON"
+     }
+    }
+   ]
+  },
+  {
+   "id": "G167",
+   "linha": "5.dia",
+   "contato": {
+    "nome": "ADRIANO",
+    "papel": "gerente",
+    "filial": "MCD",
+    "rca": null,
+    "grupo": "ADRIANO"
+   },
+   "pergunta": "Qual o resultado de hoje?",
+   "assunto": "hoje|dia",
+   "proibido": "digitado da macro",
+   "checagens": [
+    {
+     "id": "clube_dia",
+     "p": {
+      "filial": "MCD",
+      "grupo": "ADRIANO"
+     }
+    }
+   ],
+   "dia": true,
+   "linhas": true
+  },
+  {
+   "id": "G168",
+   "linha": "5.dia",
+   "contato": {
+    "nome": "ADRIANO",
+    "papel": "gerente",
+    "filial": "MCD",
+    "rca": null,
+    "grupo": "ADRIANO"
+   },
+   "pergunta": "Venda hoje",
+   "assunto": "hoje|dia",
+   "proibido": "digitado da macro",
+   "checagens": [
+    {
+     "id": "clube_dia",
+     "p": {
+      "filial": "MCD",
+      "grupo": "ADRIANO"
+     }
+    }
+   ],
+   "dia": true,
+   "linhas": true
+  },
+  {
+   "id": "G169",
+   "linha": "5.mes",
+   "contato": {
+    "nome": "ADRIANO",
+    "papel": "gerente",
+    "filial": "MCD",
+    "rca": null,
+    "grupo": "ADRIANO"
+   },
+   "pergunta": "Como estamos?",
+   "assunto": "meta|faturad",
+   "checagens": [
+    {
+     "id": "fat_liq_grupo",
+     "p": {
+      "filial": "MCD",
+      "grupo": "ADRIANO"
+     }
+    }
+   ],
+   "linhas": true
+  },
+  {
+   "id": "G170",
+   "linha": "5.mes",
+   "contato": {
+    "nome": "ADRIANO",
+    "papel": "gerente",
+    "filial": "MCD",
+    "rca": null,
+    "grupo": "ADRIANO"
+   },
+   "pergunta": "Qual o resultado atualizado",
+   "assunto": "meta|faturad",
+   "checagens": [
+    {
+     "id": "fat_liq_grupo",
+     "p": {
+      "filial": "MCD",
+      "grupo": "ADRIANO"
+     }
+    }
+   ],
+   "linhas": true
+  },
+  {
+   "id": "G171",
+   "linha": "5.pos",
+   "contato": {
+    "nome": "ADRIANO",
+    "papel": "gerente",
+    "filial": "MCD",
+    "rca": null,
+    "grupo": "ADRIANO"
+   },
+   "pergunta": "Como estamos em positivacao",
+   "assunto": "positiva",
+   "checagens": [
+    {
+     "id": "positivacao_grupo",
+     "p": {
+      "filial": "MCD",
+      "grupo": "ADRIANO"
+     }
+    }
+   ]
+  },
+  {
+   "id": "G172",
+   "linha": "5.pos",
+   "contato": {
+    "nome": "ADRIANO",
+    "papel": "gerente",
+    "filial": "MCD",
+    "rca": null,
+    "grupo": "ADRIANO"
+   },
+   "pergunta": "Positivação",
+   "assunto": "positiva",
+   "checagens": [
+    {
+     "id": "positivacao_grupo",
+     "p": {
+      "filial": "MCD",
+      "grupo": "ADRIANO"
+     }
+    }
+   ]
+  },
+  {
+   "id": "G173",
+   "linha": "5.bloq",
+   "contato": {
+    "nome": "ADRIANO",
+    "papel": "gerente",
+    "filial": "MCD",
+    "rca": null,
+    "grupo": "ADRIANO"
+   },
+   "pergunta": "Quanto temos de pedidos bloqueados?",
+   "assunto": "bloque|carteira|pendente",
+   "checagens": [
+    {
+     "id": "bloq_total_grupo",
+     "p": {
+      "filial": "MCD",
+      "grupo": "ADRIANO"
+     }
+    }
+   ],
+   "linhas": true
+  },
+  {
+   "id": "G174",
+   "linha": "5.bloq",
+   "contato": {
+    "nome": "ADRIANO",
+    "papel": "gerente",
+    "filial": "MCD",
+    "rca": null,
+    "grupo": "ADRIANO"
+   },
+   "pergunta": "Temos pedidos bloqueados no comercial",
+   "assunto": "bloque|carteira|pendente",
+   "checagens": [
+    {
+     "id": "bloq_comercial_filial",
+     "p": {
+      "filial": "MCD",
+      "grupo": "ADRIANO"
+     }
+    }
+   ],
+   "linhas": true
+  },
+  {
+   "id": "G175",
+   "linha": "5.ind",
+   "contato": {
+    "nome": "ADRIANO",
+    "papel": "gerente",
+    "filial": "MCD",
+    "rca": null,
+    "grupo": "ADRIANO"
+   },
+   "pergunta": "Como está o resultado por indústria?",
+   "assunto": "ind[úu]stria|fornecedor|colgate|mars|marilan",
+   "checagens": []
+  },
+  {
+   "id": "G176",
+   "linha": "5.margem",
+   "contato": {
+    "nome": "ADRIANO",
+    "papel": "gerente",
+    "filial": "MCD",
+    "rca": null,
+    "grupo": "ADRIANO"
+   },
+   "pergunta": "Qual a margem",
+   "assunto": "margem",
+   "checagens": [
+    {
+     "id": "margem_grupo",
+     "p": {
+      "filial": "MCD",
+      "grupo": "ADRIANO"
+     }
+    }
+   ]
+  },
+  {
+   "id": "G177",
+   "linha": "5.rank",
+   "contato": {
+    "nome": "ADRIANO",
+    "papel": "gerente",
+    "filial": "MCD",
+    "rca": null,
+    "grupo": "ADRIANO"
+   },
+   "pergunta": "Quais os vendedores com maior atraso para a meta",
+   "assunto": "meta|%",
+   "checagens": []
+  },
+  {
+   "id": "G178",
+   "linha": "5.liga",
+   "contato": {
+    "nome": "ADRIANO",
+    "papel": "gerente",
+    "filial": "MCD",
+    "rca": null,
+    "grupo": "ADRIANO"
+   },
+   "pergunta": "tem os resultados da campanha champions",
+   "assunto": "liga|champions|posi[çc][ãa]o|pontos",
+   "checagens": [],
+   "escopo_livre": true
+  },
+  {
+   "id": "G179",
+   "linha": "5.dev",
+   "contato": {
+    "nome": "ADRIANO",
+    "papel": "gerente",
+    "filial": "MCD",
+    "rca": null,
+    "grupo": "ADRIANO"
+   },
+   "pergunta": "Devolução por motivo",
+   "assunto": "devolu",
+   "checagens": [
+    {
+     "id": "devolucao_grupo",
+     "p": {
+      "filial": "MCD",
+      "grupo": "ADRIANO"
+     }
+    }
+   ]
+  },
+  {
+   "id": "G180",
+   "linha": "5.fech",
+   "contato": {
+    "nome": "MARCELO",
+    "papel": "gerente",
+    "filial": "API",
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Como ficou o fechamento mês outubro",
+   "assunto": "outubro|out/26|10/2026|fechamento",
+   "checagens": [
+    {
+     "id": "fechamento_filial_mes",
+     "p": {
+      "filial": "API",
+      "mes": "2026-10"
+     }
+    }
+   ]
+  },
+  {
+   "id": "G181",
+   "linha": "5.fech",
+   "contato": {
+    "nome": "VAGNER",
+    "papel": "gerente",
+    "filial": "TPH",
+    "rca": null,
+    "grupo": "VAGNER"
+   },
+   "pergunta": "Como ficou o fechamento mês outubro",
+   "assunto": "outubro|out/26|10/2026|fechamento",
+   "checagens": []
+  },
+  {
+   "id": "D182",
+   "linha": "5.dia",
+   "contato": {
+    "nome": "VITORIO",
+    "papel": "diretoria",
+    "filial": null,
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Venda BRasil Hoje",
+   "assunto": "hoje|dia",
+   "proibido": "digitado da macro",
+   "checagens": [
+    {
+     "id": "clube_dia",
+     "p": {}
+    }
+   ],
+   "dia": true,
+   "linhas": true
+  },
+  {
+   "id": "D183",
+   "linha": "5.dia",
+   "contato": {
+    "nome": "VITORIO",
+    "papel": "diretoria",
+    "filial": null,
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "venda hoje",
+   "assunto": "hoje|dia",
+   "proibido": "digitado da macro",
+   "checagens": [
+    {
+     "id": "clube_dia",
+     "p": {}
+    }
+   ],
+   "dia": true,
+   "linhas": true
+  },
+  {
+   "id": "D184",
+   "linha": "5.dia",
+   "contato": {
+    "nome": "VITORIO",
+    "papel": "diretoria",
+    "filial": null,
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Pedidos hoje",
+   "assunto": "hoje|dia",
+   "proibido": "digitado da macro",
+   "checagens": [
+    {
+     "id": "clube_dia",
+     "p": {}
+    }
+   ],
+   "dia": true,
+   "linhas": true
+  },
+  {
+   "id": "D185",
+   "linha": "5.dia",
+   "contato": {
+    "nome": "VITORIO",
+    "papel": "diretoria",
+    "filial": null,
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "[áudio] Venda hoje no Brasil.",
+   "assunto": "hoje|dia",
+   "proibido": "digitado da macro",
+   "checagens": [
+    {
+     "id": "clube_dia",
+     "p": {}
+    }
+   ],
+   "dia": true,
+   "linhas": true
+  },
+  {
+   "id": "D186",
+   "linha": "5.mes",
+   "contato": {
+    "nome": "VITORIO",
+    "papel": "diretoria",
+    "filial": null,
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Venda Brasil agora",
+   "assunto": "meta|faturad",
+   "checagens": [
+    {
+     "id": "fat_liq_brasil_mes",
+     "p": {}
+    }
+   ],
+   "linhas": true
+  },
+  {
+   "id": "D187",
+   "linha": "5.mes",
+   "contato": {
+    "nome": "VITORIO",
+    "papel": "diretoria",
+    "filial": null,
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Brasil agora",
+   "assunto": "meta|faturad",
+   "checagens": [
+    {
+     "id": "fat_liq_brasil_mes",
+     "p": {}
+    }
+   ],
+   "linhas": true
+  },
+  {
+   "id": "D188",
+   "linha": "5.mes",
+   "contato": {
+    "nome": "VITORIO",
+    "papel": "diretoria",
+    "filial": null,
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "[áudio] Como está a tendência de caturamento aberto por filial?",
+   "assunto": "meta|faturad",
+   "checagens": [
+    {
+     "id": "fat_liq_brasil_mes",
+     "p": {}
+    }
+   ],
+   "linhas": true
+  },
+  {
+   "id": "D189",
+   "linha": "5.mes_filial",
+   "contato": {
+    "nome": "VITORIO",
+    "papel": "diretoria",
+    "filial": null,
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "como está TPH no mês?",
+   "assunto": "meta|faturad",
+   "checagens": [
+    {
+     "id": "fat_liq_filial_mes",
+     "p": {
+      "filial": "TPH"
+     }
+    }
+   ]
+  },
+  {
+   "id": "D190",
+   "linha": "5.mes_filial",
+   "contato": {
+    "nome": "VITORIO",
+    "papel": "diretoria",
+    "filial": null,
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Como está MCD?",
+   "assunto": "meta|faturad",
+   "checagens": [
+    {
+     "id": "fat_liq_filial_mes",
+     "p": {
+      "filial": "MCD"
+     }
+    }
+   ]
+  },
+  {
+   "id": "D191",
+   "linha": "5.pos",
+   "contato": {
+    "nome": "VITORIO",
+    "papel": "diretoria",
+    "filial": null,
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Como estamos de positivação?",
+   "assunto": "positiva",
+   "checagens": [
+    {
+     "id": "positivacao_brasil",
+     "p": {}
+    }
+   ]
+  },
+  {
+   "id": "D192",
+   "linha": "5.pos",
+   "contato": {
+    "nome": "VITORIO",
+    "papel": "diretoria",
+    "filial": null,
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Como estamos de positivação em api aberto por supervisor",
+   "assunto": "positiva",
+   "checagens": [
+    {
+     "id": "positivacao_filial",
+     "p": {
+      "filial": "API"
+     }
+    }
+   ]
+  },
+  {
+   "id": "D193",
+   "linha": "5.bloq",
+   "contato": {
+    "nome": "VITORIO",
+    "papel": "diretoria",
+    "filial": null,
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "pedidos bloqueados",
+   "assunto": "bloque|carteira|pendente",
+   "proibido": "por motivo",
+   "checagens": [
+    {
+     "id": "bloq_total_brasil",
+     "p": {}
+    }
+   ],
+   "linhas": true
+  },
+  {
+   "id": "D194",
+   "linha": "5.bloq",
+   "contato": {
+    "nome": "VITORIO",
+    "papel": "diretoria",
+    "filial": null,
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Pedidos Bloqueados abertos por filial",
+   "assunto": "bloque|carteira|pendente",
+   "proibido": "por motivo",
+   "checagens": [
+    {
+     "id": "bloq_total_brasil",
+     "p": {}
+    }
+   ],
+   "linhas": true
+  },
+  {
+   "id": "D195",
+   "linha": "5.bloq",
+   "contato": {
+    "nome": "VITORIO",
+    "papel": "diretoria",
+    "filial": null,
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "pedidos pendentes",
+   "assunto": "bloque|carteira|pendente",
+   "proibido": "por motivo",
+   "checagens": [
+    {
+     "id": "bloq_total_brasil",
+     "p": {}
+    }
+   ],
+   "linhas": true
+  },
+  {
+   "id": "D196",
+   "linha": "5.bloq_filial",
+   "contato": {
+    "nome": "VITORIO",
+    "papel": "diretoria",
+    "filial": null,
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "carteira TPH",
+   "assunto": "bloque|carteira|pendente",
+   "checagens": [
+    {
+     "id": "carteira_total_filial",
+     "p": {
+      "filial": "TPH"
+     }
+    },
+    {
+     "id": "bloq_total_filial",
+     "p": {
+      "filial": "TPH"
+     }
+    }
+   ],
+   "linhas": true
+  },
+  {
+   "id": "D197",
+   "linha": "5.ind",
+   "contato": {
+    "nome": "VITORIO",
+    "papel": "diretoria",
+    "filial": null,
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Industrias de API",
+   "assunto": "ind[úu]stria|fornecedor|colgate|mars|marilan",
+   "checagens": []
+  },
+  {
+   "id": "D198",
+   "linha": "5.ind",
+   "contato": {
+    "nome": "VITORIO",
+    "papel": "diretoria",
+    "filial": null,
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Indústrias de TPH",
+   "assunto": "ind[úu]stria|fornecedor|colgate|mars|marilan",
+   "checagens": []
+  },
+  {
+   "id": "D199",
+   "linha": "5.ind",
+   "contato": {
+    "nome": "VITORIO",
+    "papel": "diretoria",
+    "filial": null,
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Como estamos de colgate em MCD?",
+   "assunto": "ind[úu]stria|fornecedor|colgate|mars|marilan",
+   "checagens": []
+  },
+  {
+   "id": "D200",
+   "linha": "5.margem",
+   "contato": {
+    "nome": "EVANDRO SERVAT",
+    "papel": "diretoria",
+    "filial": null,
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Qual a margem das filiais",
+   "assunto": "margem",
+   "checagens": [
+    {
+     "id": "margem_por_filial",
+     "p": {}
+    }
+   ]
+  },
+  {
+   "id": "D201",
+   "linha": "5.rank",
+   "contato": {
+    "nome": "VITORIO",
+    "papel": "diretoria",
+    "filial": null,
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "quero ranking brasil dos vendedore",
+   "assunto": "ranking|%",
+   "checagens": []
+  },
+  {
+   "id": "D202",
+   "linha": "5.rank",
+   "contato": {
+    "nome": "VITORIO",
+    "papel": "diretoria",
+    "filial": null,
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "como tá o ranking dos 10 melhores vendedores de varejo?",
+   "assunto": "ranking|%",
+   "checagens": []
+  },
+  {
+   "id": "D203",
+   "linha": "5.liga",
+   "contato": {
+    "nome": "VITORIO",
+    "papel": "diretoria",
+    "filial": null,
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Champions ranking vendedor brasil",
+   "assunto": "liga|champions|posi[çc][ãa]o|pontos",
+   "checagens": [],
+   "escopo_livre": true
+  },
+  {
+   "id": "D204",
+   "linha": "5.liga",
+   "contato": {
+    "nome": "VITORIO",
+    "papel": "diretoria",
+    "filial": null,
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "classificação filiais liga",
+   "assunto": "liga|champions|posi[çc][ãa]o|pontos",
+   "checagens": [],
+   "escopo_livre": true
+  },
+  {
+   "id": "D205",
+   "linha": "5.liga",
+   "contato": {
+    "nome": "VITORIO",
+    "papel": "diretoria",
+    "filial": null,
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Ranking supervisor champions",
+   "assunto": "liga|champions|posi[çc][ãa]o|pontos",
+   "checagens": [],
+   "escopo_livre": true
+  },
+  {
+   "id": "D206",
+   "linha": "5.dev",
+   "contato": {
+    "nome": "VITORIO",
+    "papel": "diretoria",
+    "filial": null,
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Devolução Brasil",
+   "assunto": "devolu",
+   "checagens": [
+    {
+     "id": "devolucao_brasil",
+     "p": {}
+    }
+   ]
+  },
+  {
+   "id": "D207",
+   "linha": "5.dev",
+   "contato": {
+    "nome": "VITORIO",
+    "papel": "diretoria",
+    "filial": null,
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "[áudio] Liste as devoluções abertas por motivo no Brasil.",
+   "assunto": "devolu",
+   "checagens": []
+  },
+  {
+   "id": "D208",
+   "linha": "5.dev",
+   "contato": {
+    "nome": "VITORIO",
+    "papel": "diretoria",
+    "filial": null,
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Devolução tsj",
+   "assunto": "devolu",
+   "checagens": [
+    {
+     "id": "devolucao_filial_mes",
+     "p": {
+      "filial": "TSJ"
+     }
+    }
+   ]
+  },
+  {
+   "id": "D209",
+   "linha": "5.fech",
+   "contato": {
+    "nome": "VITORIO",
+    "papel": "diretoria",
+    "filial": null,
+    "rca": null,
+    "grupo": null
+   },
+   "pergunta": "Como ficou o fechamento de outubro por filial?",
+   "assunto": "outubro|out/26|10/2026|fechamento",
+   "checagens": [
+    {
+     "id": "fechamento_filial_mes",
+     "p": {
+      "filial": "TPH",
+      "mes": "2026-10"
+     }
+    }
+   ],
+   "linhas": true
+  }
+ ]
+}

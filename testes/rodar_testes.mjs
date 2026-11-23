@@ -158,7 +158,7 @@ secao('3. WhatsApp aplica a equipe vinda de /api/tv-mostra');
   { const mz = ler('public/matrizapp.html'), tv = ler('public/tvapp.html'), ge = ler('public/gestao-equipe.html');
     ok(mz.includes('const ehSupFalso') && mz.includes('sups = supsAll.filter(s => !ehSupFalso(s.nome))') && tv.includes('const ehSupFalso') && tv.includes('if (ehSupFalso(x.sup)) return;') && ge.includes('direto ao gerente'), 'supervisor falso fora das telas: "GERENTE <FILIAL>" nao aparece como supervisor na Matriz, na TV da filial e na Gestao de Equipe'); }
   { const tv = ler('public/tvapp.html'), mz = ler('public/matrizapp.html'), api = ler('functions/api/metas-mes.js');
-    ok(tv.includes("j('/api/metas-mes'") && mz.includes("j('/api/metas-mes'") && !tv.includes("/metas_mes.json") && !mz.includes("'/metas_mes.json") && api.includes('meta_fat') && api.includes('meta_pos') && api.includes('calculaResumoMes'), 'metas do mes vem do CEVEN ao vivo (/api/metas-mes, direto da base), nao do metas_mes.json estatico');
+    ok(tv.includes("j('/api/metas-mes'") && mz.includes("j('/api/metas-mes'") && !tv.includes("/metas_mes.json") && !mz.includes("'/metas_mes.json") && api.includes('meta_fat') && api.includes('meta_pos') && api.includes('gerot_filial_mes'), 'metas do mes da filial vem do GEROT (/api/metas-mes, gerot_filial_mes; Vitorio 23/11/2026), nao do metas_mes.json estatico');
     ok(!/Meta do mês (PNA)/.test(tv + mz), 'rotulo da meta nao diz mais PNA (e do CEVEN)'); }
   { const wf = ler('.github/workflows/brasileirao-dataset.yml'), dl = ler('.github/workflows/ceven-cron-datalake.yml'), pg = ler('public/brasileirao.html');
     ok(wf.includes('scripts/coletar_plus_lideranca.js') && wf.includes('scratch/build_brasileirao_dataset.py') && wf.includes('git push') && !/\n\s*schedule:/.test(wf) && wf.includes('CEVEN_ADMIN_PASS'), 'Brasileirao gerado online: workflow coleta o Plus, gera o dataset e grava na main (sem schedule proprio)');
@@ -786,7 +786,7 @@ secao('10. Painel /saude (sala de controle) e telemetria da coleta');
   ok(fm.includes('calculaResumoMes') && fm.includes('env.DB.batch(stmts)') && fm.includes('AGUARDANDO_LEITURA'), 'resumo do mes: usa a conta unica da base (todos os RCAs), grava numa transacao e nao publica com menos de 90% de leitura');
   { const rbm = ler('functions/_lib/resumo_base.js'), mm = ler('functions/api/metas-mes.js'), mx = ler('functions/api/mapa-executivo-live.js'), mzz = ler('public/matrizapp.html');
     ok(rbm.includes('ULTIMA') || rbm.includes('anterior'), 'conta unica: RCA sem leitura de hoje entra com a ultima leitura real, nunca fica de fora nem e estimado');
-    ok(mm.includes('calculaResumoMes') && !/FROM\s+resumo_executivo_live/.test(mm), 'metas-mes vem DIRETO da base (nao de copia recalculada)');
+    ok(mm.includes('gerot_filial_mes') && !/FROM\s+resumo_executivo_live/.test(mm) && !mm.includes('calculaResumoMes'), 'metas-mes vem do GEROT da filial (nunca soma de vendedores nem copia recalculada; Vitorio 23/11/2026)');
     ok(mx.includes('calculaResumoMes') && mx.includes('mesFaturado = a.faturado'), 'campos do mes da Executiva/Matriz vem DIRETO da base');
     ok(!mzz.includes('foto ${hm}') && !mzz.includes('ainda sem leitura de hoje'), 'Matriz nao mostra aviso de leitura na tela (isso fica no /saude)'); }
 }

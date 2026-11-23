@@ -1455,13 +1455,15 @@ function textoAlerta(a) {
 }
 function renderTotais(vs) {
   const campo = vs.filter(v => v.campo && v.temRota); const s = (a, f) => a.reduce((x, v) => x + (f(v) || 0), 0);
-  const fat = s(vs, v => v.fat), pend = s(vs, v => v.pend), metaSoma = s(vs, v => v.meta), realCli = s(vs, v => v.realCli), metaCliSoma = s(vs, v => v.metaCli);
-  const metaFat = METAS ? METAS.meta_fat : metaSoma, metaPos = METAS ? METAS.meta_pos : metaCliSoma, oficial = !!METAS;
+  // 23/11/2026 (Vitorio): a filial inteira = GEROT da filial (faturado, carteira, positivados e metas); link de grupo (TPH/MCD) continua somando o grupo
+  const G0 = METAS && !GRUPO ? METAS : null;
+  const fat = G0 && G0.fat_liq != null ? G0.fat_liq : s(vs, v => v.fat), pend = G0 && G0.carteira != null ? G0.carteira : s(vs, v => v.pend), metaSoma = s(vs, v => v.meta), realCli = G0 && G0.positivados != null ? G0.positivados : s(vs, v => v.realCli), metaCliSoma = s(vs, v => v.metaCli);
+  const metaFat = G0 ? G0.meta_fat : metaSoma, metaPos = G0 ? G0.meta_pos : metaCliSoma, oficial = !!G0;
   const pctF = metaFat ? fat / metaFat * 100 : null, pctP = metaPos ? realCli / metaPos * 100 : null;
   const pendHtml = pend > 0 ? `<div style="font-size:11px;font-weight:600;color:var(--mut);margin-top:2px;letter-spacing:-0.2px">+ ${brl(pend)} pendente</div>` : '';
   $('tot').innerHTML = [
     ['Faturado no mês', `${brl(fat)} <small style="font-size:14px;color:var(--mut)">${pctF != null ? pc(pctF) : ''}</small>${pendHtml}`],
-    [oficial ? 'Meta do mês (CEVEN)' : 'Meta (soma dos vendedores)', brl(metaFat)],
+    [oficial ? 'Meta do mês (GEROT)' : 'Meta (soma dos vendedores)', brl(metaFat)],
     ['Positivados no mês', `${nv(realCli)} <small style="font-size:14px;color:var(--mut)">de ${nv(metaPos)} · ${pctP != null ? pc(pctP) : ''}</small>`],
     ['Digitado hoje', brl(s(vs, v => v.dig))], ['Positivações hoje', nv(s(vs, v => v.pos))],
     ['Visitas feitas / rota', s(campo, v => v.feitas) + ' / ' + s(campo, v => v.rota)], ['Zerados hoje', campo.filter(zerado).length + ' de ' + campo.length]]

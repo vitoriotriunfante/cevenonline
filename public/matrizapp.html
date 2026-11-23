@@ -488,7 +488,7 @@ function fotoMeta() {
   return '';
 }
 async function carregaMetas() {
-  const mt = await j('/api/metas-mes', 15000); // metas ao vivo do CEVEN (04/10/2026)
+  const mt = await j('/api/metas-mes', 15000); // metas do GEROT por filial (23/11/2026)
   if (mt && mt.filiais && mt.mes === sp().date.slice(0, 7)) METAS = mt;
 }
 const K_DATA = 'ceven_mtz_data_';
@@ -747,8 +747,9 @@ function statFilial(sig) {
   // MACRO SOMA TUDO (Vitorio, 05/10/2026): faturado, positivados e digitado da filial vem do resumo oficial (TODOS os vendedores, ocultos e fora da planilha).
   // "Mostra / nao mostra" vale so para os lances de varejo (vendedores listados, zerados, penaltis...).
   const ofic = RESUMO_OF ? RESUMO_OF[sig] : null;
-  const fat = ofic && ofic.mesFaturado > 0 ? ofic.mesFaturado : s(vs, v => v.fat), metaFat = mt ? mt.meta_fat : s(vs, v => v.meta);
-  const realCli = ofic && ofic.mesPositivados > 0 ? ofic.mesPositivados : s(vs, v => v.realCli), metaPos = mt ? mt.meta_pos : s(vs, v => v.metaCli);
+  // 23/11/2026 (Vitorio: 'a meta por filial de faturamento e positivacao e do GEROT'): faturado, positivados e metas da filial = GEROT da filial (/api/metas-mes)
+  const fat = mt && mt.fat_liq != null ? mt.fat_liq : ofic && ofic.mesFaturado > 0 ? ofic.mesFaturado : s(vs, v => v.fat), metaFat = mt ? mt.meta_fat : s(vs, v => v.meta);
+  const realCli = mt && mt.positivados != null ? mt.positivados : ofic && ofic.mesPositivados > 0 ? ofic.mesPositivados : s(vs, v => v.realCli), metaPos = mt ? mt.meta_pos : s(vs, v => v.metaCli);
   const pctFat = metaFat > 0 ? (fat / metaFat) * 100 : 0;
   const pctPos = metaPos > 0 ? (realCli / metaPos) * 100 : 0;
 
@@ -1361,11 +1362,11 @@ async function gatilhoSup() {
 const ehSupFalso = (n) => !String(n || '').trim() || /^(GERENTE\b|RCAS INATIVOS|VENDA EMPRESA|SEM SUPERVISOR)/i.test(String(n).trim());
 function modoSup() { if (SUP_MANUAL) return true; const t = sp(), m = t.h * 60 + t.m; return emJanelaSupPeriodica(m) && ORDEM.some(s => (SUPS[s] || []).some(x => !/GERENTE/i.test(x.nome) && (!x.fez_compromisso || !x.iniciou_ret))); }
 function renderTotais(stats) {
-  const s = f => stats.reduce((x, y) => x + (f(y) || 0), 0), fat = s(x => x.fat), pend = s(x => x.pendente), mF = METAS ? METAS.total.meta_fat : s(x => x.metaFat), pos = s(x => x.realCli), mP = METAS ? METAS.total.meta_pos : s(x => x.metaPos);
+  const s = f => stats.reduce((x, y) => x + (f(y) || 0), 0), fat = METAS ? METAS.total.fat_liq : s(x => x.fat), pend = METAS ? METAS.total.carteira : s(x => x.pendente), mF = METAS ? METAS.total.meta_fat : s(x => x.metaFat), pos = METAS ? METAS.total.positivados : s(x => x.realCli), mP = METAS ? METAS.total.meta_pos : s(x => x.metaPos);
   // NUMERO UNICO (26/10/2026): visitas e zerados vem de /api/totais-dia (mesmo numero na TV, no PC, no celular e no WhatsApp). Sem ele ou incompleto: nada de soma propria.
   const TB = TOTAIS && TOTAIS.brasil, ate = v => !TB ? '<small>carregando</small>' : TB.completo ? v : `<small>aguardando ${nv(TB.vendedores - TB.lidos)} de ${nv(TB.vendedores)} vendedores</small>`;   // incompleto = nenhum numero (Vitorio, 26/10/2026)
   const pendHtml = pend > 0 ? `<div style="font-size:11px;font-weight:600;color:var(--muted);margin-top:2px;letter-spacing:-0.2px">+ ${brl(pend)} pendente</div>` : '';
-  $('tot').innerHTML = [['Faturado no mês', `${brl(fat)} <small>${mF ? pc(fat / mF * 100) : ''}</small>${pendHtml}`], [METAS ? 'Meta do mês (CEVEN)' : 'Meta (soma)', brl(mF) + fotoMeta()], ['Positivados no mês', `${nv(pos)} <small>de ${nv(mP)} · ${mP ? pc(pos / mP * 100) : ''}</small>`],
+  $('tot').innerHTML = [['Faturado no mês', `${brl(fat)} <small>${mF ? pc(fat / mF * 100) : ''}</small>${pendHtml}`], [METAS ? 'Meta do mês (GEROT)' : 'Meta (soma)', brl(mF) + fotoMeta()], ['Positivados no mês', `${nv(pos)} <small>de ${nv(mP)} · ${mP ? pc(pos / mP * 100) : ''}</small>`],
     ['Digitado hoje', brl(RESUMO_OF && RESUMO_OF.TODAS ? RESUMO_OF.TODAS.digitado : s(x => x.dig))], ['Visitas feitas / programadas (CEVEN)', ate(TB && nv(TB.feitas) + ' / ' + nv(TB.programadas))], ['Zerados · Pênaltis ativos', ate(TB && nv(TB.zerados)) + ' · ' + nv(s(x => x.pen))]].map(([l, v]) => `<div><span>${l}</span><b class="mono">${v}</b></div>`).join('');
   $('nv').textContent = s(x => x.n);
 }
