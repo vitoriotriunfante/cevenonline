@@ -169,12 +169,19 @@ export function respRanking(E, t) {
   return L.filter((x, k, a) => !(x === '' && a[k - 1] === '')).join('\n');
 }
 export async function respPositivacao(B, E) {
-  const x = await totaisOficiais(B, E); if (!x.metaPos) return 'Sem dado agora.';
-  const dn = diasUteisRestantes();
+  const x = await totaisOficiais(B, E); if (x.pos == null) return 'Sem dado agora.';
+  const { diasUteis, positivacaoPorGrupos } = await import('../../fatos/index.js'), dn = diasUteis().restantes;
+  const temMeta = Number(x.metaPos) > 0;
   // ABRE UM NIVEL ABAIXO DE QUEM PERGUNTA (26/10/2026, Priscila: "pq ja nao respondeu aberto?"): diretoria -> filiais; gerente -> supervisores; supervisor -> vendedores
   const porVend = !!E.supervisor;
   const G = porVend ? E.vend.filter((v) => (v.metaPos || 0) > 0).map((v) => [vn(v), { pos: v.pos || 0, metaPos: Math.round(v.metaPos) }]).sort((a, b) => (b[1].pos / (b[1].metaPos || 1)) - (a[1].pos / (a[1].metaPos || 1)))
-    : [...agrupa(E.vend, (v) => E.nacional ? v.filial : supChave(v, false))].filter(([k]) => supReal(k)).sort((a, b) => (b[1].pos / (b[1].metaPos || 1)) - (a[1].pos / (a[1].metaPos || 1)));
+    : [...agrupa(E.vend, (v) => E.nacional ? v.filial : supChave(v, false))].filter(([k]) => supReal(k));
+  // 23/11/2026 (dicionario 3.9, conflito 7): linha de filial = positivacao da filial no GEROT; linha de supervisor = clientes distintos da equipe (regra 4). Nunca a soma dos vendedores.
+  if (!porVend && B.env && B.env.DB) {
+    if (E.nacional) { const { kpisMes } = await import('../../fatos/index.js'); const K = await kpisMes(B.env.DB, { nivel: 'brasil' }); if (K && K.porFilial) for (const [k, y] of G) { const f = K.porFilial[k]; if (f) { y.pos = f.pos || 0; y.metaPos = f.metaPos || 0; } } }
+    else { const PG = await positivacaoPorGrupos(B.env.DB, E.filiais[0], new Map(G.map(([k, y]) => [k, y.V.map((v) => v.rca)]))); if (PG) for (const [k, y] of G) { y.pos = (PG.get(k) || {}).pos || 0; y.metaPos = 0; } }
+  }
+  G.sort((a, b) => (b[1].pos / (b[1].metaPos || 1)) - (a[1].pos / (a[1].metaPos || 1)));
   // META OFICIAL DE POSITIVACAO POR FILIAL (Premiacao, 27.000 no grupo) — base TEMPORARIA ate o CEVEN corrigir a tela Filiais (27/10/2026)
   let oficial = '';
   if (!E.supervisor && !E.grupo && !E.rca && typeof B.metaPosFilial === 'function') {
@@ -186,12 +193,12 @@ export async function respPositivacao(B, E) {
       }
     } catch (e) {}
   }
-  return [`👥 *Positivação — ${E.nome}* (clientes com faturamento no mês)`, ...(oficial ? [oficial] : []), `*${N(x.pos)} de ${N(x.metaPos)}* (${P(x.pos, x.metaPos)}) · faltam ${N(Math.max(0, x.metaPos - x.pos))} → ${N(Math.ceil(Math.max(0, x.metaPos - x.pos) / Math.max(dn, 1)))} por dia útil`, '',
+  return [`👥 *Positivação — ${E.nome}* (clientes com faturamento no mês)`, ...(oficial ? [oficial] : []), (temMeta ? `*${N(x.pos)} de ${N(x.metaPos)}* (${P(x.pos, x.metaPos)}) · faltam ${N(Math.max(0, x.metaPos - x.pos))} → ${N(Math.ceil(Math.max(0, x.metaPos - x.pos) / Math.max(dn, 1)))} por dia útil _(conta do Jota: falta ÷ ${dn} dias úteis)_` + (x.metaPosRotulo && !/do GEROT$/.test(x.metaPosRotulo) ? ` _(${x.metaPosRotulo})_` : '') : `*${N(x.pos)}* clientes com faturado no mês (clientes distintos, sem repetir) · meta de positivação do grupo ainda não definida`), '',
     /* 21/11/2026 (R17 'Rcas Inativos: 0 de 0 (sem dado)'): grupo sem positivacao e sem meta nao tem numero para mostrar */ ...G.filter(([, y]) => Number(y.pos) || Number(y.metaPos)).map(([k, y]) => `• ${E.nacional || porVend ? k : nome2(k)}: ${N(y.pos)}${Number(y.metaPos) ? ` de ${N(y.metaPos)} (${P(y.pos, y.metaPos)}) · faltam ${N(Math.max(0, y.metaPos - y.pos))}` : ' _(sem meta)_'}`), '', SUGESTAO + (G.length ? `o mais atrás é ${E.nacional || porVend ? G[G.length - 1][0] : nome2(G[G.length - 1][0])}.` : 'sem meta de positivação cadastrada.'),
     E.nacional
       // BRASIL (Vitorio, 26/10/2026): deixar claro por que a soma passa da meta do grupo (27.000 PDVs) e o que nao entra
-      ? '⚠️ _Atenção: esta é a *soma vendedor a vendedor*. Ela fica *maior que a meta do grupo de 27.000 PDVs*, porque há filiais com mais de uma pasta: o mesmo cliente comprado por duas pastas conta duas vezes. Também *não entram* os PDVs com pedido ainda pendente de faturamento._'
-      : '_Total = oficial da filial (igual à TV); a lista soma os vendedores mostrados._',
+      ? '_Total = soma das 11 filiais no GEROT (o CNPJ é contado uma vez em cada filial); cada linha é a positivação oficial da filial. Não entram os PDVs com pedido ainda pendente de faturamento._'
+      : porVend ? '_Total = clientes distintos da equipe (um cliente comprado por dois vendedores conta uma vez); cada linha é a positivação do vendedor no GEROT._' : '_Total = positivação oficial do GEROT; cada linha conta os clientes distintos da equipe (positivação não soma: o mesmo cliente pode estar em duas equipes)._',
     E.nacional ? '❓ _Quer aberto por *supervisor* de alguma filial? É só pedir, ex.: "positivação TPH por supervisor"._' : !E.supervisor ? '❓ _Quer aberto por *vendedor* de algum supervisor? Ex.: "positivação do supervisor Nome"._' : ''].filter((x) => x !== '').join('\n');
 }
 export function respDevolucao(E, t = '') {

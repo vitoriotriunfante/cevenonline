@@ -20,16 +20,33 @@ const soma = (A) => A.reduce((a, x) => { for (const k of Object.keys(x)) if (typ
 export async function respBomDiaGestao(B, nivel, esc) {
   const db = B.env && B.env.DB; if (!db) return null;
   const hoje = hojeSP(), mes = hoje.slice(0, 7), F = esc.filiais && esc.filiais.length ? esc.filiais : FILIAIS;
-  const rcas = esc.rcas && esc.rcas.length ? esc.rcas.map(String) : null, fr = rcas ? ` AND rca IN (${qs(rcas)})` : '';
-  // filhos com o mes do GEROT
+  // 23/11/2026 (docs/DICIONARIO_KPIS.md, conflito 3): o TOTAL sai da camada functions/_lib/fatos no nivel de quem pergunta (filial = gerot_filial_mes,
+  // equipe/grupo = soma dos vendedores da Gestao de Equipe, positivacao = clientes distintos). Antes somava os supervisores e tirava 'Hist/INTERNO/EMPRESA'
+  // (MCD R$ 4,10 mi x 3,70 mi oficial; positivacao 44% x 65%). Os filhos servem so para as prioridades.
+  const F8 = await import('../../fatos/index.js'), du = F8.diasUteis();
+  let cfg = null; try { cfg = J(((await db.prepare('SELECT conteudo_json FROM config_equipe_soberana LIMIT 1').first()) || {}).conteudo_json); } catch (e) { cfg = null; }
+  const gestao = cfg && cfg.filiais ? Object.entries(cfg.filiais).filter(([k]) => k.split('_')[0] === F[0]).flatMap(([, L]) => L || []) : [];
+  if (nivel === 'gerente' && esc.grupo && !(esc.rcas && esc.rcas.length)) esc = { ...esc, rcas: gestao.filter((v) => String(v.grupo || '').toUpperCase() === String(esc.grupo).toUpperCase()).map((v) => String(v.rca)) };
+  const rcas = esc.rcas && esc.rcas.length ? esc.rcas.map(String) : null, fr = rcas ? ` AND CAST(rca AS INTEGER) IN (${rcas.map(Number).filter((x) => !Number.isNaN(x)).join(',') || -1})` : '';
+  const K = await (nivel === 'supervisor' ? F8.kpisMes(db, { nivel: 'equipe', filiais: [F[0]], rcas: rcas || [], supCod: esc.supCod }) : nivel === 'gerente' && esc.grupo ? F8.kpisMes(db, { nivel: 'grupo', filiais: [F[0]], rcas: rcas || [] }) : F8.kpisMes(db, { nivel: F.length > 1 ? 'brasil' : 'filial', filiais: F })).catch(() => null);
+  // filhos (prioridades): supervisor -> vendedores da equipe; gerente -> equipes da Gestao (soma dos vendedores); diretoria -> filiais
   let filhos = [];
   try {
-    if (nivel === 'supervisor') filhos = ((await db.prepare(`SELECT rca, vendedor nome, dados FROM gerot_vendedor_mes WHERE mes = ? AND filial = ?${esc.supCod ? ' AND cod_sup = ?' : fr}`).bind(mes, F[0], ...(esc.supCod ? [String(esc.supCod)] : rcas || [])).all()).results || []).map((r) => ({ k: `${r.rca} - ${nm2(r.nome)}`, rca: String(r.rca), ...ler(J(r.dados)) }));
-    else if (nivel === 'gerente') filhos = ((await db.prepare('SELECT cod_sup, supervisor nome, dados FROM gerot_supervisor_mes WHERE mes = ? AND filial = ?').bind(mes, F[0]).all()).results || []).filter((r) => !/Hist|INTERNO|EMPRESA/i.test(r.nome || '')).map((r) => ({ k: nm2(r.nome), sup: String(r.cod_sup), ...ler(J(r.dados)) }));
-    else filhos = ((await db.prepare(`SELECT filial, dados FROM gerot_filial_mes WHERE mes = ? AND filial IN (${qs(F)})`).bind(mes, ...F).all()).results || []).map((r) => ({ k: r.filial, ...ler(J(r.dados)) }));
+    if (nivel === 'diretoria') filhos = ((await db.prepare(`SELECT filial, dados FROM gerot_filial_mes WHERE mes = ? AND filial IN (${qs(F)})`).bind(mes, ...F).all()).results || []).map((r) => ({ k: r.filial, ...ler(J(r.dados)) }));
+    else {
+      const VG = (await F8.vendedoresGerot(db, F[0], mes)) || [], por = new Map();
+      const supDe = new Map(gestao.map((v) => [String(Number(v.rca)), String(v.supervisor || '')]));
+      for (const x of VG) {
+        if (rcas && !rcas.map((r) => String(Number(r))).includes(x.rca)) continue;
+        const k = nivel === 'supervisor' ? `${x.rca} - ${nm2(x.vendedor)}` : (supDe.get(x.rca) || 'sem supervisor na Gestão');
+        if (!por.has(k)) por.set(k, { k: nivel === 'supervisor' ? k : nm2(k), rca: x.rca, L: [], rcas: [] });
+        por.get(k).L.push(ler(x.d)); por.get(k).rcas.push(x.rca);
+      }
+      filhos = [...por.values()].map((g) => { const s = soma(g.L); if (g.L.length > 1 || nivel !== 'supervisor') { s.nec = s.cap != null && du.restantes > 0 ? Math.max(0, (s.meta || 0) - s.cap) / du.restantes : null; } return { k: g.k, rca: g.rca, rcas: g.rcas, ...s }; });
+      if (nivel === 'gerente') { const PG = await F8.positivacaoPorGrupos(db, F[0], new Map(filhos.map((x) => [x.k, x.rcas]))); for (const x of filhos) { const p = PG && PG.get(x.k); x.pos = p ? p.pos : null; x.posC = p ? p.posC : null; x.metaPos = null; } }
+    }
   } catch (e) { filhos = []; }
-  if (nivel === 'supervisor' && esc.supCod && rcas) filhos = filhos.filter((x) => rcas.includes(x.rca) || true);
-  const T = soma(filhos);
+  const T = K ? { meta: K.meta, fat: K.fat, cart: K.cart, cap: K.cap, ideal: K.ideal, nec: K.nec, capM1: K.capM1, pos: K.pos, posC: K.posC, metaPos: K.metaPos, posM1: K.posM1 } : {};
   // ontem (ultimo dia util com dado no Clube) e hoje
   let ont = null, hj = null, ontV = [];
   try {
@@ -56,12 +73,13 @@ export async function respBomDiaGestao(B, nivel, esc) {
     L.push(`💰 *Mês:* fat. + carteira *${R$((T.fat || 0) + (T.cart || 0))}* = *${pc((T.fat || 0) + (T.cart || 0), T.meta)}* da meta (${R$(T.meta)})`);
     if (ritmo != null) L.push(`📈 Ritmo *${Math.round(ritmo)}%* do ideal${T.nec ? ` · precisa captar *${R$(T.nec)}*/dia útil` : ''}${T.capM1 ? ` · vs mês passado no mesmo dia ${T.cap >= T.capM1 ? '▲' : '▼'} ${Math.abs(Math.round((T.cap / T.capM1 - 1) * 100))}%` : ''}`);
   }
-  if (T.metaPos) L.push(`👥 Positivação com carteira *${N(T.posC || T.pos || 0)}* de ${N(T.metaPos)} (*${pc(T.posC || T.pos || 0, T.metaPos)}*)${T.posM1 ? ` · mês passado inteiro ${N(T.posM1)}` : ''}`);
+  if (T.metaPos) L.push(`👥 Positivação com carteira *${N(T.posC || T.pos || 0)}* de ${N(T.metaPos)} (*${pc(T.posC || T.pos || 0, T.metaPos)}*)${T.posM1 ? ` · mês passado inteiro ${N(T.posM1)}` : ''}${K && K.metaPosRotulo && !/do GEROT$/.test(K.metaPosRotulo) ? ` _(${K.metaPosRotulo})_` : ''}`);
+  else if (T.pos != null) L.push(`👥 Positivação: *${N(T.pos)}* clientes faturados · com carteira *${N(T.posC || T.pos)}* (clientes distintos, sem repetir) · meta de positivação do grupo ainda não definida`);
   if (hj && hj.rot) L.push(`🚶 *Hoje:* ${N(hj.rot)} clientes na rota de ${N(hj.comRota || 0)} vendedores${hj.curta ? ` · *${N(hj.curta)} com rota curta (<20)*: encaixar prospects e curva negativa` : ''}${hj.vis ? ` · já visitados ${N(hj.vis)}` : ''}`);
   // 3 prioridades: pior ritmo (com meta)
   const rit = (x) => (x.cap != null && x.ideal ? x.cap / x.ideal * 100 : x.meta ? ((x.fat || 0) + (x.cart || 0)) / x.meta * 100 : null);
   // sem contas de gerente/internas e sem quem tem menos de 2% da meta do grupo (18/11/2026: "Gerente Tph" e meta pequena apareciam como prioridade)
-  const pri = filhos.filter((x) => x.meta > 0 && x.meta >= (T.meta || 0) * 0.02 && rit(x) != null && !/VAGO|GERENTE|VENDA EMPRESA|INTERNO/i.test(x.k)).sort((a, b) => rit(a) - rit(b));
+  const pri = filhos.filter((x) => x.meta > 0 && x.meta >= (T.meta || 0) * 0.02 && rit(x) != null && !/VAGO|GERENTE|VENDA EMPRESA|INTERNO|SEM SUPERVISOR/i.test(x.k)).sort((a, b) => rit(a) - rit(b));
   if (pri.length) {
     L.push('', `🎯 *Prioridades (pior ritmo primeiro):*`);
     pri.slice(0, 3).forEach((x, i) => L.push(`${i + 1}. *${x.k}*: ritmo ${Math.round(rit(x))}%${x.nec ? ` · precisa ${R$(x.nec)}/dia` : ''}${x.metaPos ? ` · positivação ${pc(x.posC || x.pos || 0, x.metaPos)}` : ''}`));

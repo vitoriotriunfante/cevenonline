@@ -4,6 +4,25 @@
 // Parte do JOTA (functions/api/whatsapp/bot.js), dividido por assunto em 25/10/2026. Mesmas regras: nunca inventar nem estimar.
 // =========================================================================
 import { FRX, VAREJO, hojeSP, nome2, sem, so, vn } from './base.js';
+import { CAMPO, diasUteis, vendedoresGerot } from '../fatos/index.js';
+
+// EQUIPE = GESTÃO DE EQUIPE (decisão do Vitório, 23/11/2026; docs/DICIONARIO_KPIS.md 3.27 e conflito 1): o supervisor de cada vendedor é o gravado em
+// config_equipe_soberana. O /api/tv-mostra troca pelo da árvore do CEVEN (parada em 13/11); aqui vale o da Gestão. Código do supervisor: a linha dele no GEROT (pelo nome).
+async function supervisorGestao(B, filial) {
+  if (!B || !B.env || !B.env.DB) return null;
+  B._supGestao = B._supGestao || {};
+  if (!B._supGestao[filial]) B._supGestao[filial] = (async () => {
+    const db = B.env.DB, m = new Map(), cod = new Map(), grp = new Map();
+    try {
+      B._cfgGestao = B._cfgGestao || db.prepare('SELECT conteudo_json FROM config_equipe_soberana LIMIT 1').first();
+      const c = JSON.parse(((await B._cfgGestao) || {}).conteudo_json || '{}');
+      for (const [k, L] of Object.entries(c.filiais || {})) if (k.split('_')[0] === filial) for (const v of L || []) if (v && v.rca != null) { m.set(String(v.rca), String(v.supervisor || '')); grp.set(String(v.rca), String(v.grupo || '')); }
+    } catch (e) { return null; }
+    try { for (const r of (await db.prepare('SELECT cod_sup, supervisor FROM gerot_supervisor_mes WHERE mes = ? AND filial = ?').bind(hojeSP().slice(0, 7), filial).all()).results || []) if (r.supervisor) cod.set(sem(r.supervisor), String(r.cod_sup)); } catch (e) { /* sem GEROT */ }
+    return { sup: m, cod, grp };
+  })();
+  return B._supGestao[filial];
+}
 
 // vendedores de uma filial (mostrados na Gestao de Equipe) + totais que somam TODOS (macro)
 // codigo do supervisor pelo nome (preenchido ao carregar a equipe) -> supNome/sn mostram 'COD - Nome'
@@ -12,8 +31,9 @@ export const SUPCOD = new Map();
 const semVago = (n) => { const s = String(n || '').replace(/^\s*VAGO\s*(\(\s*SUP\s*\)\s*)?[-–:]?\s*/i, '').trim();   /* 17/11: 'VAGO - GABRIEL' deixava '543 - - Gabriel' */ return /[A-Za-zÀ-ú]{3,}/.test(s) ? s : String(n || ''); };
 export const sn = (nome, cod) => { const c = cod || SUPCOD.get(sem(nome)); return (c ? c + ' - ' : '') + nome2(semVago(nome)); };
 export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
-  const [snap, mostra] = await Promise.all([B.snap(filial), B.mostra()]);
+  const [snap, mostra, SG] = await Promise.all([B.snap(filial), B.mostra(), supervisorGestao(B, filial)]);
   const eq = new Map(); if (mostra && mostra.filiais) for (const [k, L] of Object.entries(mostra.filiais)) if (k.split('_')[0] === filial) for (const v of L) eq.set(String(v.rca), v);
+  if (SG) for (const [rca, v] of eq) { const s = SG.sup.get(rca); if (s != null && sem(s) !== sem(v.supervisor || '')) eq.set(rca, { ...v, supervisor: s, sup_cod: SG.cod.get(sem(s)) || '', supervisor_arvore: v.supervisor }); }
   const vend = [], ocultos = [], outros = []; const macro = { pedidos: 0, dig: 0, devHoje: 0 };
   // DIGITADO DO DIA = PEDIDOS GRAVADOS (Vitorio, 11/11/2026, plano aprovado): a produtividade do CEVEN sai pela cota de 3-4 chamadas/min e atrasava horas
   // (08h45: pedidos gravados R$ 386 mil x produtividade R$ 68 mil). Cada pedido tem numero e valor (pedido_status: Winthor + historico do cliente).
@@ -26,23 +46,27 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
   const pedLido = new Map();
   if (B.env && B.env.DB) { try { B._pedLido = B._pedLido || {}; if (!B._pedLido[filial]) B._pedLido[filial] = B.env.DB.prepare('SELECT rca, em, vazio_em FROM winthor_fila WHERE filial = ?').bind(filial).all(); for (const x of ((await B._pedLido[filial]).results || [])) if (!x.vazio_em) pedLido.set(String(x.rca), x.em); /* resposta vazia suspeita nao conta como leitura */ } catch (e) { /* sem fila */ } }
   // GEROT OFICIAL POR VENDEDOR (15/11/2026): meta, faturado liquido, carteira pendente e devolucao do mes vem do GEROT (gerot_vendas) quando disponivel
-  const gerotVend = new Map();
+  // 23/11/2026 (docs/DICIONARIO_KPIS.md, camada functions/_lib/fatos): o vendedor sai da LINHA DELE no GEROT (gerot_vendedor_mes), a mesma tabela do total
+  // da equipe/grupo/filial. Antes somava as indústrias (gerot_vendas), inclusive a 'Necessidade dia' de cada indústria (conflito 5: TPH 100 R$ 269,81 x R$ 0 do GEROT).
+  // Filial com a carga do GEROT do mês: vendedor sem linha = sem venda e sem meta (nunca a meta_hierarquia de 03/11: conflito 4, MCD 416 R$ 0 x R$ 1.636.296).
+  const gerotVend = new Map(); let gerotCarregado = false;
   if (B.env && B.env.DB) {
-    try {
-      B._gerotVend = B._gerotVend || {};
-      if (!B._gerotVend[filial]) B._gerotVend[filial] = B.env.DB.prepare('SELECT rca, dados FROM gerot_vendas WHERE mes = ? AND filial = ?').bind(hojeSP().slice(0, 7), filial).all();
-      for (const x of ((await B._gerotVend[filial]).results || [])) {
-        let d = {}; try { d = JSON.parse(x.dados || '{}'); } catch { continue; }
-        const rcaKey = String(x.rca || ''); if (!rcaKey) continue;
-        const g = gerotVend.get(rcaKey) || { meta: 0, fat: 0, pend: 0, dev: 0, nec: null };
-        g.meta += Number(d['Meta (R$)']) || 0;
-        g.fat += Number(d['Faturado líquido (R$)']) || 0;
-        g.pend += Number(d['Carteira pendente (R$)']) || 0;
-        g.dev += Number(d['Devolução (R$)']) || 0;
-        if (d['Necessidade dia captação (R$)'] != null) g.nec = (g.nec || 0) + (Number(d['Necessidade dia captação (R$)']) || 0);   // 21/11/2026: 'precisa por dia' = o do GEROT
-        gerotVend.set(rcaKey, g);
+    const VG = await vendedoresGerot(B.env.DB, filial).catch(() => null);
+    if (VG && VG.length) {
+      gerotCarregado = true;
+      for (const x of VG) {
+        const d = x.d, g = gerotVend.get(x.rca) || { meta: 0, fat: 0, pend: 0, dev: 0, cap: 0, ideal: 0, pos: null, metaPos: null, n: 0, nec: null, ritmo: null };
+        g.meta += Number(d[CAMPO.meta]) || 0; g.fat += Number(d[CAMPO.fat]) || 0; g.pend += Number(d[CAMPO.cart]) || 0; g.dev += Number(d[CAMPO.dev]) || 0;
+        g.cap += Number(d[CAMPO.cap]) || 0; g.ideal += Number(d[CAMPO.ideal]) || 0;
+        /* positivação do vendedor = a do nível; com 2 pastas no mês a 2ª vem zerada (medido 23/11: soma = máx = regra 4 nas 87 duplas) */
+        if (d[CAMPO.pos] != null) g.pos = Math.max(g.pos || 0, Number(d[CAMPO.pos]) || 0);
+        if (d[CAMPO.metaPos] != null) g.metaPos = Math.max(g.metaPos || 0, Number(d[CAMPO.metaPos]) || 0);
+        g.n++; if (g.n === 1) { g.nec = d[CAMPO.nec] != null ? Number(d[CAMPO.nec]) : null; g.ritmo = d[CAMPO.ritmo] != null ? Number(d[CAMPO.ritmo]) * 100 : null; }
+        gerotVend.set(x.rca, g);
       }
-    } catch (e) { /* sem gerot_vendas: fica CEVEN */ }
+      const du = diasUteis();
+      for (const g of gerotVend.values()) if (g.n > 1) { g.nec = du.restantes > 0 ? Math.max(0, g.meta - g.cap) / du.restantes : null; g.ritmo = g.ideal ? g.cap / g.ideal * 100 : null; }
+    }
   }
   for (const [rca, r] of Object.entries((snap && snap.rcas) || {})) {
     let e = eq.get(rca);
@@ -56,7 +80,7 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
     macro.devHoje += (Array.isArray(r.devolucoes) ? r.devolucoes : []).filter((x) => String(x && x.data || '').slice(0, 10) === hojeSP()).reduce((t, x) => t + Math.abs(parseFloat(x.vl_devolvido || x.valor || 0) || 0), 0);
     // 21/11/2026 (Vitorio: 'numero e numero... perguntou tem que responder independente se ta vago ou nao'): quem nao esta na Gestao de Equipe ENTRA nos numeros
     // (marcado como fora da Gestao); so fica de fora quem nao tem nenhum numero. Ocultar vale so para a Champions.
-    if (!e) { if (!(gerotVend.has(rca) || r.dashboard || r.dashboard_reserva || r.produtividade)) continue; e = { nome: d.nome || '', supervisor: '', sup_cod: '', canal: '', grupo: '', mostra: true, foraGestao: true }; }
+    if (!e) { if (!(gerotVend.has(String(Number(rca))) || r.dashboard || r.dashboard_reserva || r.produtividade)) continue; e = { nome: d.nome || '', supervisor: '', sup_cod: '', canal: '', grupo: '', mostra: true, foraGestao: true }; }
     if (e.supervisor && e.sup_cod) SUPCOD.set(sem(e.supervisor), e.sup_cod);
     const varejo = VAREJO.has(String(e.canal || '').toUpperCase());
     const nomeVend = e.nome || d.nome || 'RCA ' + rca;
@@ -65,14 +89,15 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
     const visF = (varejo && ehVendReal) ? (pd.visitas_na_rota || 0) : 0;
     const comVenda = (varejo && ehVendReal) ? (pd.visitas_com_venda || 0) : 0;
     const vendeuHoje = (pd.dig_pedido || 0) > 0 || (pd.positivacao || 0) > 0 || (pd.visitas_com_venda || 0) > 0;
-    const gv = gerotVend.get(rca);
-    const metaFinal = gv && gv.meta > 0 ? gv.meta : (r.meta_hier != null ? r.meta_hier : fi.meta || 0);
+    // GEROT carregado na filial: o vendedor vem só do GEROT (sem linha = zero no mês). Sem carga do GEROT na filial: reserva do CEVEN (rotulada no rodapé)
+    const gv = gerotVend.get(String(Number(rca))) || (gerotCarregado ? { meta: 0, fat: 0, pend: 0, dev: 0, cap: 0, ideal: 0, pos: 0, metaPos: null, nec: null, ritmo: null, semLinha: true } : null);
+    const metaFinal = gv ? gv.meta : (r.meta_hier != null ? r.meta_hier : fi.meta || 0);
     const fatFinal = gv ? gv.fat : (fi.faturado || 0);
     const pendFinal = gv ? gv.pend : (fi.pendente || 0);
     const devFinal = gv ? gv.dev : (fi.devolucao || 0);
     const vObj = { filial, rca, nome: nomeVend, supervisor: e.supervisor || '', supCod: e.sup_cod || '', grupo: e.grupo || '', gerente: e.gerente || '', canal: e.canal || '', varejo, ehVendedorReal: ehVendReal,
-      /* GEROT oficial quando disponivel; fallback para CEVEN */ fat: fatFinal, pend: pendFinal, meta: metaFinal, dev: devFinal, necDia: gv && gv.nec != null ? gv.nec : null, pct: metaFinal ? ((fatFinal + (pendFinal || 0)) / metaFinal) * 100 : null,   /* 21/11/2026: % da meta = (faturado + pendente) / meta em TODAS as visoes (vendedor via 89%, supervisor 43,9% so faturado) */
-      pos: po.realizado ?? null, metaPos: po.meta ?? null, dig: pd.dig_pedido || 0, ped: pd.positivacao || 0, visP, visF, comVenda,
+      /* GEROT oficial quando disponivel; fallback para CEVEN */ fat: fatFinal, pend: pendFinal, meta: metaFinal, dev: devFinal, necDia: gv && gv.nec != null ? gv.nec : null, cap: gv ? gv.cap : null, ideal: gv ? gv.ideal : null, ritmo: gv ? gv.ritmo : null, gerot: !!gv, pct: metaFinal ? ((fatFinal + (pendFinal || 0)) / metaFinal) * 100 : null,   /* 21/11/2026: % da meta = (faturado + pendente) / meta em TODAS as visoes (vendedor via 89%, supervisor 43,9% so faturado) */
+      /* positivação do mês = GEROT do vendedor (3.9); CEVEN só sem carga do GEROT */ pos: gv ? gv.pos : (po.realizado ?? null), metaPos: gv ? gv.metaPos : (po.meta ?? null), dig: pd.dig_pedido || 0, ped: pd.positivacao || 0, visP, visF, comVenda,
       visPlanMes: pm.visit_plan || 0, visRealMes: pm.visit_real || 0,
       /* 10/11/2026: mix do mes do proprio CEVEN (tela Produtividade) e a hora em que o CEVEN foi lido */ mixMes: (r.produtividade && r.produtividade.mix_mes) || null, lidoEm: snap && snap.gerado_em && r.idade_s != null ? new Date(Date.parse(snap.gerado_em) - r.idade_s * 1000).toISOString() : null,
       /* mes do PROPRIO vendedor, qualquer canal (detalhe do vendedor; os totais de rota seguem quem tem rota) */ roteiroMes: Array.isArray(r.roteiro_mes) ? r.roteiro_mes : null, mesV: { plan: pm.visit_plan ?? null, real: pm.visit_real ?? null, pedRota: pm.ped_rota_mes ?? null, efic: pm.eficiencia_pct ?? null },
@@ -126,6 +151,34 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
   }
   vend.sort((a, b) => (b.pct ?? -1) - (a.pct ?? -1));
   return { vend, ocultos, outros, macro };
+}
+
+// RCAs da equipe de um supervisor NA GESTÃO DE EQUIPE (inclui quem não está na leitura do CEVEN)
+export async function rcasEquipeGestao(B, filial, supNome) {
+  const SG = await supervisorGestao(B, filial); if (!SG) return [];
+  const s = sem(supNome || ''); return [...SG.sup.entries()].filter(([, x]) => sem(x) === s).map(([r]) => r);
+}
+// KPIs DO MÊS DO ESCOPO pela camada única (functions/_lib/fatos): Brasil, filial(is), grupo, equipe (supervisor = soma da equipe da Gestão) ou vendedor.
+// Total e linhas da MESMA tabela (gerot_vendedor_mes / gerot_filial_mes). null = sem GEROT.
+export async function kpisDoEscopo(B, E) {
+  if (!B || !B.env || !B.env.DB || !E) return null;
+  B._kpisEsc = B._kpisEsc || new Map();
+  const k = JSON.stringify([E.nacional ? 'BR' : E.filiais, E.grupo || '', (E.supervisor && (E.supervisor.nome || E.supervisor)) || '', E.rca || '']);
+  if (B._kpisEsc.has(k)) return B._kpisEsc.get(k);
+  const p = (async () => {
+    const { kpisMes } = await import('../fatos/index.js'), db = B.env.DB;
+    const V = (E.vend || []).concat(E.ocultos || []);
+    if (E.rca) return kpisMes(db, { nivel: 'vendedor', filiais: [E.filiais[0]], rcas: [E.rca] });
+    if (E.supervisor && !E.nacional) {
+      const fil = E.filiais[0], nomeSup = (V[0] && V[0].supervisor) || E.supervisor.nome || E.supervisor;
+      const rcas = [...new Set(V.filter((v) => v.filial === fil).map((v) => String(Number(v.rca))).concat((await rcasEquipeGestao(B, fil, nomeSup)).map((r) => String(Number(r)))))];
+      return kpisMes(db, { nivel: 'equipe', filiais: [fil], rcas, supCod: (V[0] && V[0].supCod) || null });
+    }
+    if (E.grupo && !E.nacional) { const SG = await supervisorGestao(B, E.filiais[0]), gg = sem(E.grupo); return kpisMes(db, { nivel: 'grupo', filiais: [E.filiais[0]], rcas: [...new Set(V.map((v) => String(Number(v.rca))).concat(SG ? [...SG.grp.entries()].filter(([, x]) => sem(x) === gg).map(([r]) => String(Number(r))) : []))] }); }
+    return kpisMes(db, { nivel: E.nacional ? 'brasil' : 'filial', filiais: E.nacional ? [] : E.filiais });
+  })().catch(() => null);
+  B._kpisEsc.set(k, p);
+  return p;
 }
 
 // ESCOPO: { nome, filiais:[...], grupo, nacional }

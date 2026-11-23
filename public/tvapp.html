@@ -562,9 +562,14 @@ async function carregaPatrocinadores() {
   PATROCINADORES = ((d && d.patrocinadores) || []).filter(p => p && p.id && p.industria && Array.isArray(p.filiais)).map(p => ({...p, industria: String(p.industria).toUpperCase(), filiais: p.filiais.map(x => String(x).toUpperCase())}));
   try { PATROCINADORES.forEach(p => { if (p.video && typeof testaVideo === 'function') testaVideo(p.video); }); } catch {}
 }
+// link de gerente (TPH/MCD): ?grupo=VAGNER. Global: renderTotais usa (23/11/2026)
+const GRUPO_TV = (P.get('grupo') || '').toUpperCase();
+let METAS_GRUPO = null;
 async function carregaMetas() {
-  const d = await j('/api/metas-mes', 15000);
+  const d = await j('/api/metas-mes' + (GRUPO_TV ? `?filial=${encodeURIComponent(FIL)}&grupo=${encodeURIComponent(GRUPO_TV)}` : ''), 15000);
   if (d && d.filiais && d.filiais[FIL] && d.mes === sp().date.slice(0, 7)) METAS = d.filiais[FIL]; else METAS = null; // mês diferente = não usa (evita meta velha)
+  // grupo do gerente: positivados = clientes distintos do grupo no GEROT (regra 4 do dicionário), nunca a soma dos vendedores
+  METAS_GRUPO = d && d.grupo && d.mes === sp().date.slice(0, 7) && d.grupo.grupo === GRUPO_TV ? d.grupo : null;
 }
 const MOSTRA_TUDO = P.get('mostrartudo') === '1'; // flag explícita: ignora a coluna MOSTRA NOS DISPAROS (uso excepcional, por link)
 async function carregaReps() {
@@ -1456,15 +1461,17 @@ function textoAlerta(a) {
 function renderTotais(vs) {
   const campo = vs.filter(v => v.campo && v.temRota); const s = (a, f) => a.reduce((x, v) => x + (f(v) || 0), 0);
   // 23/11/2026 (Vitorio): a filial inteira = GEROT da filial (faturado, carteira, positivados e metas); link de grupo (TPH/MCD) continua somando o grupo
-  const G0 = METAS && !GRUPO ? METAS : null;
-  const fat = G0 && G0.fat_liq != null ? G0.fat_liq : s(vs, v => v.fat), pend = G0 && G0.carteira != null ? G0.carteira : s(vs, v => v.pend), metaSoma = s(vs, v => v.meta), realCli = G0 && G0.positivados != null ? G0.positivados : s(vs, v => v.realCli), metaCliSoma = s(vs, v => v.metaCli);
-  const metaFat = G0 ? G0.meta_fat : metaSoma, metaPos = G0 ? G0.meta_pos : metaCliSoma, oficial = !!G0;
-  const pctF = metaFat ? fat / metaFat * 100 : null, pctP = metaPos ? realCli / metaPos * 100 : null;
+  // 23/11/2026 (docs/DICIONARIO_KPIS.md conflito 2): link de grupo = grupo do GEROT por vendedor (/api/metas-mes?grupo=); positivados NUNCA somam vendedores
+  // (MCD somava 1.202 de 1.470 = 81,8% x oficial 943 = 64,2%). Sem o número oficial: "sem dado", não a soma.
+  const G0 = GRUPO_TV ? METAS_GRUPO : METAS;
+  const fat = G0 && G0.fat_liq != null ? G0.fat_liq : s(vs, v => v.fat), pend = G0 && G0.carteira != null ? G0.carteira : s(vs, v => v.pend), metaSoma = s(vs, v => v.meta), realCli = G0 && G0.positivados != null ? G0.positivados : null;
+  const metaFat = G0 && G0.meta_fat != null ? G0.meta_fat : metaSoma, metaPos = G0 ? G0.meta_pos : null, oficial = !!G0;
+  const pctF = metaFat ? fat / metaFat * 100 : null, pctP = metaPos && realCli != null ? realCli / metaPos * 100 : null;
   const pendHtml = pend > 0 ? `<div style="font-size:11px;font-weight:600;color:var(--mut);margin-top:2px;letter-spacing:-0.2px">+ ${brl(pend)} pendente</div>` : '';
   $('tot').innerHTML = [
     ['Faturado no mês', `${brl(fat)} <small style="font-size:14px;color:var(--mut)">${pctF != null ? pc(pctF) : ''}</small>${pendHtml}`],
     [oficial ? 'Meta do mês (GEROT)' : 'Meta (soma dos vendedores)', brl(metaFat)],
-    ['Positivados no mês', `${nv(realCli)} <small style="font-size:14px;color:var(--mut)">de ${nv(metaPos)} · ${pctP != null ? pc(pctP) : ''}</small>`],
+    ['Positivados no mês', realCli == null ? 'sem dado' : metaPos ? `${nv(realCli)} <small style="font-size:14px;color:var(--mut)">de ${nv(metaPos)} · ${pctP != null ? pc(pctP) : ''}</small>` : `${nv(realCli)} <small style="font-size:14px;color:var(--mut)">clientes do grupo · sem meta</small>`],
     ['Digitado hoje', brl(s(vs, v => v.dig))], ['Positivações hoje', nv(s(vs, v => v.pos))],
     ['Visitas feitas / rota', s(campo, v => v.feitas) + ' / ' + s(campo, v => v.rota)], ['Zerados hoje', campo.filter(zerado).length + ' de ' + campo.length]]
     .map(([l, v]) => `<div><span>${l}</span><b class="mono">${v}</b></div>`).join('');

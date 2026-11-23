@@ -5,7 +5,7 @@
 // =========================================================================
 import { sn } from '../escopo.js';
 import { N, P, R$, SUGESTAO, VAREJO, diasUteisRestantes, hojeSP, nome2, sem, titulo, vn } from '../base.js';
-import { agrupa, listaNomes, pctTxt, supChave, supNome, supReal } from '../escopo.js';
+import { agrupa, kpisDoEscopo, listaNomes, pctTxt, supChave, supNome, supReal } from '../escopo.js';
 import { diasUteisMes } from './gestao.js';
 // RITMO DO GEROT (17/11/2026, Vitorio: "ta errado sua tendencia"): captacao do mes / meta ideal de captacao de hoje, a regua do proprio GEROT.
 // Vale para o Brasil e para a filial inteira (gerot_filial_mes). Sem esses campos devolve null e a resposta mostra a conta antiga.
@@ -33,23 +33,7 @@ export async function posGerotFiliais(B) {
   } catch { /* tabela ainda nao populada */ }
   return m;
 }
-async function posGerotSupervisor(B, filial, sup, supCod) {
-  if (!B || !B.env || !B.env.DB || !filial || !sup) return null;
-  try {
-    const mes = hojeSP().slice(0, 7);
-    const { results } = await B.env.DB.prepare("SELECT cod_sup, supervisor, coalesce(json_extract(dados,'$.\"Positivação (filial + CNPJ)\"'), json_extract(dados,'$.\"Positivação (filial)\"')) pos, coalesce(json_extract(dados,'$.\"Meta de positivação\"'), json_extract(dados,'$.\"Meta clientes\"')) meta_pos, json_extract(dados,'$.\"Faturado líquido (R$)\"') fat, json_extract(dados,'$.\"Carteira pendente (R$)\"') pend, json_extract(dados,'$.\"Meta (R$)\"') meta, json_extract(dados,'$.\"Devolução (R$)\"') dev FROM gerot_supervisor_mes WHERE mes = ? AND filial = ?").bind(mes, filial).all();
-    const sAlvo = sem(sup);
-    const hit = (results || []).find((r) => (supCod && String(r.cod_sup) === String(supCod)) || (r.supervisor && sem(r.supervisor) === sAlvo));
-    return hit && (hit.pos != null || hit.fat != null) ? {
-      pos: Number(hit.pos) || 0,
-      metaPos: hit.meta_pos != null ? Number(hit.meta_pos) || 0 : null,
-      fat: hit.fat != null ? Number(hit.fat) : null,
-      pend: hit.pend != null ? Number(hit.pend) : null,
-      meta: hit.meta != null ? Number(hit.meta) : null,
-      dev: hit.dev != null ? Number(hit.dev) : null,
-    } : null;
-  } catch { return null; }
-}
+// posGerotSupervisor removido em 23/11/2026: o total do supervisor era a linha do GEROT (equipe do GEROT) e as linhas eram a equipe da Gestao (conflito 1).
 export async function respResumo(B, E) {
   const s = await B.saude();
   const hora = (s && s.hora_sp) || new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date());
@@ -127,7 +111,11 @@ export async function respResumo(B, E) {
   const G = agrupa(Vtotais, (v) => 'x').get('x') || { fat: 0, pend: 0, meta: 0 };
   let fat = G.fat, pend = G.pend, meta = G.meta, devTotal = V.reduce((a, v) => a + v.dev, 0);
   let posVal = G.pos, metaPosVal = G.metaPos;
-  if (!(E.grupo || E.supervisor || E.rca)) {
+  // 23/11/2026 (dicionario, conflito 1): total do supervisor = SOMA DA EQUIPE DA GESTAO (gerot_vendedor_mes), a mesma tabela das linhas;
+  // grupo e equipe: positivacao pela regra 4 (clientes distintos), nunca a soma dos vendedores. Filial: gerot_filial_mes.
+  const K = await kpisDoEscopo(B, E);
+  if (K) { fat = K.fat; pend = K.cart; meta = K.meta; devTotal = K.dev; posVal = K.pos; metaPosVal = K.metaPos; }
+  else if (!(E.grupo || E.supervisor || E.rca)) {
     const g = (await posGerotFiliais(B)).get(fil);
     if (g) {
       if (g.meta != null && g.meta > 0) meta = g.meta;
@@ -137,16 +125,6 @@ export async function respResumo(B, E) {
       posVal = g.pos;
       if (g.metaPos != null) metaPosVal = g.metaPos;
     }
-  } else if (E.supervisor && !E.rca) {
-    const gs = await posGerotSupervisor(B, fil, E.supervisor, V[0] && V[0].supCod);
-    if (gs) {
-      if (gs.meta != null && gs.meta > 0) meta = gs.meta;
-      if (gs.fat != null) fat = gs.fat;
-      if (gs.pend != null) pend = gs.pend;
-      if (gs.dev != null) devTotal = gs.dev;
-      posVal = gs.pos;
-      if (gs.metaPos != null) metaPosVal = gs.metaPos;
-    }
   }
   const Vr = V.filter((v) => v.varejo), z = Vr.filter((v) => v.zerado);
   const com = V.filter((v) => v.pct != null).sort((a, b) => (b.pct ?? 0) - (a.pct ?? 0));
@@ -154,12 +132,21 @@ export async function respResumo(B, E) {
   const tendF = meta ? (((fat + pend) / duDecF) * duTotF / meta) * 100 : 0;
   const ritF = await ritmoGerot(B, E);
   const L = [`📊 *${E.nome} agora* (${hora})`, `💰 Faturado: *${R$(fat)}* + pendente ${R$(pend)} de ${R$(meta)} → *${P((fat || 0) + (pend || 0), meta)}* da meta`, `⏳ Pendente: ${R$(pend)} · ` + (ritF != null ? txtRitmo(ritF) : `📈 Tendência (GEROT): *${tendF.toFixed(1).replace('.', ',')}%*`)];
-  L.push(`👥 Positivação: ${N(posVal)} de ${N(metaPosVal)} (${P(posVal, metaPosVal)})`);
+  L.push(metaPosVal ? `👥 Positivação: ${N(posVal)} de ${N(metaPosVal)} (${P(posVal, metaPosVal)})` + (K && K.metaPosRotulo && !/do GEROT$/.test(K.metaPosRotulo) ? ` _(${K.metaPosRotulo})_` : '')
+    : `👥 Positivação: *${N(posVal)}* clientes com faturado no mês` + (E.grupo || E.supervisor ? ' (clientes distintos do grupo, sem repetir) · meta de positivação do grupo ainda não definida' : ''));
   L.push(`📝 Digitado hoje: *${R$((E.grupo || E.supervisor || E.rca) ? G.dig : f ? f.digitado_hoje : E.macro.dig)}* em *${N((E.grupo || E.supervisor || E.rca) ? G.ped : E.macro.pedidos)}* pedidos`,
     /* equipe sem rota de varejo (AS): a linha nao aparece (26/10/2026: '0 de 0') */ ...(Vr.reduce((a, v) => a + v.visP, 0) ? [`🚶 Rota do varejo hoje: ${Vr.reduce((a, v) => a + v.visF, 0)} de ${Vr.reduce((a, v) => a + v.visP, 0)} visitas · sem nenhuma visita: ${Vr.filter((v) => v.semVisita).length}`] : []),
     `🏁 Meta batida no mês (fat.+pend.): ${V.filter((v) => v.meta && v.fat + v.pend >= v.meta).length} de ${V.length} vendedores`, `↩️ Devoluções no mês: ${R$(devTotal)}`);
   const lc = await B.lances(); if (lc) { const Lf = (lc.lances || []).filter((l) => l.filial === fil && (!(E.grupo || E.supervisor || E.rca) || V.some((v) => v.rca === String(l.rca)))); L.push(`⚽ Hoje: ${Lf.filter((l) => l.nivel === 'gol').length} gol(s) · ${Lf.filter((l) => l.nivel === 'penalti').length} pênalti(s) · ${Lf.filter((l) => l.nivel === 'impedimento').length} impedimento(s)`); }
-  if (!(E.grupo || E.supervisor || E.rca)) { const Gr = [...agrupa(V.filter((v) => v.grupo), (v) => v.grupo)]; if (Gr.length > 1) { L.push('*Por gerente:*'); for (const [g, x] of Gr) L.push(`• ${titulo(g)}: ${R$(x.fat)} (${pctTxt(x.pct)}) · pend. ${R$(x.pend)} · ${x.zerados} zerado(s)`); } }
+  // TOTAL E LINHAS FECHAM (dicionario §0 regra 2, 23/11/2026): as linhas sao da mesma tabela do total (GEROT por vendedor) e a sobra vira 'fora das equipes'
+  if (K && !(E.supervisor || E.rca)) {
+    const { linhasQueFecham } = await import('../../fatos/index.js');
+    const linhaF = (nome, x) => x.fora ? `• _${nome}_: ${R$(x.fat)} · carteira ${R$(x.cart)} _(vendedores sem equipe na Gestão, histórico, vaga)_` : `• ${nome}: ${R$(x.fat)} · carteira ${R$(x.cart)}` + (x.meta ? ` (${pctTxt((x.fat + x.cart) / x.meta * 100)})` : ' · sem meta');
+    const tot = { fat, cart: pend, meta };
+    if (!E.grupo) { const Gr = [...agrupa(Vtotais.filter((v) => v.grupo), (v) => v.grupo)]; if (Gr.length > 1) { L.push('', '*Por gerente:*'); for (const x of linhasQueFecham(tot, Gr.map(([g, y]) => ({ nome: titulo(g), fat: y.fat, cart: y.pend, meta: y.meta })))) L.push(linhaF(x.nome, x)); } }
+    const S = [...agrupa(Vtotais, (v) => v.supervisor || 'sem supervisor')].map(([s, y]) => ({ nome: supReal(s) ? 'sup. ' + supNome(s) : 'Ligados ao gerente', fat: y.fat, cart: y.pend, meta: y.meta })).sort((a, b) => b.fat - a.fat);
+    if (S.length > 1) { L.push('', '*Por supervisor:*'); for (const x of linhasQueFecham(tot, S.filter((y) => y.fat || y.cart))) L.push(linhaF(x.nome, x)); }
+  }
   const lg = await B.liga(); const lf = lg && (lg.filiais || []).find((x) => x.sigla === fil); if (lf) L.push(`🏆 Liga: ${lf.pos}º de 11, ${lf.pts_tabela} pontos (${lf.vitorias}V ${lf.empates}E ${lf.derrotas}D)`);
   if (V.some((v) => v.visP > 0)) L.push(`⚠️ Zerados hoje (varejo com rota): *${z.length}*` + (z.length ? ' — ' + listaNomes(z) : ''));   /* dia sem rota nao fala de zerado (31/10/2026) */
   if (com.length) {
@@ -177,7 +164,7 @@ export async function respResumo(B, E) {
   { const { tot, pass } = diasUteisMes(), esp = tot ? pass / tot * 100 : 0, pr = meta ? (fat || 0) / meta * 100 : null;
     if (pr != null) L.push('', `👀 *Leitura do Jota:* ${pr >= esp ? 'no ritmo ou acima' : pr >= esp * 0.9 ? 'jogo apertado, dá pra virar' : 'abaixo do ritmo, precisamos reagir'} (o calendário pede ${esp.toFixed(0)}% e estamos em ${pr.toFixed(1).replace('.', ',')}%).`); }
   const dicaEscopo = E.supervisor ? 'por vendedor' : 'por supervisor';
-  L.push('', SUGESTAO + (E.supervisor && z.length ? `ligar agora para ${listaNomes(z, 3)}: rota de hoje sem pedido.` : !E.supervisor && sz && sz[1].zerados ? `falar com ${supNome(sz[0])}: ${sz[1].zerados} vendedor(es) da equipe sem pedido hoje.` : 'puxar os mais atrás na meta para fechar o mês.'), `_Peça "hoje", "${dicaEscopo}", "zerados", "falta", "liga", "ajuda"._`);
+  L.push('', SUGESTAO + (E.supervisor && z.length ? `ligar agora para ${listaNomes(z, 3)}: rota de hoje sem pedido.` : !E.supervisor && sz && sz[1].zerados ? `falar com sup. ${supNome(sz[0])}: ${sz[1].zerados} vendedor(es) da equipe sem pedido hoje.` : 'puxar os mais atrás na meta para fechar o mês.'), `_Peça "hoje", "${dicaEscopo}", "zerados", "falta", "liga", "ajuda"._`);
   return L.join('\n');
 }
 
@@ -325,16 +312,10 @@ export async function respVendedor(B, E, v, opt = {}) {   /* opt.tudo = "ver mai
 export async function totaisOficiais(B, E) {
   const Vtotais = E.vend.concat(E.ocultos || []);
   const x = { ...(agrupa(Vtotais, () => 'x').get('x') || { fat: 0, pend: 0, meta: 0, pos: 0, metaPos: 0 }) };
-  if (E.grupo || E.rca) return x;   /* grupo (TPH/MCD) ou vendedor: soma dos vendedores */
-  if (E.supervisor) {
-    const gs = await posGerotSupervisor(B, E.filiais[0], E.supervisor, E.vend[0] && E.vend[0].supCod);
-    if (gs && gs.meta > 0) {
-      x.fat = gs.fat ?? x.fat; x.pend = gs.pend ?? x.pend; x.meta = gs.meta;
-      x.pos = gs.pos ?? x.pos; x.metaPos = gs.metaPos ?? x.metaPos;
-      x.pct = x.meta ? (x.fat + (x.pend || 0)) / x.meta * 100 : null;
-    }
-    return x;
-  }
+  // 23/11/2026 (dicionario, camada functions/_lib/fatos): todos os niveis pela mesma conta. Supervisor = soma da equipe da Gestao; grupo/equipe = positivacao regra 4.
+  const K = await kpisDoEscopo(B, E);
+  if (K) { x.fat = K.fat; x.pend = K.cart; x.meta = K.meta; x.dev = K.dev; x.pos = K.pos; x.metaPos = K.metaPos; x.metaPosRotulo = K.metaPosRotulo; x.cap = K.cap; x.ideal = K.ideal; x.ritmo = K.ritmo; x.nec = K.nec; x.dias = K.dias; x.posicao = K.posicao; x.pct = x.meta ? (x.fat + (x.pend || 0)) / x.meta * 100 : null; x.gerot = true; return x; }
+  if (E.grupo || E.rca || E.supervisor) return x;
   const gFil = await posGerotFiliais(B);
   const gf = E.filiais.map((sig) => gFil.get(sig)).filter((g) => g && g.meta > 0);
   if (gf.length) {

@@ -253,7 +253,7 @@ export async function rotearIntencao(B, c, t, info) {
       const { respBomDiaGestao } = await import('./respostas/bomdia_gestao.js');
       let r = null;
       if (papel === 'supervisor') { const Ev = await carregaEscopo(B, esc), V = (Ev && Ev.vend) || []; r = await respBomDiaGestao(B, 'supervisor', { nome: Ev && Ev.nome || 'Equipe', filiais: [c.filial], supCod: (V.find((v) => v.supCod) || {}).supCod || null, rcas: V.map((v) => String(v.rca)), primeiro: c.nome }).catch(() => null); }
-      else if (papel === 'gerente') r = await respBomDiaGestao(B, 'gerente', { nome: c.filial, filiais: [c.filial], primeiro: c.nome }).catch(() => null);
+      else if (papel === 'gerente') r = await respBomDiaGestao(B, 'gerente', { nome: c.filial + (c.grupo ? ' · ' + titulo(String(c.grupo).toLowerCase()) : ''), filiais: [c.filial], grupo: c.grupo || null, primeiro: c.nome }).catch(() => null);   /* 23/11/2026: gerente de grupo (MCD/TPH) ve o grupo dele */
       else r = await respBomDiaGestao(B, 'diretoria', { nome: 'Brasil — 11 filiais', filiais: FILIAIS, primeiro: c.nome }).catch(() => null);
       if (r) return r;
     }
