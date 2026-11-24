@@ -118,16 +118,18 @@ export async function onRequestGet({ env, request }) {
           env.DB.prepare('SELECT rca, id_cliente, tag FROM cliente_focos WHERE filial = ?').bind(filial).all().catch(() => ({ results: [] }))
         ]); CK = new Map(); for (const x of rCk.results || []) { const k = x.rca + '|' + x.cliente; const y = CK.get(k) || { ci: null, co: null }; const h = String(x.data_hora || '').slice(11, 16); if (x.tipo === 'CHECKIN' && (!y.ci || h < y.ci)) y.ci = h; if (x.tipo === 'CHECKOUT' && (!y.co || h > y.co)) y.co = h; CK.set(k, y); } JU = new Map(); for (const j of rJu.results || []) JU.set(j.rca + '|' + j.cliente, { mot: j.motivo || '', obs: j.obs || '' }); FC = new Map(); for (const fc of rFc.results || []) { const k = fc.rca + '|' + fc.id_cliente; if (!FC.has(k)) FC.set(k, []); FC.get(k).push({ industria_foco: fc.tag }); } } catch { CK = null; JU = null; FC = null; }
         if (CK) for (const [rca, r] of Object.entries(rcas)) {
-          if (!C.rcas.get(rca)) continue;
+          const cClube = C.rcas.get(rca);
+          if (!cClube) continue;
           const rotVelho = Array.isArray(r.roteiro) && !(Date.now() - Date.parse(String(r.roteiro_em || '').replace(' ', 'T') + 'Z') < 45 * 60000);
           const base0 = Array.isArray(r.roteiro) && !rotVelho ? null : Array.isArray(r.roteiro) ? r.roteiro : Array.isArray(r.roteiro_planejado) ? r.roteiro_planejado : null;
           const rtC = RT.get(String(rca));
+          if (Number(cClube.roteiros) === 0 && !(rtC && rtC.length)) { r.roteiro = []; r.rota_clube = true; if (r.reserva && r.reserva.roteiro) delete r.reserva.roteiro; continue; }
           const base = rtC && rtC.length && (!Array.isArray(r.roteiro) || rotVelho) ? rtC.map((x) => { const ce = (base0 || []).find((c) => String(c.id_cliente) === String(x.cliente)) || (Array.isArray(r.roteiro_mes) ? r.roteiro_mes.find((c) => String(c.id_cliente) === String(x.cliente)) : null) || {};
             return { ...ce, id_cliente: String(x.cliente), nome_cliente: x.fantasia || x.razao || ce.nome_cliente, razao_social: x.razao || ce.razao_social, cnpj: x.cnpj || ce.cnpj, endereco: [x.endereco, x.bairro, x.cidade].filter(Boolean).join(', ') || ce.endereco, recorrencia: x.recorrencia || ce.recorrencia, data_visita: dia, status: /POSITIVADO|EFETIVADO|VISITADO|JUSTIFICADO/i.test(String(ce.status || '')) && String(ce.data_visita || '').slice(0, 10) === dia ? ce.status : 'AGENDADO', _rota: 'clube' }; }) : base0;
           if (!base) continue;
           r.roteiro = base.filter((c) => c && String(c.data_visita || '').slice(0, 10) === dia).map((c) => { const k = rca + '|' + String(c.id_cliente), y = CK.get(k), ju = JU && JU.get(k), focosDb = FC && FC.get(k), focos = (Array.isArray(c.focos) && c.focos.length) ? c.focos : (focosDb || c.focos); const pdC = PDc.has(k); if (y && y.ci) return { ...c, ...(focos ? { focos } : {}), status: /POSITIVADO|EFETIVADO/i.test(String(c.status || '')) ? c.status : pdC ? 'POSITIVADO' : 'VISITADO', checkin_horario: y.ci, checkout_horario: y.co, ...(ju ? { motivo_nao_visita: ju.mot || c.motivo_nao_visita, observacao_nao_visita: ju.obs || c.observacao_nao_visita } : {}) }; if (pdC) return { ...c, ...(focos ? { focos } : {}), status: 'POSITIVADO', checkin_horario: null, checkout_horario: null, _visita: 'pedido' }; if (ju) return { ...c, ...(focos ? { focos } : {}), status: /POSITIVADO|EFETIVADO/i.test(String(c.status || '')) ? c.status : 'JUSTIFICADO', checkin_horario: null, checkout_horario: null, motivo_nao_visita: ju.mot || c.motivo_nao_visita, observacao_nao_visita: ju.obs || c.observacao_nao_visita }; return { ...c, ...(focos ? { focos } : {}), status: 'ABERTO', checkin_horario: null, checkout_horario: null }; });
           r.rota_clube = true; (r.reserva = r.reserva || {}).rota_clube = { fonte: rtC && rtC.length ? 'Clube da Venda (rota do dia e check-in/out)' : 'Clube da Venda (check-in/out)', em: C.lido_em };
-          if (r.reserva.roteiro) delete r.reserva.roteiro;
+          if (rtC && rtC.length && r.reserva.roteiro) delete r.reserva.roteiro;
         }
         for (const [rca, r] of Object.entries(rcas)) {
           const c = C.rcas.get(rca); if (!c) continue;

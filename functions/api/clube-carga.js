@@ -45,6 +45,14 @@ export async function onRequestPost({ request, env }) {
         .bind(dia, String(v.filial), String(v.rca), v.sup_cod || null, v.nome || null, ...cols.map((c) => v[c] ?? null), lidoEm, lidoEm)
     );
   }
+  const chavesVend = [...new Set((body.vendedores || []).filter((v) => v && v.filial && v.rca).map((v) => `${v.filial}|${v.rca}`))];
+  for (let i = 0; i < chavesVend.length; i += 40) {
+    const ch = chavesVend.slice(i, i + 40);
+    stmts.push(
+      db.prepare(`UPDATE clube_venda_dia SET lido_em = ? WHERE dia = ? AND (filial || '|' || rca) IN (${ch.map(() => '?').join(',')})`)
+        .bind(lidoEm, dia, ...ch)
+    );
+  }
   for (const c of body.checkins || []) {
     if (!c || !c.codigo || !c.rca) continue;
     stmts.push(
@@ -103,8 +111,8 @@ export async function onRequestPost({ request, env }) {
     );
   }
 
-  for (let i = 0; i < stmts.length; i += 80) {
-    await db.batch(stmts.slice(i, i + 80));
+  for (let i = 0; i < stmts.length; i += 40) {
+    await db.batch(stmts.slice(i, i + 40));
   }
   // 17/11/2026: pedido_status (lido por ~15 respostas do JOTA) volta a ter dado: pedido do Clube + status do GEROT
   let sinc = null;

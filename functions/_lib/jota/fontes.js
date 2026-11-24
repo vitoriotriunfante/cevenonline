@@ -27,13 +27,14 @@ const HANDLERS_LOCAIS = {
 };
 // 21/11/2026 (2a pergunta levava ~16 s: cada pergunta relia a filial inteira): leitura da filial (central-snapshot) e da Gestao de Equipe (tv-mostra)
 // guardada por 3 min na instancia; a pergunta seguinte reaproveita. Os dados de origem mudam de 15 em 15 min (Clube) e de 2 em 2 h (GEROT).
-const CACHE_LEITURA = new Map(), TTL_LEITURA = 180000, ROTAS_CACHE = /^\/api\/(central-snapshot|tv-mostra)$/;
+const CACHE_LEITURA = new Map(), TTL_LEITURA = 180000, TTL_SNAP = 45000, ROTAS_CACHE = /^\/api\/(central-snapshot|tv-mostra)$/;
 export function criaBase(origin, env) {
   const cache = {};
   const api = async (p) => {
     const rota0 = String(p || '').split('?')[0];
     if (ROTAS_CACHE.test(rota0)) {
-      const c0 = CACHE_LEITURA.get(p); if (c0 && Date.now() - c0.em < TTL_LEITURA) return c0.v;
+      const ttl = rota0 === '/api/central-snapshot' ? TTL_SNAP : TTL_LEITURA;
+      const c0 = CACHE_LEITURA.get(p); if (c0 && Date.now() - c0.em < ttl) return c0.v;
       const v = await apiSemCache(p); if (v != null) { CACHE_LEITURA.set(p, { em: Date.now(), v }); if (CACHE_LEITURA.size > 60) CACHE_LEITURA.delete(CACHE_LEITURA.keys().next().value); }
       return v;
     }

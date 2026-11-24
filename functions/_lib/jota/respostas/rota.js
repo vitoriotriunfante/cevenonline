@@ -85,14 +85,14 @@ async function justif30(B, E) {
 }
 export async function respZerados(E, B = null) {
   const VJ = E.vend.filter((v) => v.varejo && pessoaReal(v));
-  const SV = VJ.filter((v) => v.semVisita), Z = VJ.filter((v) => v.zerado && !v.semVisita);
-  if (!Z.length && !SV.length) return `✅ *Zerados hoje — ${E.nome}: 0.* Todo o varejo com rota já visitou e vendeu.`;
+  const SV = VJ.filter((v) => v.zerado && v.semVisita), Z = VJ.filter((v) => v.zerado && !v.semVisita), FORA = VJ.filter((v) => v.semVisita && v.vendeuHoje);
+  if (!Z.length && !SV.length) return `✅ *Zerados hoje — ${E.nome}: 0.* Todo o varejo com rota já vendeu hoje.${FORA.length ? `\n\nℹ️ _Fora dos zerados: *${FORA.length}* vendedor(es) já venderam hoje (fora da rota), sem check-in na rota. Escreva *sem visita* para ver._` : ''}`;
   const J = await justif30(B, E), j30 = (v) => (J.get(v.filial + '|' + v.rca) || []).length;
   const L = [`⚠️ *Zerados hoje — ${E.nome}* (varejo com rota)`, `🚨 Sem nenhuma visita: *${SV.length}* · 🟡 visitou e não vendeu: *${Z.length}*`];
   const bloco = (lista, fmt) => { const G = [...agrupa(lista, (v) => supChave(v, E.nacional))].sort((a, b) => b[1].V.length - a[1].V.length); for (const [k, x] of G) { L.push(`*${supNome(k)}* (${x.V.length}):`); for (const v of x.V) L.push(fmt(v)); } };
   if (SV.length) {
-    L.push('', `🚨 *SEM NENHUMA VISITA (${SV.length})* — o pior: rota parada`);
-    bloco(SV, (v) => `• ${vn(v)} · 0 de ${v.visP} clientes${v.dig > 0 || v.ped > 0 ? ' · tem pedido (fora da rota)' : ''}`);
+    L.push('', `🚨 *SEM NENHUMA VISITA E SEM VENDA (${SV.length})* — o pior: rota parada`);
+    bloco(SV, (v) => `• ${vn(v)} · 0 de ${v.visP} clientes`);
   }
   if (Z.length) {
     L.push('', `🟡 *VISITOU E NÃO VENDEU (${Z.length})*`);
@@ -100,6 +100,7 @@ export async function respZerados(E, B = null) {
   }
   const tot30 = VJ.reduce((a, v) => a + j30(v), 0), z30 = Z.reduce((a, v) => a + j30(v), 0);
   if (tot30) L.push('', `📌 No varejo de ${E.nome}, *${tot30} cliente(s)* visitados hoje estão há mais de 30 dias sem comprar${z30 ? ` (${z30} deles com os zerados acima)` : ''}. Escreva *visitados sem compra* para ver quem são e o que fazer.`);
+  if (FORA.length) L.push('', `ℹ️ _Fora dos zerados: *${FORA.length}* vendedor(es) já venderam hoje (fora da rota), sem check-in na rota. Escreva *sem visita* para ver._`);
   const pior = SV.length ? SV : Z;
   L.push('', SUGESTAO + (SV.length ? `ligar agora para quem está sem nenhuma visita: ${listaNomes(SV, 3)}.` : `começar pelos zerados com cliente parado: ${listaNomes(Z.slice().sort((a, b) => j30(b) - j30(a)), 3)}.`));
   void pior;
@@ -807,7 +808,7 @@ export function respSemVisita(E) {
     for (const [f, S] of [...porF].sort((a, b) => [...b[1].values()].flat().length - [...a[1].values()].flat().length)) {
       L.push('', `*${f}* (${[...S.values()].flat().length})`);
       for (const [s, vs] of S) {
-        L.push(`  _${sn(s)}_: ` + vs.map((v) => `${vn(v)} (0/${v.visP})`).join(' · '));
+        L.push(`  _${sn(s)}_: ` + vs.map((v) => `${vn(v)} (0/${v.visP}${v.vendeuHoje ? ' · já vendeu' : ''})`).join(' · '));
       }
     }
     return L.join('\n');

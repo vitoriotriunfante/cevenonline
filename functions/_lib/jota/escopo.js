@@ -76,7 +76,7 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
     /* 12/11/2026: sem leitura de hoje, a ultima leitura real do mes (dashboard_reserva, com etiqueta em v.reforco) */ const d = r.dashboard || r.dashboard_reserva || {}, fi = d.financeiro || {}, po = d.positivacao || {}, pm = (r.produtividade && r.produtividade.mes) || r.produtividade_mes_reserva || {};
     const pd0 = (r.produtividade && r.produtividade.dia) || {}, ph = pedHoje.get(rca);
     // CLUBE (12/11/2026): dia vindo do Clube da Venda = DIGITADO de hoje na origem; o Winthor fica como conferencia (_dig_ped), nunca o maior dos dois
-    if (pd0 && pd0._fonte === 'clube') { const em = String(pd0._lido_em || ''); if (!B._clube || em < B._clube) B._clube = em; }
+    if (pd0 && pd0._fonte === 'clube') { const em = String((snap && snap.clube_lido_em) || pd0._lido_em || ''); if (em && (!B._clube || em > B._clube)) B._clube = em; }
     const pd = pd0 && pd0._fonte === 'clube' ? { ...pd0, /* nº de PEDIDOS do dia no Clube (as telas dizem 'N pedido(s)') */ positivacao: Number(pd0.total_pedidos) || 0, _dig_ped: ph ? Number(ph.v) || 0 : 0, _ped_n: ph ? ph.n : 0 } : ph ? { ...pd0, dig_pedido: Math.max(Number(pd0.dig_pedido) || 0, Number(ph.v) || 0), positivacao: Math.max(Number(pd0.positivacao) || 0, Number(ph.c) || 0), _dig_prod: Number(pd0.dig_pedido) || 0, _dig_ped: Number(ph.v) || 0, _ped_n: ph.n } : pd0;
     macro.pedidos += pd.positivacao || 0; macro.dig += pd.dig_pedido || 0;
     macro.devHoje += (Array.isArray(r.devolucoes) ? r.devolucoes : []).filter((x) => String(x && x.data || '').slice(0, 10) === hojeSP()).reduce((t, x) => t + Math.abs(parseFloat(x.vl_devolvido || x.valor || 0) || 0), 0);
@@ -87,7 +87,7 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
     const varejo = VAREJO.has(String(e.canal || '').toUpperCase());
     const nomeVend = e.nome || d.nome || 'RCA ' + rca;
     const ehVendReal = pessoaReal({ nome: nomeVend, supervisor: e.supervisor });
-    const visP = (varejo && ehVendReal) ? (pd.total_programado || (Array.isArray(r.roteiro) ? r.roteiro.length : 0)) : 0;
+    const visP = (varejo && ehVendReal) ? (pd._fonte === 'clube' ? (Number(pd.total_programado) || 0) : (pd.total_programado || (Array.isArray(r.roteiro) ? r.roteiro.length : 0))) : 0;
     const visF = (varejo && ehVendReal) ? (pd.visitas_na_rota || 0) : 0;
     const comVenda = (varejo && ehVendReal) ? (pd.visitas_com_venda || 0) : 0;
     const vendeuHoje = (pd.dig_pedido || 0) > 0 || (pd.positivacao || 0) > 0 || (pd.visitas_com_venda || 0) > 0;
