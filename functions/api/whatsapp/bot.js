@@ -293,8 +293,10 @@ async function trataMensagem({ request, env }) {
   let iaLivre = false; try { const f = await env.DB.prepare("SELECT valor FROM config_flags WHERE chave = 'jota_ia_livre'").first(); iaLivre = !!(f && String(f.valor) === 'on'); } catch (e) { iaLivre = false; }
   const jaFalou = await env.DB.prepare("SELECT COUNT(*) n, SUM(CASE WHEN direcao = 'out' AND date(quando, '-3 hours') = date('now', '-3 hours') THEN 1 ELSE 0 END) hoje FROM bot_msgs WHERE celular = ?").bind(cel).first().catch(() => ({ n: 1, hoje: 1 }));
   const primeiraVez = !jaFalou || !(jaFalou.n > 1), primeiraDoDia = !jaFalou || !(jaFalou.hoje > 0);
-  // reclamacao: marca a ultima resposta como "nao ajudou" (vai para o painel de conversas)
-  if (!seco && RECLAMACAO.test(tN)) { try { await env.DB.prepare("UPDATE bot_msgs SET ajudou = 0 WHERE id = (SELECT id FROM bot_msgs WHERE celular = ? AND direcao = 'out' ORDER BY id DESC LIMIT 1)").bind(cel).run(); } catch (e) {} }
+  // reclamacao / contestacao sem pergunta nova: marca nao ajudou, zera contexto e responde curto sem vomitar card velho
+  const ehReclamaForte = RECLAMACAO.test(tN) || /SERIO (DE NOVO )?QUE RESPONDEU|QUE HORAS QUE EU CITEI|CAGAD|QUE BOSTA|UMA BOSTA|INFORMAC(AO|OES) NAO BATE|NAO BATE(M)?|RECORRENCIA DIVERGENTE|LIDO DIA \d+/.test(tN);
+  if (ehReclamaForte && !seco) { try { await env.DB.prepare("UPDATE bot_msgs SET ajudou = 0 WHERE id = (SELECT id FROM bot_msgs WHERE celular = ? AND direcao = 'out' ORDER BY id DESC LIMIT 1)").bind(cel).run(); } catch (e) {} }
+  const temPerguntaNovaComReclam = /\b(VENDAS?|FATURAMENTO|META|POSITIVACAO|LIG[AA]|CHAMPIONS|ZERADOS|VISITAS?|CLIENTES?|INDUSTRI\w*|CARTEIRA|DEVOLU|CORTES?|BOM DIA)\b/.test(tN) && !/QUE HORAS QUE EU CITEI|SERIO (DE NOVO )?QUE RESPONDEU|NAO PERGUNTEI|NADA A VER|PERGUNTEI OUTRA|CAGAD|UMA BOSTA|RECORRENCIA DIVERGENTE|LIDO DIA \d+/.test(tN);
   // FEEDBACK (Vitorio, 25/10/2026: "no inicio eu gostaria que as pessoas pudessem dar nota e sugestoes... se a resposta foi satisfatoria, trouxe dados corretos")
   // Busca a última resposta OUT real (ignora figurinhas)
   const ultOut = await env.DB.prepare("SELECT id, texto, nota, quando, tipo FROM bot_msgs WHERE celular = ? AND direcao = 'out' ORDER BY id DESC LIMIT 1").bind(cel).first().catch(() => null);
@@ -391,11 +393,21 @@ async function trataMensagem({ request, env }) {
     } catch (e) { resp = null; }
   }
   if (!resp && ehSaudacao(tN)) { resp = await respSaudacao(B, c, primeiraVez); tipo = primeiraVez ? 'saudacao_primeira' : 'saudacao'; }
+  // RECLAMACAO SEM PERGUNTA NOVA: acolhe o erro, zera o contexto da conversa para nao repetir erro de filial/assunto anterior e registra no painel
+  if (!resp && ehReclamaForte && !temPerguntaNovaComReclam) {
+    if (!seco) {
+      try { await B.ctxGravar(cel, {}); } catch (e) {}
+      try { await env.DB.prepare('INSERT INTO bot_sugestoes (celular, nome, papel, filial, texto, sobre) VALUES (?,?,?,?,?,?)').bind(cel, c.nome, c.papel, c.filial || '', `[RECLAMACAO] ${String(texto).slice(0, 1400)}`, ultOut && ultOut.texto ? String(ultOut.texto).slice(0, 300) : '').run(); } catch (e) {}
+    }
+    resp = `Desculpa, ${primeiroNome(c)} — errei nessa! Já zerei o contexto da conversa e anotei pro time ajustar. Me manda o que você quer ver agora que eu puxo limpo.`;
+    tipo = 'reclamacao';
+  }
   // AGRADECIMENTO (Vitorio, 27/10/2026: "o cara falou blz... blz quer dizer obrigado... era ter mandado uma figurinha"): resposta curta + figurinha, sem dado
-  if (!resp && /^\W*(BLZ|BELEZA|VALEU|VLW|OBRIGAD[OA]|BRIGAD[OA]|OBG|OK|OKAY|OKS|TOP|SHOW|PERFEITO|OTIMO|LEGAL|TMJ|TAMO JUNTO|JOIA|JOINHA|ENTENDI|CERTO|BOA|SHOW DE BOLA|MUITO BOM)( (JOTA|DEMAIS|MESMO|OBRIGAD[OA]|VALEU|TMJ|PARCEIRO|AMIGO))*\W*$/.test(tN)) { resp = varia([`Tamo junto, ${primeiroNome(c)}! ⚽`, `Valeu, ${primeiroNome(c)}! Bora pra cima! 💪`, `É nóis, ${primeiroNome(c)}! Qualquer coisa, chama. ⚽`], Date.now()); tipo = 'agradecimento'; }
+  const GRATIDAO = /^\W*(BLZ|BELEZA|VALEU|VLW|OBRIGAD[OA]|BRIGAD[OA]|OBG|OK|OKAY|OKS|TOP|SHOW|PERFEITO|OTIMO|LEGAL|TMJ|TAMO JUNTO|JOIA|JOINHA|ENTENDI|CERTO|BOA|SHOW DE BOLA|MUITO BOM)(?:[\s.,!?;:\-]+(JOTA|DEMAIS|MESMO|OBRIGAD[OA]|VALEU|TMJ|TAMO|JUNTO|PARCEIRO|AMIGO|CHEFIA|CAMPEAO))*\W*$/;
+  if (!resp && GRATIDAO.test(tN)) { resp = varia([`Tamo junto, ${primeiroNome(c)}! ⚽`, `Valeu, ${primeiroNome(c)}! Bora pra cima! 💪`, `É nóis, ${primeiroNome(c)}! Qualquer coisa, chama. ⚽`], Date.now()); tipo = 'agradecimento'; }
   // 21/11/2026 (Vitorio: "como o humano faz? clica na mensagem e da joinha"): agradecimento ou confirmacao curta ("ok", "valeu", "obrigado") = o JOTA
   // REAGE com 👍 na mensagem da pessoa, sem mandar texto. Se a reacao falhar, segue a resposta em texto de sempre.
-  if (!seco && msgId && jid && !(ultOut && ultOut.tipo === 'monitoria_piloto') && /^\W*(BLZ|BELEZA|VALEU|VLW|OBRIGAD[OA]|BRIGAD[OA]|OBG|OK|OKAY|OKS|TOP|SHOW|PERFEITO|OTIMO|LEGAL|TMJ|TAMO JUNTO|JOIA|JOINHA|ENTENDI|CERTO|SHOW DE BOLA|MUITO BOM)( (JOTA|DEMAIS|MESMO|OBRIGAD[OA]|VALEU|TMJ|PARCEIRO|AMIGO))*\W*$/.test(tN)) {
+  if (!seco && msgId && jid && !(ultOut && ultOut.tipo === 'monitoria_piloto') && GRATIDAO.test(tN)) {
     try {
       const cfgR = env.EVO_URL && env.EVO_KEY ? R.evoCfg(env) : null;
       const rr = cfgR ? await R.enviarReacao(cfgR, jid, msgId, '👍') : null;
@@ -479,7 +491,7 @@ async function trataMensagem({ request, env }) {
   // AVALIACAO EM TODAS AS RESPOSTAS (Vitorio, 11/11/2026): vendedor, supervisor, gerente e diretoria, inclusive menus e os 3 momentos; 👍/👎 nao briga com o numero do menu
   // 21/11/2026 (auditoria UI/UX: 1.175 pedidos de avaliacao, 73 notas): pede avaliacao 1 vez por dia por pessoa
   // 21/11/2026: Vitorio — avaliacao em TODA resposta (no inicio e o que mede a qualidade)
-  if (resp && !['nota', 'agradecimento', 'saudacao_primeira', 'reacao_figurinha', 'bloqueado'].includes(tipo) && !/o que faltou/.test(resp) && !/⟪⟫/.test(resp) && !/MENU DO JOTA/.test(resp)) resp += '\n\n_Essa resposta ajudou? Responda 👍 ou 👎 · ou escreva *sugestão:* e o que melhorar_';
+  if (resp && !['nota', 'agradecimento', 'reclamacao', 'saudacao_primeira', 'reacao_figurinha', 'bloqueado'].includes(tipo) && !/o que faltou/.test(resp) && !/⟪⟫/.test(resp) && !/MENU DO JOTA/.test(resp)) resp += '\n\n_Essa resposta ajudou? Responda 👍 ou 👎 · ou escreva *sugestão:* e o que melhorar_';
   if (audio && audio.texto) resp = `🎙️ _Entendi: "${audio.texto.slice(0, 200)}"_\n\n` + resp;
   if (!seco && meuId && !reprocId) { const dep2 = await env.DB.prepare("SELECT id FROM bot_msgs WHERE celular = ? AND direcao = 'in' AND id > ? LIMIT 1").bind(cel, meuId).first().catch(() => null); if (dep2) return new Response('ok (barge-in)'); }
   const limpaTags = (s) => String(s || '').replace(/\s*〔[^〕]+〕/g, '');

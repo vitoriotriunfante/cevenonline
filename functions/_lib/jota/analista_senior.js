@@ -39,7 +39,7 @@ async function montarComplemento360(env, escIA) {
   const soRca = escIA?.rca ? String(escIA.rca) : null;
   const soSup = !soRca && escIA?.supervisor ? String(escIA.supervisor) : null;
 
-  const [filGerotRows, supGerotRows, indRows, bloqRows, aprendizados] = await Promise.all([
+  const [filGerotRows, supGerotRows, indRows, bloqRows, cartHojeRows, gerotStRow, aprendizados] = await Promise.all([
     soRca || soSup
       ? Promise.resolve({ results: [] })
       : (temFil
@@ -64,6 +64,13 @@ async function montarComplemento360(env, escIA) {
         ? db.prepare(`SELECT 'BLOQUEADO' status, COUNT(*) qtd, SUM(valor) vlr FROM gerot_carteira WHERE filial IN (${qs}) AND situacao LIKE 'Bloqueado%'`).bind(...filiais)
         : db.prepare("SELECT 'BLOQUEADO' status, COUNT(*) qtd, SUM(valor) vlr FROM gerot_carteira WHERE situacao LIKE 'Bloqueado%'")
       ).all().catch(() => ({ results: [] })),
+    (soRca && filiais[0]
+      ? db.prepare('SELECT filial, rca, cod_sup, supervisor, fornecedores FROM (SELECT c.filial, c.rca, "" cod_sup, "" supervisor, c.fornecedores FROM gerot_carteira c WHERE c.entrada = ? AND c.filial = ? AND CAST(c.rca AS INTEGER) = ?)').bind(hoje, filiais[0], Number(soRca))
+      : temFil
+        ? db.prepare(`SELECT filial, rca, sup_cod AS cod_sup, "" supervisor, fornecedores FROM gerot_carteira WHERE entrada = ? AND filial IN (${qs})`).bind(hoje, ...filiais)
+        : db.prepare('SELECT filial, rca, sup_cod AS cod_sup, "" supervisor, fornecedores FROM gerot_carteira WHERE entrada = ?').bind(hoje)
+    ).all().catch(() => ({ results: [] })),
+    db.prepare('SELECT posicao, em FROM gerot_coleta_status WHERE mes = ? ORDER BY id DESC LIMIT 1').bind(mes).first().catch(() => null),
     carregarContextoAprendido(db, 6)
   ]);
 
@@ -190,6 +197,29 @@ async function montarComplemento360(env, escIA) {
     }).join('\n')
     : '';
 
+  const comPedHojeInd = new Set();
+  for (const r of (cartHojeRows && cartHojeRows.results) || []) {
+    if (soSup && !(r.cod_sup && supCodsAlvo.has(String(r.cod_sup)))) continue;
+    let fs = [];
+    try { fs = JSON.parse(r.fornecedores || '[]'); } catch { fs = []; }
+    for (const f of Array.isArray(fs) ? fs : []) {
+      const nm = nomeForn(typeof f === 'string' ? f : (f && (f.fornecedor || f.nome || f.desc)));
+      if (nm) comPedHojeInd.add(nm);
+    }
+  }
+  const indSemVendaMes = todasInd.filter((x) => (x.fat + x.pend) <= 0).map((x) => x.ind).sort();
+  const indComPedidoHoje = todasInd.filter((x) => comPedHojeInd.has(x.ind)).map((x) => x.ind).sort();
+  const indSemPedidoHoje = todasInd.filter((x) => !comPedHojeInd.has(x.ind)).map((x) => x.ind).sort();
+  const gerotPos = gerotStRow && (gerotStRow.posicao || gerotStRow.em) ? `${gerotStRow.posicao || ''} (${gerotStRow.em ? new Date(gerotStRow.em).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }) : ''})` : 'GEROT';
+  const indZeroTxt = todasInd.length ? [
+    `=== INDÚSTRIAS COM META: SEM VENDA NO MÊS E HOJE (${gerotPos}) ===`,
+    `Total de indústrias com meta cadastrada no escopo: ${todasInd.length}`,
+    `Sem venda no mês (faturado + carteira = 0): ${indSemVendaMes.length} de ${todasInd.length}` + (indSemVendaMes.length ? ` -> ${indSemVendaMes.join(', ')}` : ''),
+    `Com pedidos na Carteira do GEROT hoje (${hoje}): ${indComPedidoHoje.length} de ${todasInd.length}` + (indComPedidoHoje.length && indComPedidoHoje.length <= 20 ? ` -> ${indComPedidoHoje.join(', ')}` : ''),
+    `SEM pedido na Carteira do GEROT hoje (${hoje}): ${indSemPedidoHoje.length} de ${todasInd.length}` + (indSemPedidoHoje.length ? ` -> ${indSemPedidoHoje.join(', ')}` : ''),
+    `Observação de fonte: os pedidos de hoje por indústria vêm da Carteira Total do GEROT (última carga ${gerotPos}); pedidos colocados no Clube da Venda depois dessa carga ou ainda não sincronizados no Winthor não detalham indústria.`
+  ].join('\n') : '';
+
   const bloqTxt = (bloqRows.results || []).length
     ? '=== PEDIDOS BLOQUEADOS / CANCELADOS (ÚLTIMOS 7 DIAS) ===\n' + (bloqRows.results || []).map((b) => `• ${b.status}: ${N(b.qtd)} pedidos (${R$(b.vlr || 0)})`).join('\n')
     : '';
@@ -198,7 +228,7 @@ async function montarComplemento360(env, escIA) {
     ? `=== APRENDIZADOS RECENTES DO CAMPO (CURADOR JOTA) ===\n${aprendizados}`
     : '';
 
-  return [gerotResumoTxt, indTxt, bloqTxt, aprTxt].filter(Boolean).join('\n\n');
+  return [gerotResumoTxt, indZeroTxt, indTxt, bloqTxt, aprTxt].filter(Boolean).join('\n\n');
 }
 
 async function chamarGemini(apiKey, model, promptCompleto, thinkingBudget = 1024) {

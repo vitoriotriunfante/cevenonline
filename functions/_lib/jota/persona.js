@@ -79,7 +79,10 @@ export async function manchete(B, c) {
     return [pct != null ? `${nome} está com *${pct.toFixed(1).replace('.', ',')}%* da meta${tom}` : '', liga].filter(Boolean).join(' · ') + '.';
   } catch (e) { return ''; }
 }
-export const ehSaudacao = (t0) => { const t = String(t0 || '').replace(/[-_]+/g, ' ').replace(/\s+/g, ' ').trim(); /* 21/11/2026: 'Boa-tarde' ficava sem resposta */ return /^(BOM DIA|BOA TARDE|BOA NOITE|OI+|OLA|E AI|EAI|FALA|SALVE|OPA|HEY|PICO ?PICO)( (JOTA|NOVAMENTE|DE NOVO|PESSOAL|TIME|TUDO BEM|TUDO BOM|BELEZA|OK|MEU AMIGO|AMIGO|CHEFE))*[ !.,?]*$/.test(t); };
+export const ehSaudacao = (t0) => {
+  const t = String(t0 || '').replace(/[,.;:!?\-_]+/g, ' ').replace(/\s+/g, ' ').trim();
+  return /^(BOM DI+A+|BOA TA+RDE+|BOA RA+RDE+|BOA TA+DE+|BON DI+A+|BOA NOI+TE+|OI+|OLA+|E AI+|EAI+|FALA+(?: PRA MIM)?|SALVE+|OPA+|HEY+|PICO ?PICO)( (JOTA|NOVAMENTE|DE NOVO|PESSOAL|TIME|TUDO BEM|TUDO BOM|BELEZA|OK|MEU AMIGO|AMIGO|CHEFE))*$/.test(t);
+};
 export async function respSaudacao(B, c, primeiraVez) {
   const n = primeiroNome(c), d = diaSemana(), fds = d === 0 || d === 6;
   const papel = (c.papel === 'diretoria' || c.papel === 'ceo') ? 'nas 11 filiais' : c.papel === 'gerente' ? `na ${c.filial}` : c.papel === 'supervisor' ? 'na sua equipe' : 'nos seus números';
@@ -191,7 +194,7 @@ export async function cadastraPorCodigo(env, cel, texto, pushName) {
     const nums = new Set();
     for (const re of [/\b(?:COD(?:IGO)?|SETOR|EQUIPE|AREA|COORDENADOR|SUPERVISOR|SUP)\.?\s*(?:DE\s+VENDAS\s*)?(?:N[O°º]?\.?\s*)?[-:]?\s*(\d{1,4})\b/g, /(?:^|\n)\s*(\d{1,4})\s*[-–]\s*[A-Z]/g, /\b(\d{1,4})\s+(?:TBE|TBL|TPH|TCV|ABC|TCA|MCD|TCG|API|TPA|TSJ)\b/g, /\bSETOR\s+(\d{1,4})\s+D[AO]\b/g]) { let mm; const tt = sem(String(texto)); while ((mm = re.exec(tt))) nums.add(mm[1]); }
     if (/^\d{1,4}$/.test(String(texto).trim())) nums.add(String(texto).trim());
-    
+
     // Normaliza variações numéricas (ex.: "07" -> "7", "07", "007")
     const numsBusca = new Set();
     for (const n of nums) {
@@ -208,8 +211,10 @@ export async function cadastraPorCodigo(env, cel, texto, pushName) {
     { const ant = await env.DB.prepare("SELECT texto FROM bot_msgs WHERE celular = ? AND direcao = 'in' ORDER BY id DESC LIMIT 4").bind(cel).all(); nomes += ' ' + sem((ant.results || []).map((x) => x.texto).join(' ')); }
     // VENDEDOR NAO ENTRA COMO SUPERVISOR (09/11/2026: "Alais Aparecida teles 93" = vendedora TPH 93 virou supervisor "Gerente Mcd" pelo codigo 93).
     // Nome batendo com vendedor da Gestao (2+ palavras) E codigo = RCA dele = vendedor: nao cadastra (vendedor so pelo link do passaporte).
-    try { const mo = await (await fetch('https://ceven-cftv-matrix.pages.dev/api/tv-mostra', { signal: AbortSignal.timeout(10000) })).json(); const pal = new Set(nomes.split(/[^A-Z]+/).filter((w) => w.length > 2));
-      for (const L of Object.values(mo.filiais || {})) for (const v of L) { const nv = sem(v.nome).split(/\s+/).filter((w) => w.length > 2 && !/^(DE|DA|DO|DOS|DAS)$/.test(w)); if (nv.filter((w) => pal.has(w)).length >= 2 && numsBusca.has(String(v.rca))) return null; /* nome de vendedor + o codigo dele (RCA) = vendedor */ } } catch (e) { /* sem a lista: segue a conferencia pela arvore */ }
+    try {
+      const mo = await (await fetch('https://ceven-cftv-matrix.pages.dev/api/tv-mostra', { signal: AbortSignal.timeout(10000) })).json(); const pal = new Set(nomes.split(/[^A-Z]+/).filter((w) => w.length > 2));
+      for (const L of Object.values(mo.filiais || {})) for (const v of L) { const nv = sem(v.nome).split(/\s+/).filter((w) => w.length > 2 && !/^(DE|DA|DO|DOS|DAS)$/.test(w)); if (nv.filter((w) => pal.has(w)).length >= 2 && numsBusca.has(String(v.rca))) return null; /* nome de vendedor + o codigo dele (RCA) = vendedor */ }
+    } catch (e) { /* sem a lista: segue a conferencia pela arvore */ }
 
     let results = [];
     if (numsBusca.size) {
@@ -235,7 +240,7 @@ export async function cadastraPorCodigo(env, cel, texto, pushName) {
     const nomeMsg = sem(texto).replace(/\b(COD(IGO)?|SETOR|EQUIPE|AREA|SUP(ERVISORA?)?|COORDENADORA?)\b\.?/g, ' ').replace(/[\d\-:–]+/g, ' ').replace(/\s+/g, ' ').trim();
     const nome = /^VAGO\b/i.test(supArv) && nomeMsg.split(' ').length >= 2 ? nomeMsg : supArv;
     let grupo = null;
-    try { const mo = await (await fetch('https://ceven-cftv-matrix.pages.dev/api/tv-mostra', { signal: AbortSignal.timeout(10000) })).json(); for (const [k, L] of Object.entries(mo.filiais || {})) for (const v of L) if (k.split('_')[0] === ok.filial && sem(v.supervisor) === sem(nome) && v.grupo) grupo = v.grupo; } catch (e) {}
+    try { const mo = await (await fetch('https://ceven-cftv-matrix.pages.dev/api/tv-mostra', { signal: AbortSignal.timeout(10000) })).json(); for (const [k, L] of Object.entries(mo.filiais || {})) for (const v of L) if (k.split('_')[0] === ok.filial && sem(v.supervisor) === sem(nome) && v.grupo) grupo = v.grupo; } catch (e) { }
     // PRECISA DO OK DO VITORIO (25/10/2026): entra como PENDENTE (ativo = 0); quem libera e a tela de contatos. Nunca reativa nem rebaixa quem ja existe.
     const ja = await env.DB.prepare('SELECT ativo FROM bot_contatos WHERE celular = ?').bind(cel).first();
     if (ja) return null;

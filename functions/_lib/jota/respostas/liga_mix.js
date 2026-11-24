@@ -46,8 +46,27 @@ export async function respLiga(B, E, alvo, t = '') {
   const dStr = gDt && !isNaN(gDt) ? new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).format(gDt).replace(',', '') : '';
   const fStr = lg.pos_anterior_de ? `${lg.pos_anterior_de.slice(8, 10)}/${lg.pos_anterior_de.slice(5, 7)}` : '';
   const rodLiga = `_Liga: lances com prova${fStr ? ' · fechado até ' + fStr : ''}${dStr ? ' · atualizado ' + dStr : ''}_`;
-  if (alvo) { const lv = (lg.vendedores || []).find((x) => String(x.rca) === alvo.rca && x.filial === alvo.filial); if (lv) { const mv = (lv.pos_brasil_ant || lv.pos_brasil) - lv.pos_brasil; return `🏆 *${titulo(lv.nome)}* (${lv.filial}): ${lv.pos_brasil}º no Brasil (${mv > 0 ? '▲' + mv : mv < 0 ? '▼' + -mv : '='} desde o último jogo) · ${lv.pos_filial}º na filial · ${lv.pts_tabela} pts · ${lv.vitorias}V ${lv.empates}E ${lv.derrotas}D · forma ${(lv.forma || []).slice(-5).join('')}${(lv.forma || []).slice(-5).includes('J') ? ' _(V vitória · E empate · D derrota · J = jogo de hoje em andamento)_' : ''}\n\n${rodLiga}`; } }
+  const asData = lg.as || {};
+  const asVends = Array.isArray(asData.vendedores) ? asData.vendedores : [];
+  const asSups = Array.isArray(asData.supervisores) ? asData.supervisores : [];
+  const querAS = /\bAS\b|AUTOSSERVIC/.test(t);
+  if (alvo) {
+    const ehAlvoAS = /^(AS|PET AS)$/i.test(String(alvo.canal || '')) || querAS;
+    const lvAs = asVends.find((x) => String(x.rca) === String(alvo.rca) && x.filial === alvo.filial);
+    if ((ehAlvoAS || !((lg.vendedores || []).some((x) => String(x.rca) === String(alvo.rca) && x.filial === alvo.filial))) && lvAs) {
+      const mv = (lvAs.pos_brasil_ant || lvAs.pos_brasil) - lvAs.pos_brasil;
+      return `🏆 *${titulo(lvAs.nome)}* (${lvAs.filial} · AS): ${lvAs.pos_brasil}º no Brasil AS (${mv > 0 ? '▲' + mv : mv < 0 ? '▼' + -mv : '='}) · ${lvAs.pos_filial}º na filial · *${lvAs.pts_tabela} pts* (${lvAs.vitorias}V ${lvAs.empates}E ${lvAs.derrotas}D) · placar acum. ${lvAs.pontos > 0 ? '+' : ''}${lvAs.pontos} · meta ${lvAs.pct_hoje != null ? String(lvAs.pct_hoje).replace('.', ',') + '%' : '—'} · forma ${(lvAs.forma || []).slice(-6).join('')}\n\n${rodLiga}`;
+    }
+    const lv = (lg.vendedores || []).find((x) => String(x.rca) === String(alvo.rca) && x.filial === alvo.filial);
+    if (lv) { const mv = (lv.pos_brasil_ant || lv.pos_brasil) - lv.pos_brasil; return `🏆 *${titulo(lv.nome)}* (${lv.filial}): ${lv.pos_brasil}º no Brasil (${mv > 0 ? '▲' + mv : mv < 0 ? '▼' + -mv : '='} desde o último jogo) · ${lv.pos_filial}º na filial · ${lv.pts_tabela} pts · ${lv.vitorias}V ${lv.empates}E ${lv.derrotas}D · forma ${(lv.forma || []).slice(-5).join('')}${(lv.forma || []).slice(-5).includes('J') ? ' _(V vitória · E empate · D derrota · J = jogo de hoje em andamento)_' : ''}\n\n${rodLiga}`; }
+  }
   if (E.nacional) {
+    if (querAS && asVends.length) {
+      if (/SUPERVIS/.test(t) && asSups.length) {
+        return ['🏆 *Champions Triunfante (AS) — Supervisores (Brasil)*', ...asSups.slice(0, 20).map((x) => `${x.pos}º ${nome2(x.supervisor)} (${x.filial}) — *${x.pts_tabela} pts* (${x.vitorias}V ${x.empates}E ${x.derrotas}D · ${x.pct_hoje != null ? String(x.pct_hoje).replace('.', ',') + '%' : '—'})`), '', rodLiga].join('\n');
+      }
+      return ['🏆 *Champions Triunfante (AS) — Brasil*', '*Top vendedores AS:*', ...asVends.slice(0, /VENDEDOR/.test(t) ? 20 : 10).map((v) => `${v.pos_brasil}º ${vn(v)} ${v.filial} — *${v.pts_tabela} pts* (${v.vitorias}V ${v.empates}E ${v.derrotas}D)`), '', rodLiga].join('\n');
+    }
     if (/SUPERVIS/.test(t)) {
       const supsBr = (lg.supervisores || []).filter((x) => !/^GERENTE/i.test(x.supervisor || '')).slice().sort((a, b) => (b.pts_tabela || 0) - (a.pts_tabela || 0) || (a.pos || 999) - (b.pos || 999));
       return ['🏆 *Champions Triunfante — Ranking de Supervisores (Brasil)*', ...supsBr.slice(0, 20).map((x, i) => `${i + 1}º ${nome2(x.supervisor)} (${x.filial}) — *${x.pts_tabela} pts*`), '', rodLiga].join('\n');
@@ -57,9 +76,23 @@ export async function respLiga(B, E, alvo, t = '') {
   }
   const fil = E.filiais[0]; const lf = (lg.filiais || []).find((x) => x.sigla === fil);
   const sups = new Set(E.vend.map((v) => v.supervisor));
+  const vReais = (E.vend || []).filter((v) => v.ehVendedorReal !== false);
+  const nAS = vReais.filter((v) => /^(AS|PET AS)$/i.test(String(v.canal || ''))).length;
+  const supASMatch = E.supervisor && asSups.some((s) => s.filial === fil && sem(s.supervisor) === sem(E.supervisor));
+  const usarAS = asVends.length && (querAS || supASMatch || (vReais.length && nAS > vReais.length / 2));
+  if (usarAS) {
+    const rcasSet = new Set(E.vend.map((y) => String(y.rca)));
+    const supRows = asSups.filter((x) => x.filial === fil && (!(E.grupo || E.supervisor || E.rca) || sups.has(x.supervisor))).sort((a, b) => a.pos - b.pos).slice(0, 10);
+    const vendRows = asVends.filter((v) => v.filial === fil && (!(E.grupo || E.supervisor || E.rca) || rcasSet.has(String(v.rca)))).sort((a, b) => a.pos_brasil - b.pos_brasil).slice(0, E.supervisor ? 40 : 10);
+    return [`🏆 *Champions Triunfante (AS · temporada out+nov) — ${E.nome}*`,
+    ...(supRows.length ? [(E.supervisor ? '*Você entre os supervisores AS:*' : '*Supervisores AS:*'), ...supRows.map((x) => `${x.pos}º ${nome2(x.supervisor)} — *${x.pts_tabela} pts* (${x.vitorias}V ${x.empates}E ${x.derrotas}D · ${x.pct_hoje != null ? String(x.pct_hoje).replace('.', ',') + '% meta' : 'sem meta'})`)] : []),
+    (E.supervisor ? '*Sua equipe AS:*' : '*Vendedores AS da filial:*'),
+    ...(vendRows.length ? vendRows.map((v) => `${v.pos_filial}º ${vn(v)} — *${v.pts_tabela} pts* (${v.pos_brasil}º Brasil AS · ${v.vitorias}V ${v.empates}E ${v.derrotas}D · placar ${v.pontos > 0 ? '+' : ''}${v.pontos})`) : ['_Sem vendedores AS nessa equipe._']),
+      '', rodLiga].join('\n');
+  }
   return [`🏆 *Champions Triunfante — ${E.nome}*`, lf ? `Filial: *${lf.pos}º de 11*, ${lf.pts_tabela} pts (${lf.vitorias}V ${lf.empates}E ${lf.derrotas}D)` : 'Filial: sem dado',
-    (E.supervisor ? '*Você entre os supervisores:*' : '*Supervisores:*'), ...(lg.supervisores || []).filter((x) => x.filial === fil && (!(E.grupo || E.supervisor || E.rca) || sups.has(x.supervisor))).sort((a, b) => a.pos - b.pos).slice(0, 10).map((x) => `${x.pos}º ${nome2(x.supervisor)} — ${x.pts_tabela} pts`),
-    (E.supervisor ? '*Sua equipe:*' : '*Top vendedores da filial:*'), ...(lg.vendedores || []).filter((v) => v.filial === fil && (!(E.grupo || E.supervisor || E.rca) || E.vend.some((y) => y.rca === String(v.rca)))).sort((a, b) => a.pos_filial - b.pos_filial).slice(0, E.supervisor ? 40 : 5).map((v) => `${v.pos_filial}º ${vn(v)} — ${v.pts_tabela} pts (${v.pos_brasil}º Brasil)`),
+  (E.supervisor ? '*Você entre os supervisores:*' : '*Supervisores:*'), ...(lg.supervisores || []).filter((x) => x.filial === fil && (!(E.grupo || E.supervisor || E.rca) || sups.has(x.supervisor))).sort((a, b) => a.pos - b.pos).slice(0, 10).map((x) => `${x.pos}º ${nome2(x.supervisor)} — ${x.pts_tabela} pts`),
+  (E.supervisor ? '*Sua equipe:*' : '*Top vendedores da filial:*'), ...(lg.vendedores || []).filter((v) => v.filial === fil && (!(E.grupo || E.supervisor || E.rca) || E.vend.some((y) => y.rca === String(v.rca)))).sort((a, b) => a.pos_filial - b.pos_filial).slice(0, E.supervisor ? 40 : 5).map((v) => `${v.pos_filial}º ${vn(v)} — ${v.pts_tabela} pts (${v.pos_brasil}º Brasil)`),
     '', rodLiga].join('\n');
 }
 export async function respCompromisso(B, E) {
@@ -99,7 +132,7 @@ export async function respMix(B, E, t) {
   return [`🧺 *+MIX — ${E.nome}* (${mx.mes || 'mês'}, dados até ${mx.dados_ate || '—'})`, `Uso real: *${tot.usou}* de *${tot.cli}* clientes com lista compraram produto recomendado (${P(tot.usou, tot.cli)})`,
     '*Mais mix por cliente:*', ...S.slice(0, 5).map((v) => `• ${vn(v)}${E.nacional ? ' ' + v.filial : ''}: ${String(v.mix_medio).replace('.', ',')} produtos/cliente · ${R$(v.faturado_por_cliente)}/cliente`),
     '*Menos mix por cliente:*', ...S.slice(-5).reverse().map((v) => `• ${vn(v)}${E.nacional ? ' ' + v.filial : ''}: ${String(v.mix_medio).replace('.', ',')} produtos/cliente`),
-    usam.length ? `*Quem mais usa o +MIX:* ${usam.slice(0, 3).map((v) => `${vn(v)} ${String(v.uso_pct).replace('.', ',')}%`).join(' · ')}` : '',
+  usam.length ? `*Quem mais usa o +MIX:* ${usam.slice(0, 3).map((v) => `${vn(v)} ${String(v.uso_pct).replace('.', ',')}%`).join(' · ')}` : '',
     '', SUGESTAO + (S.length ? `${nome2(S[S.length - 1].nome)} tem o menor mix: abrir o +MIX em cada cliente antes do pedido.` : 'usar o +MIX antes de cada pedido.'), '_Peça "quem compra NOME DO PRODUTO"._'].filter(Boolean).join('\n');
 }
 export function respIncentivo(E) {
@@ -108,8 +141,8 @@ export function respIncentivo(E) {
   const ok = V.filter((v) => pf(v) >= 110 && pp(v) >= 110), quase = V.filter((v) => !ok.includes(v) && pf(v) >= 95 && pp(v) >= 95).sort((a, b) => Math.min(pf(b), pp(b)) - Math.min(pf(a), pp(a)));
   const g1 = V.filter((v) => pp(v) >= 60);
   return [`🏆 *Incentivo Outubro — ${E.nome}* (varejo)`, 'Regras: R$ 150 se ≥60% da positivação até 15/10 · R$ 350 se ≥110% positivação *e* ≥110% faturado em 31/10 · +R$ 30 por cliente novo do LinkUp com 1ª compra faturada.',
-    `Hoje já com ≥110%/110%: *${ok.length} de ${V.length}*` + (ok.length ? ' — ' + listaNomes(ok, 6) : ''), `Perto (≥95% nos dois): ${quase.length}` + (quase.length ? ' — ' + quase.slice(0, 6).map((v) => `${vn(v)} (${pctTxt(pf(v))}/${pctTxt(pp(v))})`).join(', ') : ''),
-    `Com ≥60% da positivação hoje: ${g1.length} de ${V.length}`, '_Valor oficial do prêmio = apuração da Premiação RV com faturado; aqui é a leitura de agora._', '', SUGESTAO + (quase.length ? `empurrar ${listaNomes(quase, 3)}: estão perto dos 110%.` : 'focar positivação: é a régua mais difícil.')].join('\n');
+  `Hoje já com ≥110%/110%: *${ok.length} de ${V.length}*` + (ok.length ? ' — ' + listaNomes(ok, 6) : ''), `Perto (≥95% nos dois): ${quase.length}` + (quase.length ? ' — ' + quase.slice(0, 6).map((v) => `${vn(v)} (${pctTxt(pf(v))}/${pctTxt(pp(v))})`).join(', ') : ''),
+  `Com ≥60% da positivação hoje: ${g1.length} de ${V.length}`, '_Valor oficial do prêmio = apuração da Premiação RV com faturado; aqui é a leitura de agora._', '', SUGESTAO + (quase.length ? `empurrar ${listaNomes(quase, 3)}: estão perto dos 110%.` : 'focar positivação: é a régua mais difícil.')].join('\n');
 }
 export const GLOSSARIO = [
   [/POSITIVA/, '*Positivação* = clientes (CNPJs distintos) com faturamento líquido > 0 no mês. Pedido 100% cortado ou devolvido inteiro não conta.'],
@@ -174,7 +207,7 @@ const TEMAS_VENDEDOR = [
   [3, /COMISS|SALARI|\bRMV\b|\bRV\b|\bGANHOS?\b|REMUNERA|HOLERITE|PREMIACAO/],
   [12, /FICHA\b|DADOS DO CLIENTE|VER CLIENTE|CONSULTAR CLIENTE/],
   [7, /MES PASSADO|MES ANTERIOR|OUTUBRO|SETEMBRO|FECHAMENTO/],
-  [5, /SEM VENDA|SEM COMPRA|CURVA|NAO COMPR|NAO POSITIV|FALTA(M)? POSITIV|INATIV|PARAD|LISTA DE CLIENTES|QUAIS CLIENTES/],   // 22/11/2026: 'quais clientes falta positivar' / 'lista de clientes' caiam no cartao
+  [5, /SEM VENDA|SEM COMPRA|CURVA|NAO COMPR|NAO POSITIV|NAO FORAM POSITIV|LOJAS?.*NAO POSITIV|FALTA(M)? POSITIV|INATIV|PARAD|LISTA DE CLIENTES|QUAIS CLIENTES/],   // 22/11/2026 + Curador 24/11: 'lojas ainda nao foram positivada'
   [8, /RECORR/],
   [2, /LIGA|CHAMPION|CHANPION|PONTO|PONTUAC|COLOCAC|LUGAR|RANKING|PENALIDADE|PENALTI|IMPEDIMENTO|CARTAO|CARTOES|LANCE|REGRA/],
   [16, /CORTE|CORTOU|CORTAD/],
@@ -216,7 +249,7 @@ const TEMAS_SUPERVISOR = [
   [14, /FICHA\b|DADOS DO CLIENTE|VER CLIENTE|CONSULTAR CLIENTE/],
   [7, /FECHAMENTO( D[OE] (DIA|HOJE))?\W*$|FECHAMENTO D[OE] (DIA|HOJE)|COMO FOI O DIA/],
   [6, /RECORR/],
-  [5, /SEM VENDA|SEM COMPRA|CURVA|NAO COMPR|NAO POSITIV|INATIV|FALTA(M)? POSITIV|LISTA DE CLIENTES|QUAIS CLIENTES/],   // 22/11/2026: 'Lista de clientes' do supervisor ficava sem resposta
+  [5, /SEM VENDA|SEM COMPRA|CURVA|NAO COMPR|NAO POSITIV|NAO FORAM POSITIV|LOJAS?.*NAO POSITIV|INATIV|FALTA(M)? POSITIV|LISTA DE CLIENTES|QUAIS CLIENTES/],   // 22/11/2026 + Curador 24/11: 'Lista de clientes' / 'lojas nao positivadas'
   [3, /LIGA|CHAMPION|PONTO|COLOCAC|LUGAR|RANKING|GOL|LANCE/],
   [4, /PEDIDO|BLOQUEAD|FATURAR|CANCELAD|PENDENTE/],
   [11, /DEVOLU/],
@@ -235,7 +268,11 @@ export function respMenuSupervisor(c) {
   return [`📋 *MENU DO JOTA* — ${n} (supervisor)`, '', ...MENU_SUPERVISOR.map(([rot], i) => `*${i + 1}.* ${rot}`), '', '👉 *Digite o número* (ex.: 1) ou escreva do seu jeito.'].join('\n');
 }
 // 22/11/2026 (bateria real: 'meta financeira, quanto falta de positivacao, mix e recorrencia?' respondia so o mix): todos os temas citados, na ordem do menu
-export function temasDoTexto(t) { return [...new Set(TEMAS_VENDEDOR.filter(([, re]) => re.test(t)).map((x) => x[0]))].sort((a, b) => a - b); }
+export function temasDoTexto(t) {
+  let ks = [...new Set(TEMAS_VENDEDOR.filter(([, re]) => re.test(t)).map((x) => x[0]))].sort((a, b) => a - b);
+  if (ks.includes(1) && (ks.includes(5) || ks.includes(13)) && !/META|COTA|COMO EST|NUMEROS|RESULTADO|FATURA|VENDI|VENDA|DESEMPENHO|PERFORMANCE/.test(t)) ks = ks.filter((k) => k !== 1);
+  return ks;
+}
 export function temaDoTexto(t) { const x = TEMAS_VENDEDOR.find(([, re]) => re.test(t)); return x ? x[0] : null; }
 export function respMenuVendedor(c) {
   const n = titulo(String(c.nome || '').split(' ')[0]);

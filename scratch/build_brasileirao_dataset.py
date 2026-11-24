@@ -566,16 +566,21 @@ def semanas_as_do_mes(mes):
         alvo['de'] = min(alvo['de'], b['de']); alvo['ate'] = max(alvo['ate'], b['ate'])
         L.pop(i); i = 0
     return [(n + 1, b['de'], (ult if n == len(L) - 1 else b['ate']), len(b['dias'])) for n, b in enumerate(L)]
-if MES_AS >= AS_SEMANAS_NOVAS_DESDE:
-    _SEM = semanas_as_do_mes(MES_AS)
-    AS_SEMANAS = [(n, di, df) for n, di, df, _du in _SEM]
-    AS_VITORIA_ACIMA = {n: 2 * du for n, di, df, du in _SEM}
-else:
-    AS_SEMANAS = AS_SEMANAS_FIXAS
-    AS_VITORIA_ACIMA = {}
-def julgar_semana_as(score, n):
-    """A partir de nov/2026 a vitoria da semana do AS e proporcional aos dias uteis dela; antes, as faixas fixas do Varejo."""
-    lim = AS_VITORIA_ACIMA.get(n)
+def meses_entre(m_ini, m_fim):
+    out, a, m = [], int(m_ini[:4]), int(m_ini[5:7])
+    af, mf = int(m_fim[:4]), int(m_fim[5:7])
+    while (a, m) <= (af, mf):
+        out.append(f"{a:04d}-{m:02d}")
+        m += 1
+        if m > 12: a, m = a + 1, 1
+    return out
+def semana_as_na_lista(sems, dia_iso):
+    d = int(dia_iso[8:10])
+    for n, di, df, _du in sems:
+        if d <= df:
+            return n
+    return sems[-1][0]
+def julgar_semana_as_lim(score, lim):
     if lim is None:
         return julgar_pelo_score(score)
     if score > lim:
@@ -583,80 +588,130 @@ def julgar_semana_as(score, n):
     if score >= FAIXAS['empate']['min_pontos']:
         return 'E', FAIXAS['empate']['pontos_tabela']
     return 'D', FAIXAS['derrota']['pontos_tabela']
-def semana_as_jogada(n):
-    """A semana ja comecou e termina depois do inicio oficial da liga: e um jogo valendo."""
-    _, di, df = AS_SEMANAS[n - 1]
-    ini = f"{MES_AS}-{di:02d}"; fim = f"{MES_AS}-{min(df, _ULT_MES_AS):02d}"
-    return ini <= _HOJE_BR and fim >= INICIO_OFICIAL
-def semana_as_aberta(n):
-    """SEMANA EM ANDAMENTO = 'J' (Vitorio, 15/10/2026: a semana 3 comecou hoje e os 134 apareciam com Derrota). Igual ao dia aberto do Varejo:
-    ate o fechamento do ultimo dia da semana (22h BRT), quem esta com placar <= 0 fica J (nao conta jogo, derrota nem ponto)."""
-    _, di, df = AS_SEMANAS[n - 1]
-    fim = f"{MES_AS}-{min(df, _ULT_MES_AS):02d}"
-    return HOJE_BR < fim or (HOJE_BR == fim and DIA_ABERTO_AGORA)
 def tipo_do_lance(chave):
     return re.sub(r'^[A-Z]{3}\|', '', str(chave or '')).split('|')[0]
-bloco_as = {'mes': MES_AS, 'vale_desde': INICIO_OFICIAL, 'lances_fora': list(AS_LANCES_FORA), 'semanas': [
+MESES_AS = meses_entre(INICIO_OFICIAL[:7], MES_AS)
+_SEM_ATUAL = semanas_as_do_mes(MES_AS)
+AS_SEMANAS = [(n, di, df) for n, di, df, _du in _SEM_ATUAL]
+AS_VITORIA_ACIMA = {n: 2 * du for n, di, df, du in _SEM_ATUAL}
+bloco_as = {'mes': MES_AS, 'meses': MESES_AS, 'vale_desde': INICIO_OFICIAL, 'lances_fora': list(AS_LANCES_FORA), 'semanas': [
     {'n': n, 'de': di, 'ate': df, 'vitoria_acima_de': AS_VITORIA_ACIMA.get(n, 10)} for n, di, df in AS_SEMANAS]}
 try:
-    req = urllib.request.Request(f'https://ceven-cftv-matrix.pages.dev/api/liga-as?mes={MES_AS}', headers={'User-Agent': 'Mozilla/5.0'})
-    with urllib.request.urlopen(req, timeout=60) as resp:
-        _api_as = json.loads(resp.read().decode('utf-8'))
-    if 'vendedores' not in _api_as:
-        raise RuntimeError(str(_api_as)[:160])
-    bloco_as['regras'] = _api_as.get('regras')
-    # pontos de lances por RCA e semana (so dias de rodada do mes de referencia)
-    _lan_sem = {}
-    for _rca, _dias in rca_dia_lances.items():
-        for _d, _ls in _dias.items():
-            if _d not in DIAS_RODADA or not _d.startswith(MES_AS):
+    # ACUMULADO DA TEMPORADA AS (desde out/2026, INICIO_OFICIAL 13/10): soma todos os meses da temporada sem perder os pontos do mes passado
+    _vend_acc = {}
+    _sup_meta = {}
+    _sup_sems_acc = {}
+    _seq_sem = 0
+    for _m_as in MESES_AS:
+        req = urllib.request.Request(f'https://ceven-cftv-matrix.pages.dev/api/liga-as?mes={_m_as}', headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            _api_as = json.loads(resp.read().decode('utf-8'))
+        if 'vendedores' not in _api_as:
+            raise RuntimeError(f"{_m_as}: " + str(_api_as)[:160])
+        if _m_as == MES_AS:
+            bloco_as['regras'] = _api_as.get('regras')
+        _sems_m = semanas_as_do_mes(_m_as) if _m_as >= AS_SEMANAS_NOVAS_DESDE else [(n, di, df, 5) for n, di, df in AS_SEMANAS_FIXAS]
+        _ult_m = calendar.monthrange(int(_m_as[:4]), int(_m_as[5:7]))[1]
+        _lan_sem = {}
+        for _rca, _dias in rca_dia_lances.items():
+            for _d, _ls in _dias.items():
+                if _d not in DIAS_RODADA or not _d.startswith(_m_as):
+                    continue
+                _n = semana_as_na_lista(_sems_m, _d)
+                _dev_cli = {}
+                for _l in _ls:
+                    if _l.get('nivel') in ('golcontra', 'vermelho') and tipo_do_lance(_l.get('chave')) not in AS_LANCES_FORA and _l.get('cliente') and isinstance(_l.get('pontos'), (int, float)):
+                        _kc = str(_l.get('cliente_id') or _l.get('cliente'))
+                        if _kc not in _dev_cli or _l['pontos'] < _dev_cli[_kc]['pontos']:
+                            _dev_cli[_kc] = _l
+                _dev_vale = set(id(x) for x in _dev_cli.values())
+                for _l in _ls:
+                    if tipo_do_lance(_l.get('chave')) in AS_LANCES_FORA:
+                        continue
+                    if _l.get('nivel') in ('golcontra', 'vermelho') and _l.get('cliente') and id(_l) not in _dev_vale:
+                        continue
+                    _p = _l.get('pontos')
+                    if isinstance(_p, (int, float)):
+                        _lan_sem.setdefault(_rca, {})[_n] = _lan_sem.setdefault(_rca, {}).get(_n, 0) + _p
+        _sem_info_m = []
+        for _n, _di, _df, _du in _sems_m:
+            _ini = f"{_m_as}-{_di:02d}"; _fim = f"{_m_as}-{min(_df, _ult_m):02d}"
+            _jogada = (_ini <= _HOJE_BR and _fim >= INICIO_OFICIAL)
+            _aberta = (HOJE_BR < _fim or (HOJE_BR == _fim and DIA_ABERTO_AGORA))
+            _lim = (2 * _du) if _m_as >= AS_SEMANAS_NOVAS_DESDE else None
+            _sem_info_m.append((_n, _di, _df, _du, _jogada, _aberta, _lim))
+        _seq_base = _seq_sem
+        for v in _api_as['vendedores']:
+            _m = rca_map.get(str(v['rca']))
+            if not _m or _m['canal'] != 'AS' or v['filial'] not in FILIAIS_VALIDAS:
                 continue
-            _n = semana_as(_d)
-            # DEVOLUCAO: UM cartao por CLIENTE por DIA no AS (Vitorio, 15/10/2026, item C da auditoria): 8 notas devolvidas do mesmo cliente
-            # viravam 8 cartoes (-80). Fica so o de maior peso daquele cliente no dia; os outros continuam no registro, mas nao somam.
-            _dev_cli = {}
-            for _l in _ls:
-                if _l.get('nivel') in ('golcontra', 'vermelho') and tipo_do_lance(_l.get('chave')) not in AS_LANCES_FORA and _l.get('cliente') and isinstance(_l.get('pontos'), (int, float)):
-                    _kc = str(_l.get('cliente_id') or _l.get('cliente'))
-                    if _kc not in _dev_cli or _l['pontos'] < _dev_cli[_kc]['pontos']:
-                        _dev_cli[_kc] = _l
-            _dev_vale = set(id(x) for x in _dev_cli.values())
-            for _l in _ls:
-                if tipo_do_lance(_l.get('chave')) in AS_LANCES_FORA:
+            _kv = f"{v['filial']}|{v['rca']}"
+            _fases, _bonus = v.get('fases') or [], v.get('bonus') or []
+            _acc = _vend_acc.setdefault(_kv, {
+                'rca': str(v['rca']), 'nome': v['nome'], 'filial': v['filial'], 'supervisor': _m['sup'], 'gerente': _m['gerente'],
+                'semanas': [], 'pts_lances': 0, 'pts_faseamento': 0, 'pts_bonus': 0, 'meta_mes': None, 'pct_hoje': None, 'fases': [], 'bonus': []
+            })
+            if _m_as == MES_AS:
+                _acc['nome'] = v['nome']; _acc['supervisor'] = _m['sup']; _acc['gerente'] = _m['gerente']
+                _acc['meta_mes'] = v.get('meta_mes'); _acc['pct_hoje'] = v.get('pct_hoje'); _acc['fases'] = _fases; _acc['bonus'] = _bonus
+            for _loc_i, (_n, _di, _df, _du, _jogada, _aberta, _lim) in enumerate(_sem_info_m):
+                if not _jogada and _m_as != MES_AS:
                     continue
-                if _l.get('nivel') in ('golcontra', 'vermelho') and _l.get('cliente') and id(_l) not in _dev_vale:
+                pl = _lan_sem.get(str(v['rca']), {}).get(_n, 0)
+                pf = sum(f['ganhou'] for f in _fases if f.get('data') and str(f['data']).startswith(_m_as) and semana_as_na_lista(_sems_m, f['data']) == _n)
+                pb = sum(b['ganhou'] for b in _bonus if b.get('quando') and str(b['quando']).startswith(_m_as) and semana_as_na_lista(_sems_m, b['quando']) == _n)
+                score = pl + pf + pb
+                res, pt = (julgar_semana_as_lim(score, _lim) if _jogada else (None, 0))
+                if _jogada and res == 'D' and _aberta:
+                    res, pt = 'J', 0
+                _acc['semanas'].append({
+                    'n': _seq_base + _loc_i + 1, 'mes': _m_as, 'semana_mes': _n, 'de': _di, 'ate': _df,
+                    'pts_lances': pl, 'pts_faseamento': pf, 'pts_bonus': pb, 'score': score,
+                    'jogada': _jogada, 'resultado': res, 'pts_tabela': pt
+                })
+                _acc['pts_lances'] += pl; _acc['pts_faseamento'] += pf; _acc['pts_bonus'] += pb
+        _seq_sem += sum(1 for _x in _sem_info_m if _x[4] or _m_as == MES_AS)
+        for sp in _api_as.get('supervisores', []):
+            _cc = CANAL_EQUIPE_TODOS.get((sp['filial'], sp['supervisor'])) or _cont_canal.get((sp['filial'], sp['supervisor'])) or {}
+            if _cc.get('VAREJO', 0) > _cc.get('AS', 0):
+                continue
+            _ks = f"{sp['filial']}|{sp['supervisor']}"
+            _sm = _sup_meta.setdefault(_ks, {'filial': sp['filial'], 'supervisor': sp['supervisor'], 'vendedores': sp.get('vendedores', 0), 'com_meta': sp.get('com_meta', 0), 'meta_mes': None, 'pct_hoje': None, 'fases': [], 'bonus': [], 'pontos_faseamento_total': 0})
+            _sm['pontos_faseamento_total'] += sp.get('pontos', 0) or 0
+            if _m_as == MES_AS:
+                _sm['vendedores'] = sp.get('vendedores', _sm['vendedores']); _sm['com_meta'] = sp.get('com_meta', _sm['com_meta'])
+                _sm['meta_mes'] = sp.get('meta_mes'); _sm['pct_hoje'] = sp.get('pct_hoje'); _sm['fases'] = sp.get('fases'); _sm['bonus'] = sp.get('bonus')
+            _eq_m = [x for x in _vend_acc.values() if x['filial'] == sp['filial'] and x['supervisor'] == sp['supervisor']]
+            _slist = _sup_sems_acc.setdefault(_ks, [])
+            for _n, _di, _df, _du, _jogada, _aberta, _lim in _sem_info_m:
+                if not _jogada:
                     continue
-                _p = _l.get('pontos')
-                if isinstance(_p, (int, float)):
-                    _lan_sem.setdefault(_rca, {})[_n] = _lan_sem.setdefault(_rca, {}).get(_n, 0) + _p
+                rs = [sw['resultado'] for x in _eq_m for sw in x['semanas'] if sw.get('mes') == _m_as and sw.get('semana_mes') == _n and sw['resultado'] is not None]
+                nv = sum(1 for r in rs if r == 'V')
+                if (not rs or nv == 0) and _aberta:
+                    res, pt = 'J', 0
+                elif not rs or nv == 0:
+                    res, pt = 'D', FAIXAS['derrota']['pontos_tabela']
+                elif nv > len(rs) / 2:
+                    res, pt = 'V', FAIXAS['vitoria']['pontos_tabela']
+                else:
+                    res, pt = 'E', FAIXAS['empate']['pontos_tabela']
+                _slist.append({'n': len(_slist) + 1, 'mes': _m_as, 'semana_mes': _n, 'resultado': res, 'vitorias_equipe': nv, 'total': len(rs), 'pts_tabela': pt})
+
     _vend_as = []
-    for v in _api_as['vendedores']:
-        _m = rca_map.get(str(v['rca']))
-        if not _m or _m['canal'] != 'AS' or v['filial'] not in FILIAIS_VALIDAS:
-            continue
-        _fases, _bonus = v.get('fases') or [], v.get('bonus') or []
-        _sem = []
-        for n in range(1, len(AS_SEMANAS) + 1):
-            pl = _lan_sem.get(str(v['rca']), {}).get(n, 0)
-            # faseamento (cortes fixos nos dias 7/14/20/fim, inegociaveis) entra na semana de trabalho em que cai o dia do corte
-            pf = sum(f['ganhou'] for f in _fases if f.get('data') and str(f['data']).startswith(MES_AS) and semana_as(f['data']) == n)
-            pb = sum(b['ganhou'] for b in _bonus if b.get('quando') and semana_as(b['quando']) == n)
-            score = pl + pf + pb
-            jogada = semana_as_jogada(n)
-            res, pt = (julgar_semana_as(score, n) if jogada else (None, 0))
-            if jogada and res == 'D' and semana_as_aberta(n):
-                res, pt = 'J', 0   # semana em andamento: ainda sem resultado
-            _sem.append({'n': n, 'pts_lances': pl, 'pts_faseamento': pf, 'pts_bonus': pb, 'score': score, 'jogada': jogada, 'resultado': res, 'pts_tabela': pt})
-        _jog = [s for s in _sem if s['jogada'] and s['resultado'] != 'J']
+    for _acc in _vend_acc.values():
+        _jog = [s for s in _acc['semanas'] if s['jogada'] and s['resultado'] != 'J']
         _pts_tab = sum(s['pts_tabela'] for s in _jog)
         _vend_as.append({
-            'rca': str(v['rca']), 'nome': v['nome'], 'filial': v['filial'], 'supervisor': _m['sup'], 'gerente': _m['gerente'],
-            'meta_mes': v.get('meta_mes'), 'pct_hoje': v.get('pct_hoje'), 'fases': _fases, 'bonus': _bonus,
-            'semanas': _sem, 'jogos': len(_jog), 'vitorias': sum(1 for s in _jog if s['resultado'] == 'V'), 'empates': sum(1 for s in _jog if s['resultado'] == 'E'),
-            'derrotas': sum(1 for s in _jog if s['resultado'] == 'D'), 'pts_tabela': _pts_tab,
-            'aprov': round(_pts_tab / (len(_jog) * 3) * 100, 1) if _jog else 0, 'forma': [s['resultado'] for s in _sem if s['jogada']],   # inclui o J da semana em andamento (bolinha J, igual ao Varejo)
+            **_acc,
+            'jogos': len(_jog),
+            'vitorias': sum(1 for s in _jog if s['resultado'] == 'V'),
+            'empates': sum(1 for s in _jog if s['resultado'] == 'E'),
+            'derrotas': sum(1 for s in _jog if s['resultado'] == 'D'),
+            'pts_tabela': _pts_tab,
+            'aprov': round(_pts_tab / (len(_jog) * 3) * 100, 1) if _jog else 0,
+            'forma': [s['resultado'] for s in _acc['semanas'] if s['jogada']],
             'pontos': sum(s['score'] for s in _jog),
-            'pts_lances': sum(s['pts_lances'] for s in _sem), 'pts_faseamento': sum(s['pts_faseamento'] for s in _sem), 'pts_bonus': sum(s['pts_bonus'] for s in _sem)
         })
     _vend_as.sort(key=lambda x: (x['pts_tabela'], x['vitorias'], x['pontos'], x['pct_hoje'] if x['pct_hoje'] is not None else -999), reverse=True)
     for idx, v in enumerate(_vend_as):
@@ -665,43 +720,30 @@ try:
         for idx, v in enumerate([x for x in _vend_as if x['filial'] == fil]):
             v['pos_filial'] = idx + 1
     _sup_as = []
-    for sp in _api_as.get('supervisores', []):
-        # SUPERVISOR NA LIGA AS SO SE A MAIORIA DA EQUIPE FOR AS (Vitorio, 19/10/2026: gerente da TCA: "Jose Francisco nao e AS", 12 Varejo e 1 AS).
-        # Empate fica nas duas ligas. O vendedor AS de supervisor de Varejo continua na Artilharia AS normalmente.
-        _cc = CANAL_EQUIPE_TODOS.get((sp['filial'], sp['supervisor'])) or _cont_canal.get((sp['filial'], sp['supervisor'])) or {}
-        if _cc.get('VAREJO', 0) > _cc.get('AS', 0):
-            continue
-        _eq = [v for v in _vend_as if v['filial'] == sp['filial'] and v['supervisor'] == sp['supervisor']]
-        _forma, _pts, _vit, _emp, _der, _sems = [], 0, 0, 0, 0, []
-        for n in range(1, len(AS_SEMANAS) + 1):
-            if not semana_as_jogada(n):
-                continue
-            rs = [v['semanas'][n - 1]['resultado'] for v in _eq if v['semanas'][n - 1]['resultado'] is not None]
-            nv = sum(1 for r in rs if r == 'V')
-            if (not rs or nv == 0) and semana_as_aberta(n):
-                res, pt = 'J', 0   # semana em andamento (15/10/2026)
-            elif not rs or nv == 0:
-                res, pt = 'D', FAIXAS['derrota']['pontos_tabela']
-            elif nv > len(rs) / 2:
-                res, pt = 'V', FAIXAS['vitoria']['pontos_tabela']
-            else:
-                res, pt = 'E', FAIXAS['empate']['pontos_tabela']
-            if res == 'J':
-                _sems.append({'n': n, 'resultado': 'J', 'vitorias_equipe': nv, 'total': len(rs), 'pts_tabela': 0}); _forma.append('J'); continue
-            _forma.append(res); _pts += pt; _sems.append({'n': n, 'resultado': res, 'vitorias_equipe': nv, 'total': len(rs), 'pts_tabela': pt})
-            _vit += res == 'V'; _emp += res == 'E'; _der += res == 'D'
+    for _ks, _sm in _sup_meta.items():
+        _eq = [v for v in _vend_as if v['filial'] == _sm['filial'] and v['supervisor'] == _sm['supervisor']]
+        _sems = _sup_sems_acc.get(_ks, [])
+        _jog_s = [s for s in _sems if s['resultado'] != 'J']
+        _pts = sum(s['pts_tabela'] for s in _jog_s)
+        _vit = sum(1 for s in _jog_s if s['resultado'] == 'V')
+        _emp = sum(1 for s in _jog_s if s['resultado'] == 'E')
+        _der = sum(1 for s in _jog_s if s['resultado'] == 'D')
         _sup_as.append({
-            'supervisor': sp['supervisor'], 'filial': sp['filial'], 'gerente': (_eq[0]['gerente'] if _eq else ''), 'total_vendedores': sp['vendedores'], 'com_meta': sp['com_meta'],
-            'meta_mes': sp.get('meta_mes'), 'pct_hoje': sp.get('pct_hoje'), 'fases': sp.get('fases'), 'bonus': sp.get('bonus'), 'pontos_faseamento': sp.get('pontos', 0),
-            'jogos': len([x for x in _forma if x != 'J']), 'vitorias': _vit, 'empates': _emp, 'derrotas': _der, 'pts_tabela': _pts, 'forma': _forma, 'semanas': _sems,
-            'aprov': round(_pts / (len([x for x in _forma if x != 'J']) * 3) * 100, 1) if [x for x in _forma if x != 'J'] else 0, 'pts_lances_equipe': sum(v['pts_lances'] for v in _eq)
+            'supervisor': _sm['supervisor'], 'filial': _sm['filial'], 'gerente': (_eq[0]['gerente'] if _eq else ''),
+            'total_vendedores': _sm['vendedores'], 'com_meta': _sm['com_meta'],
+            'meta_mes': _sm['meta_mes'], 'pct_hoje': _sm['pct_hoje'], 'fases': _sm['fases'], 'bonus': _sm['bonus'],
+            'pontos_faseamento': _sm['pontos_faseamento_total'],
+            'jogos': len(_jog_s), 'vitorias': _vit, 'empates': _emp, 'derrotas': _der, 'pts_tabela': _pts,
+            'forma': [s['resultado'] for s in _sems], 'semanas': _sems,
+            'aprov': round(_pts / (len(_jog_s) * 3) * 100, 1) if _jog_s else 0,
+            'pts_lances_equipe': sum(v['pts_lances'] for v in _eq)
         })
     _sup_as.sort(key=lambda x: (x['pts_tabela'], x['pontos_faseamento'], x['vitorias'], x['pct_hoje'] if x['pct_hoje'] is not None else -999), reverse=True)
     for idx, x in enumerate(_sup_as):
         x['pos'] = idx + 1
     bloco_as['vendedores'] = _vend_as
     bloco_as['supervisores'] = _sup_as
-    print(f"Liga AS: {len(_vend_as)} vendedores e {len(_sup_as)} supervisores (mes {MES_AS})")
+    print(f"Liga AS: {len(_vend_as)} vendedores e {len(_sup_as)} supervisores (temporada {'+'.join(MESES_AS)})")
 except Exception as _e:
     bloco_as['erro'] = str(_e)[:200]
     print('Aviso: nao consegui montar o bloco da Liga AS (as tabelas do AS ficam vazias):', _e)

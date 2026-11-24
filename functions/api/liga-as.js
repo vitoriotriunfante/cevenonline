@@ -26,15 +26,36 @@ export async function onRequestGet({ env, request }) {
       if (fFil && filial !== fFil) continue;
       for (const v of Array.isArray(lista) ? lista : []) if (v && v.rca != null && ['AS', 'PET AS'].includes(String(v.canal || '').toUpperCase()) && v.mostra !== false && participa(v, 'liga')) pessoas.push({ filial, rca: String(v.rca), nome: v.nome, supervisor: v.supervisor || '' });
     }
-    const { results } = await env.DB.prepare(
-      `SELECT data_ref AS dia, filial_sigla AS filial, CAST(rca_codigo AS TEXT) AS rca,
-              CAST(json_extract(dashboard_json, '$.financeiro.meta') AS REAL) AS meta,
-              CAST(json_extract(dashboard_json, '$.financeiro.faturado') AS REAL) AS faturado,
-              CAST(json_extract(dashboard_json, '$.financeiro.pendente') AS REAL) AS pendente
-         FROM varredura_central_rca WHERE data_ref >= ? AND data_ref <= ? AND dashboard_json IS NOT NULL AND json_valid(dashboard_json)`
-    ).bind(`${mes}-01`, `${mes}-31`).all();
+    const [{ results }, { results: gerotFotos }, { results: gerotLive }] = await Promise.all([
+      env.DB.prepare(
+        `SELECT data_ref AS dia, filial_sigla AS filial, CAST(rca_codigo AS TEXT) AS rca,
+                CAST(json_extract(dashboard_json, '$.financeiro.meta') AS REAL) AS meta,
+                CAST(json_extract(dashboard_json, '$.financeiro.faturado') AS REAL) AS faturado,
+                CAST(json_extract(dashboard_json, '$.financeiro.pendente') AS REAL) AS pendente
+           FROM varredura_central_rca WHERE data_ref >= ? AND data_ref <= ?${fFil ? ' AND filial_sigla = ?' : ''} AND dashboard_json IS NOT NULL AND json_valid(dashboard_json)`
+      ).bind(`${mes}-01`, `${mes}-31`, ...(fFil ? [fFil] : [])).all().catch(() => ({ results: [] })),
+      env.DB.prepare(
+        `SELECT dia, filial, rca, meta, faturado, pendente
+           FROM liga_as_foto_dia WHERE dia >= ? AND dia <= ?${fFil ? ' AND filial = ?' : ''}`
+      ).bind(`${mes}-01`, `${mes}-31`, ...(fFil ? [fFil] : [])).all().catch(() => ({ results: [] })),
+      mes === hoje.slice(0, 7)
+        ? env.DB.prepare(
+            `SELECT filial, CAST(CAST(rca AS INTEGER) AS TEXT) AS rca,
+                    SUM(COALESCE(json_extract(dados, '$."Meta (R$)"'), 0)) AS meta,
+                    SUM(COALESCE(json_extract(dados, '$."Faturado líquido (R$)"'), 0)) AS faturado,
+                    SUM(COALESCE(json_extract(dados, '$."Carteira pendente (R$)"'), 0)) AS pendente
+               FROM gerot_vendedor_mes
+              WHERE mes = ?${fFil ? ' AND filial = ?' : ''} AND rca NOT LIKE '%|%' AND CAST(rca AS INTEGER) > 0
+              GROUP BY filial, CAST(CAST(rca AS INTEGER) AS TEXT)`
+          ).bind(mes, ...(fFil ? [fFil] : [])).all().catch(() => ({ results: [] }))
+        : Promise.resolve({ results: [] })
+    ]);
     const foto = new Map(); // filial|rca -> {dia: {meta, faturado, pendente}}
     for (const r of results || []) { const k = r.filial + '|' + r.rca; if (!foto.has(k)) foto.set(k, {}); foto.get(k)[r.dia] = { meta: r.meta, faturado: r.faturado, pendente: r.pendente }; }
+    for (const r of gerotFotos || []) { const k = r.filial + '|' + r.rca; if (!foto.has(k)) foto.set(k, {}); foto.get(k)[r.dia] = { meta: r.meta, faturado: r.faturado, pendente: r.pendente }; }
+    if (mes === hoje.slice(0, 7)) {
+      for (const r of gerotLive || []) { const k = r.filial + '|' + r.rca; if (!foto.has(k)) foto.set(k, {}); foto.get(k)[hoje] = { meta: r.meta, faturado: r.faturado, pendente: r.pendente }; }
+    }
 
     const vendedores = pessoas.map((p) => {
       const snaps = foto.get(p.filial + '|' + p.rca) || {};
@@ -49,7 +70,7 @@ export async function onRequestGet({ env, request }) {
     })).sort((a, b) => b.pontos - a.pontos || a.filial.localeCompare(b.filial));
     for (const v of vendedores) delete v._snaps;
     vendedores.sort((a, b) => b.pontos - a.pontos || (b.pct_hoje || 0) - (a.pct_hoje || 0));
-    return resp({ mes, hoje, modo: AS_MODO, vale_pontos_desde: AS_VALE_DESDE, regras: { fases: AS_FASES, bonus: AS_BONUS, base: '(faturado + pendente) / meta do mes, igual ao % do app do CEVEN' },
+    return resp({ mes, hoje, modo: AS_MODO, vale_pontos_desde: AS_VALE_DESDE, regras: { fases: AS_FASES, bonus: AS_BONUS, base: '(faturado + pendente) / meta do mês (GEROT ao vivo e fotos diárias; histórico até 16/11 via CEVEN)' },
       totais: { vendedores: vendedores.length, vendedores_com_meta: vendedores.filter((v) => v.meta_mes > 0).length, supervisores: supervisores.length }, supervisores, vendedores });
   } catch (e) {
     return resp({ erro: String(e.message || e).slice(0, 300) }, 500);

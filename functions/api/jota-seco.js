@@ -17,9 +17,12 @@ export async function onRequestPost({ request, env }) {
   const c = b && b.contato; if (!c || !c.papel) return new Response(JSON.stringify({ erro: 'contato com papel obrigatorio' }), { status: 400 });
   const out = [];
   const feitas = [];   // conversa: true = cada pergunta leva as anteriores (a mais recente primeiro), como no WhatsApp
+  let ultOut = null;
   for (const q of (Array.isArray(b.perguntas) ? b.perguntas : []).slice(0, 6)) {
     const B = criaBase(new URL(request.url).origin, env), t0 = Date.now(); B.seco = true;   /* 21/11/2026: auditoria nao grava sugestao/contestacao (a bateria real repetia as contestacoes antigas como novas) */
-    let r = null; try { r = await respostaPronta(B, { ...c }, String(q), b.conversa ? feitas.slice().reverse() : []); feitas.push(String(q)); if (typeof r === 'string') { const { acabamento } = await import('../_lib/jota/acabamento.js'); r = await acabamento(B, env, r); } } catch (e) { r = 'ERRO: ' + String(e && e.message || e).slice(0, 200); }
+    if (b.conversa && ultOut != null) B.ultOut = ultOut;
+    let r = null; try { r = await respostaPronta(B, { ...c }, String(q), b.conversa ? feitas.slice().reverse() : []); if (r == null && b.com_ia) { const { respondeIA } = await import('../_lib/jota/entende.js'); r = await respondeIA(env, B, { ...c }, String(q), []); } feitas.push(String(q)); if (typeof r === 'string') { const { acabamento } = await import('../_lib/jota/acabamento.js'); r = await acabamento(B, env, r); } } catch (e) { r = 'ERRO: ' + String(e && e.message || e).slice(0, 200); }
+    if (b.conversa && r != null) ultOut = String(r);
     out.push({ pergunta: q, resposta: r == null ? null : String(r), ms: Date.now() - t0 });
   }
   return new Response(JSON.stringify(out), { headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' } });

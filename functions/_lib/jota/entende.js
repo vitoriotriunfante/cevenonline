@@ -31,7 +31,7 @@ export function juntaComAnterior(texto, anteriores) {
   // pergunta nova e completa (cliente pelo codigo, frase longa com assunto proprio) nao gruda na anterior (27/10/2026: "quero saber APENAS se o cliente codigo 1891
   // comprou" virou a carteira da Nilva)
   if (/\bCLIENTE\b.{0,25}\d{3,}|\bPEDIDO\b.{0,15}\d{7,}/.test(t) || (t.split(/\s+/).length > 9 && !/^(DESSES|DESTES|DELES|DESSAS|DESTAS|DELAS)\b/.test(t))) return texto;
-  const modificador = /^(DESSES|DESTES|DELES|DESSAS|DESTAS|DELAS)\b|^(E|E O|E A|E NO|E NA|E DO|E DA|E OS|E AS)\b|^(APENAS|SO|SOMENTE|AGORA)\b|^(QUERO|QUERIA|PRECISO)( SABER)? (APENAS|SO|SOMENTE)\b|^(DO|DA|NO|NA) (MES|SEMANA|DIA)\W*$|^(DE |EM )?(ONTEM|HOJE)\W*$|^(POR|ABERTO POR|ABERTA POR) (VENDEDOR|SUPERVISOR|FILIAL|CLIENTE|INDUSTRIA)|^SIM\b|^(QUAIS|QUEM) SAO( ELES| ELAS)?\W*$|^(EM|DE) (TPH|ABC|API|TBL|TCV|TSJ|TCA|TBE|TPA|MCD|TCG)\W*$|^\W*(VER MAIS|MAIS|MOSTRA(R)? MAIS|ABRIR( A)? LISTA|ABRE( A)? LISTA|LISTA COMPLETA|QUERO VER (TODOS|MAIS|A LISTA)|RESTANTE|RESTO|OUTROS? \d+|MAIS \d+|CONTINUA(CAO)?|PROXIMOS?)\b|^\W*(E\s+)?(DE\s+)?CADA\s+UM(\s+DELES|\s+DELAS)?\W*$/i.test(t);
+  const modificador = /^(DESSES|DESTES|DELES|DESSAS|DESTAS|DELAS)\b|^(E|E O|E A|E NO|E NA|E DO|E DA|E OS|E AS)\b|^(APENAS|SO|SOMENTE|AGORA)\b|^(QUERO|QUERIA|PRECISO)( SABER)? (APENAS|SO|SOMENTE)\b|^(DO|DA|NO|NA) (MES|SEMANA|DIA)\W*$|^(DE |EM )?(ONTEM|HOJE)\W*$|^(POR|ABERTO POR|ABERTA POR) (VENDEDOR|SUPERVISOR|FILIAL|CLIENTE|INDUSTRIA)|^SIM\b|^(QUAIS|QUEM) SAO( ELES| ELAS)?\W*$|^(EM|DE) (TPH|ABC|API|TBL|TCV|TSJ|TCA|TBE|TPA|MCD|TCG)\W*$|^\W*(VER MAIS|MAIS|MOSTRA(R)? MAIS|ABRIR( A)? LISTA|ABRE( A)? LISTA|LISTA COMPLETA|QUERO VER (TODOS|MAIS|A LISTA)|RESTANTE|RESTO|OUTROS? \d+|MAIS \d+|CONTINUA(CAO)?|PROXIMOS?)\W*$|^\W*(E\s+)?(DE\s+)?CADA\s+UM(\s+DELES|\s+DELAS)?\W*$/i.test(t);
   if (!modificador) return texto;
   const ta = sem(ant);
   if (/^SIM\b/.test(t) && !/\d{7,}/.test(t) && /\d{7,}/.test(ta)) return texto + ' ' + (ta.match(/\d{7,}/) || [''])[0];   /* "sim, ...faturou o pedido" + numero anterior */
@@ -68,8 +68,9 @@ export async function respostaPronta(B, c, texto0, anteriores) {
   const abre = /\bBRASIL\b|TODAS AS FILIAIS|NACIONAL|GRUPO TODO|\bREDE\b|POR FILIAL/.test(t0);
   const ehPerguntaRotaGeral = /^(ROTA|VISITAS?|VENDAS?(\s*X\s*ROTA)?)\s*(HOJE|HJ)?$/i.test(t0) || /\b(VENDAS?\s*X\s*ROTA|ROTA\s*HOJE|ROTA\s*HJ|VISITAS?\s*HOJE)\b/i.test(t0);
   const equipe = ehPerguntaRotaGeral || /\bEQUIPE\b|\bTIME\b|\bFILIAL\b|DOS VENDEDORES|TODOS (OS )?VENDEDORES|POR SUPERVISOR|POR VENDEDOR|UM POR UM|ZERADOS|RANKING|SEM VISITA|SEM NENHUMA VISITA/.test(t0);
-  if ((c.papel === 'diretoria' || c.papel === 'ceo') && !filCit && !abre && ctx.filial) texto += ' ' + ctx.filial;   /* filial da conversa */
-  const ehSobreOutroTema = /CLIENTE|LOJA|REDE|#\d+|HIST[OÓ]RI|FIGURINHA|STICKER|TODAS?|TODOS?|TAG|P10|P11|CAMPANHA|RECORRENCIA|PEDIDO|NOTA|SUGEST|BOM DIA|BOA TARDE|GERENTE|SUPERVISOR/.test(t0);
+  const ehRecT0 = (/\b(SERIO QUE|CAGAD\w*|DIVAGOU|UMA BOSTA|UMA MERDA|PORCARIA|HORRIVEL)\b|^\W*(VOCE|VC|MAS VOCE|MAS VC) (SO |NAO |RESPONDEU|DIVAGOU|MOSTROU)|FOI ISSO QUE PERGUNTEI|NAO E ISSO QUE|DE NOVO VOCE|PRECISA AJ?USTAR AS RESPOSTAS/.test(t0)) && !/\b\d{2,}\b/.test(t0) && !/ROTA|META|POSITIVA|LIGA|CURVA|MIX|RECORR|DEVOLU/.test(t0);
+  if ((c.papel === 'diretoria' || c.papel === 'ceo') && !filCit && !abre && !ehRecT0 && ctx.filial) texto += ' ' + ctx.filial;   /* filial da conversa */
+  const ehSobreOutroTema = ehRecT0 || /CLIENTE|LOJA|REDE|#\d+|HIST[OÓ]RI|FIGURINHA|STICKER|TODAS?|TODOS?|TAG|P10|P11|CAMPANHA|RECORRENCIA|PEDIDO|NOTA|SUGEST|BOM DIA|BOA TARDE|GERENTE|SUPERVISOR/.test(t0);
   const ehContinuacaoVend = !ehPerguntaRotaGeral && /^(E\b|E O\b|E A\b|E DELE|E DELA|E HOJE|E ONTEM|E NO MES|FALTA|QUANTO FALTA|COMO FOI|COMO ESTA|DETALHE|VER MAIS|MOSTRA(R)? MAIS|RESTANTE|RESTO|OUTROS|\+ ?MIX|MAIS ?MIX)/.test(t0);
   B._ctxVend = !abre && !equipe && !ehSobreOutroTema && ehContinuacaoVend && (!filCit || !ctx.vend || ctx.vend.filial === filCit) ? ctx.vend || null : null;   /* vendedor da conversa só herdado em continuação direta */
   B._ctxAssunto = ctx.assunto || null;
@@ -343,8 +344,12 @@ export async function respostaInterna(B, c, texto, anteriores) {
   // 16/11/2026 (Allison/TPH 20:02: "Como foi a venda da minha equipe hj?" -> painel do MES): 'hj' = hoje; supervisor/gerente perguntando do DIA da equipe
   // (sem citar vendedor nem mes) = o dia da equipe pelo Clube, com meta do dia, pior vendedor primeiro e quem ficou na mesa.
   t = t.replace(/\bHJ\b/g, 'HOJE');
+  const tOrig = (B._t0 || t).replace(/\bHJ\b/g, 'HOJE');
+  const ehReclamacaoMsg = (/\b(SERIO QUE|CAGAD\w*|DIVAGOU|UMA BOSTA|UMA MERDA|PORCARIA|HORRIVEL)\b|^\W*(VOCE|VC|MAS VOCE|MAS VC) (SO |NAO |RESPONDEU|DIVAGOU|MOSTROU)|FOI ISSO QUE PERGUNTEI|NAO E ISSO QUE|DE NOVO VOCE|PRECISA AJ?USTAR AS RESPOSTAS/.test(tOrig)) && !/\b\d{2,}\b/.test(tOrig) && !/ROTA|META|POSITIVA|LIGA|CURVA|MIX|RECORR|DEVOLU/.test(tOrig);
+  if (ehReclamacaoMsg) return 'Entendi, a resposta anterior não atendeu, e registrei isso. Me diga em uma linha o que você quer ver: quem (filial, supervisor ou vendedor), qual indicador e qual período.';
+  const ehAnaliticaExec = Boolean(c && /^(diretoria|ceo|gerente|admin)$/i.test(String(c.papel || '')) && /INDUSTRI|FORNECEDOR/.test(t) && (/SEM VEND|NAO VEND|ZERAD/.test(t) || (/\b(QUANTAS|QUAIS|POR QUE|PORQUE|QUAL O MOTIVO|ANALISE|DIAGNOSTIC|ESTRATEG)\b/.test(t) && /HOJE|META/.test(t))));
   // ROTEADOR POR INTENCAO (17/11/2026, plano bloco 1): reconhece a intencao e chama UMA resposta; o que nao reconhece segue o roteamento antigo
-  { const { rotearIntencao } = await import('./intencao.js'); const ri = await rotearIntencao(B, c, (B._t0 && t.startsWith(B._t0) ? B._t0 : t).replace(/\bHJ\b/g, 'HOJE'), { esc, rcaV, fil, anteriores, interno: (q) => { B._t0 = null; return respostaInterna(B, c, q, anteriores); } }).catch(() => null); if (ri) return ri; }
+  if (!ehAnaliticaExec) { const { rotearIntencao } = await import('./intencao.js'); const ri = await rotearIntencao(B, c, (B._t0 && t.startsWith(B._t0) ? B._t0 : t).replace(/\bHJ\b/g, 'HOJE'), { esc, rcaV, fil, anteriores, interno: (q) => { B._t0 = null; return respostaInterna(B, c, q, anteriores); } }).catch(() => null); if (ri) return ri; }
   // 17/11/2026: antes de o dia comecar (antes das 7h, ou sem visita nem venda), pergunta do DIA da equipe = rota planejada + ultimo dia util
   if (!rcaV && (c.papel === 'supervisor' || c.papel === 'gerente') && /\b(HOJE|ZERAD\w*|ROTA|VISITAS?|SEM PEDIDO|FECHAMENTO DO DIA)\b/.test(t) && !/\bMES\b|CURVA|LIGA|CHAMPI|DEVOLU|RECORR|INDUSTRIA|PEDIDO\D{0,6}\d/.test(t)) {
     try { const E0 = await carregaEscopo(B, esc), ps = achaPessoa(E0, t); if (!(ps && ps.tipo === 'vend')) { const pd = await respPreDia(B, E0); if (pd) return pd; } } catch (e) { /* segue */ }
@@ -352,7 +357,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
   if (!rcaV && (c.papel === 'supervisor' || c.papel === 'gerente') && /\bHOJE\b/.test(t) && /EQUIPE|TIME|MEU|MINHA|VENDA|VENDEU|VENDEMOS|NUMEROS|RESULTADO|DIGITAD|COMO (ESTA|FOI|TA)|ATUALIZ/.test(t) && !/\bMES\b|CURVA|LIGA|CHAMPI|ROTA DE HOJE|ZERAD|DEVOLU|BLOQUEAD|RECORR|INDUSTRIA|PEDIDO\D{0,6}\d/.test(t)) {
     try { const E0 = await carregaEscopo(B, esc), ps = achaPessoa(E0, t); if (!(ps && ps.tipo === 'vend')) { const r = await respHojeEquipe(B, E0); if (r) return r; } } catch (e) { /* segue o caminho de antes */ }
   }
-  if (/^(OI+|OLA+|E AI|AJUDA|MENU|INICIO|COMECAR|BOM DIA+|BOA TARDE|BOA NOITE)\b[ !?.]*$|O QUE (VOCE|VC) (SABE|FAZ|RESPONDE)|^AJUDA/.test(t)) return respAjuda(c);
+  if (/^\W*(OI+|OLA+|E AI|AJUDA|MENUS?|INICIO|COMECAR|BOM DIA+|BOA TA?RDE+|BOA RA+RDE+|BOA NOITE+|FALA+(?: PRA MIM)?)\b(?:\W+JOTA\b)?[ !?.,]*$|O QUE (VOCE|VC) (SABE|FAZ|RESPONDE)|^AJUDA/.test(tOrig)) return respAjuda(c);
   if (/O QUE (E|EH|SIGNIFICA)|COMO FUNCIONA|COMO (E|EH) CALCULAD|QUE QUER DIZER|DEFINICAO/.test(t)) { const g = respGlossario(t); if (g) return g; }
   // POSICAO DO SUPERVISOR NO BRASIL (Washington/API, 01/11/2026: "Fechamento time nivel Brasil", "minha posicao ranking nivel Brasil supervisor"): a posicao e dele; os numeros dos outros nao aparecem.
   if (c.papel === 'supervisor' && c.supervisor && B.env && B.env.DB && ((/RANKING|POSICAO|COLOCACAO|\bLUGAR\b/.test(t) && /BRASIL|SUPERVISOR/.test(t)) || (/FECHAMENTO/.test(t) && /BRASIL/.test(t)))) {
@@ -487,23 +492,35 @@ export async function respostaInterna(B, c, texto, anteriores) {
         if (/recorrencia/i.test(chave) && B.env && B.env.DB) { try {
           const g = await B.env.DB.prepare(/* 23/11/2026 (conflito 13): so a pasta atual */ "SELECT r.objetivo, r.meta, r.positivados, r.faturado, r.em, 1 pastas FROM gerot_recorrencia_pasta r WHERE r.mes = ? AND r.filial = ? AND r.nivel = 'vendedor' AND r.cod = ? ORDER BY (r.sup = (SELECT g.cod_sup FROM gerot_vendedor_mes g WHERE g.mes = r.mes AND g.filial = r.filial AND CAST(g.rca AS INTEGER) = CAST(r.cod AS INTEGER) ORDER BY coalesce(json_extract(g.dados, '$.\"Faturado líquido (R$)\"'), 0) DESC LIMIT 1)) DESC, r.em DESC LIMIT 1").bind(hojeSP().slice(0, 7), String(c.filial || ''), String(rcaV)).first();
           if (g && g.objetivo != null) r = [`🎯 *Meta de recorrência (GEROT)*: objetivo *${N(g.objetivo)}* clientes · meta 80% = *${N(g.meta || 0)}* · positivados *${N(g.positivados || 0)}*` + (g.meta ? ` (${(g.positivados / g.meta * 100).toFixed(1).replace('.', ',')}% da meta · faltam *${N(Math.max(0, g.meta - g.positivados))}*)` : '') + (g.faturado != null ? ` · ${R$(g.faturado)}` : ''),
-            '_Lista do dia 1º do GEROT: clientes com compra de 31 a 90 dias e nenhuma nos 30 dias antes do dia 1º._', '', String(r)].join('\n');
+            '_Lista do dia 1º do GEROT (meta 80% da premiação): clientes com compra de 31 a 90 dias e nenhuma nos 30 dias antes do dia 1º. Abaixo ficam os clientes com a *TAG Recorrência* no roteiro/CEVEN._', '', String(r)].join('\n');
         } catch (e) { /* sem GEROT: fica a TAG do CEVEN */ } }
         // vendedor nao tem equipe: tira os blocos de equipe vazios (auditoria 10/11/2026, devolucoes)
         r = String(r == null ? 'Sem dado agora.' : r).split('\n').filter((l, i, a) => !(/^\*(Por supervisor|Vendedores com mais devolu[cç][aã]o):\*$/.test(l) && !/^(•|\d)/.test(a[i + 1] || '')) && !/^_Fonte: painel do CEVEN, só vendedores ativos/.test(l)).join('\n');
         return r + '\n' + rodape(k);
       };
       // 3 MOMENTOS (11/11/2026): 'mais' depois do plano/meio/fechamento do dia = o menu completo
-      if (/〔M:/.test(ult) && /^\W*(ESCREVA |VER |QUERO )?MAIS\W*$/.test(t)) return respMenuVendedor(c);
+      if (/〔M:/.test(ult) && /^\W*(ESCREVA |VER |QUERO )?MAIS\W*$/.test(tOrig)) return respMenuVendedor(c);
       // VER MAIS (10/11/2026: o resumo manda pedir "ver mais" e o indice devolvia o menu): abre a lista que a ultima resposta prometeu
-      if (/^\W*(VER MAIS|MAIS|MOSTRA(R)? MAIS|LISTA COMPLETA|VER (A )?LISTA|VER (O )?RESTANTE|VER (OS )?OUTROS)\W*$/.test(t)) {
-        const Ev = await carregaEscopo(B, esc), v = Ev.vend[0], mk = ult.match(/〔(\d{1,2})〕/);
-        if (v && /para ver a lista de clientes/.test(ult)) return String(await respVendedor(B, Ev, v, { tudo: true })) + '\n' + rodape(mk ? Number(mk[1]) : 1);
-        // curva negativa (5): "ver mais" abre o resto da lista (auditoria Giovana 10/11/2026: voltava ao menu)
-        if (mk && MENU_VENDEDOR[Number(mk[1]) - 1] && MENU_VENDEDOR[Number(mk[1]) - 1][1] === '__curva__') return String(await interno(`curva negativa do ${eu} ver mais`)) + '\n' + rodape(Number(mk[1]));
+      if (/^\W*(VER MAIS|MAIS|MOSTRA(R)? MAIS|LISTA COMPLETA|VER (A )?LISTA|VER (O )?RESTANTE|VER (OS )?OUTROS)\W*$/.test(tOrig)) {
+        const Ev = await carregaEscopo(B, esc), v = (Ev.vend || []).find((x) => String(x.rca) === String(rcaV)) || Ev.vend[0], mk = ult.match(/〔(\d{1,2})〕/);
+        const abreListaPos = async (kFallback) => {
+          const out = String(await respVendedor(B, Ev, v, { tudo: true }));
+          if (/sem o roteiro do mês na base/.test(out)) return String(await interno(`curva negativa do ${eu} ver mais`)) + '\n' + rodape(5);
+          return out + '\n' + rodape(mk ? Number(mk[1]) : kFallback);
+        };
+        if (v && /para ver a lista de clientes/i.test(ult)) return await abreListaPos(1);
+        // curva negativa (5): "ver mais" / "mais" abre o resto da lista (auditoria Giovana / Graciela: funcionava so via menu)
+        if ((mk && MENU_VENDEDOR[Number(mk[1]) - 1] && MENU_VENDEDOR[Number(mk[1]) - 1][1] === '__curva__') || /Curva negativa\s*[—-]/i.test(ult)) return String(await interno(`curva negativa do ${eu} ver mais`)) + '\n' + rodape(mk ? Number(mk[1]) : 5);
         // campanha aberta pelo numero (15): 'ver mais' = todos os clientes sem compra daquela campanha
         { const tg = ult.match(/^🏷️ \*(.+?) — .+\*\n\*\d+ de \d+\* clientes já compraram/m); if (v && tg && mk && MENU_VENDEDOR[Number(mk[1]) - 1] && MENU_VENDEDOR[Number(mk[1]) - 1][1] === '__campanhas__') return String(await respCampanhasVendedor(B, v, tg[1], true)) + '\n' + rodape(Number(mk[1])); }
         if (mk) { const item = MENU_VENDEDOR[Number(mk[1]) - 1]; if (item && !/^__/.test(item[1])) return String(await interno(item[1].replace('VENDEDOR', eu) + ' ver mais')) + '\n' + rodape(Number(mk[1])); }
+        const ant0 = sem(String((anteriores || [])[0] || ''));
+        if (ant0) {
+          if (/CURVA|SEM COMPRA|NAO COMPR|NAO FORAM POSITIV|NAO POSITIV|INATIV/.test(ant0)) return String(await interno(`curva negativa do ${eu} ver mais`)) + '\n' + rodape(5);
+          if (v && /POSITIV|COMO ESTOU|META|FALTA/.test(ant0) && !/\bINDUSTRI|\bMARCA|\bRECORR/.test(ant0)) return await abreListaPos(1);
+          const kAnt = temaDoTexto(ant0), itemAnt = kAnt ? MENU_VENDEDOR[kAnt - 1] : null;
+          if (itemAnt && !/^__/.test(itemAnt[1])) return String(await interno(itemAnt[1].replace('VENDEDOR', eu) + ' ver mais')) + '\n' + rodape(kAnt);
+        }
       }
       // NUMERO DE UMA LISTA DO TEMA (Vitorio, 10/11/2026): no 15 o numero abre a campanha; no 10 abre o tipo (CNAE) de prospect
       if (nm && !nm[2] && Number(nm[1]) > 0) {
@@ -538,7 +555,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
           } }
         const k = temaDoTexto(t);
         if (k) return abre(k, null);
-        if (!t || /^\W*(MENU|OPCOES|OPCAO|AJUDA|HELP|OI|OLA|BOM DIA|BOA TARDE|BOA NOITE|E AI|FALA)\W*$/.test(t)) return respMenuVendedor(c);
+        if (!t || /^\W*(MENUS?|OPCOES|OPCAO|AJUDA|HELP|OI|OLA|BOM DIA+|BOA TA?RDE+|BOA RA+RDE+|BOA NOITE+|E AI|FALA+(?: PRA MIM)?)\W*(JOTA)?\W*$/.test(tOrig)) return respMenuVendedor(c);
       }
     }
     // PAINEL DAS INDUSTRIAS DA DIRETORIA (Rudinei, 09/11/2026; Vitorio 10/11/2026 'monta'): 'industrias', 'painel das industrias [de outubro]', 'industrias TPH'
@@ -548,7 +565,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
     if (c && /^gerente$/i.test(String(c.papel || '')) && !B.semIndice) {
       const ultG = String(B.ultOut || ''), nmG = t.match(/^\W*(\d{1,2})\W*$/), MO = await import('./respostas/momentos.js'), LMg = await import('./respostas/liga_mix.js');
       const mvG = ultG.match(/〔V:([A-Z]{3}):(\d+)〕/);
-      if (mvG && (nmG || /^\W*(VER MAIS|MAIS|LISTA COMPLETA)\W*$/.test(t)) && mvG[1] === String(c.filial)) {
+      if (mvG && (nmG || /^\W*(VER MAIS|MAIS|LISTA COMPLETA)\W*$/.test(tOrig)) && mvG[1] === String(c.filial)) {
         const Eg = await carregaEscopo(B, esc), v = (Eg.vend || []).find((x) => String(x.rca) === mvG[2]);
         if (v) { const cv = { nome: v.nome, papel: 'vendedor', filial: v.filial, rca: String(v.rca), celular: c.celular }; const o = B.ultOut; B.ultOut = ultG.replace(/\n?_👤 Menu do vendedor[^\n]*〕_?/, ''); let r; try { r = await respostaPronta(B, cv, t, []); } finally { B.ultOut = o; } return String(r) + `\n_👤 Menu do vendedor ${vn(v)} · mande *menu* para voltar 〔V:${v.filial}:${v.rca}〕_`; }
       }
@@ -568,7 +585,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
           const m = await MO.respMomentoSupervisor(B, cs, Es, mg[1] === 'abertura' ? 'abertura' : mg[1]);
           if (m) return m.texto.replace(/^[^\n]*\n/, `👥 *Equipe ${titulo(s.split(' ').slice(0, 2).join(' '))}* (como o supervisor vê)\n`); }
       }
-      if (/〔M[GS]:/.test(ultG) && /^\W*(ESCREVA |VER |QUERO )?MAIS\W*$/.test(t)) return LMg.respAjuda(c);
+      if (/〔M[GS]:/.test(ultG) && /^\W*(ESCREVA |VER |QUERO )?MAIS\W*$/.test(tOrig)) return LMg.respAjuda(c);
     }
     // +MIX SOZINHO PARA GERENTE E DIRETORIA (Vitorio, 11/11/2026: Cleverson MCD mandou '+ mix' e recebeu 1 cliente herdado da conversa): explica que o +MIX
     // e personalizado por cliente x vendedor, pede o codigo e ja mostra o consolidado da equipe (produtos que mais aparecem e uso real)
@@ -579,7 +596,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
     }
     // GERENTE (Vitorio, 10/11/2026: 'do Rudinei, da diretoria e dos gerentes'): o mesmo painel travado na filial dele; nunca o Brasil
     if (c && /^(diretoria|ceo)$/i.test(String(c.papel || '')) && !B.semIndice) {
-      const ultV = String(B.ultOut || ''), mvD = ultV.match(/〔V:([A-Z]{3}):(\d+)〕/), tOrigD = t.replace(/\s+(?:TBE|TSJ|TPH|ABC|TBL|API|MCD|TCV|TCA|TPA|TCG)\s*$/, ''), nmD0 = tOrigD.match(/^\W*(\d{1,2})\W*$/);
+      const ultV = String(B.ultOut || ''), mvD = ultV.match(/〔V:([A-Z]{3}):(\d+)〕/), tOrigD = tOrig.replace(/\s+(?:TBE|TSJ|TPH|ABC|TBL|API|MCD|TCV|TCA|TPA|TCG)\s*$/, ''), nmD0 = tOrigD.match(/^\W*(\d{1,2})\W*$/);
       if (mvD && (nmD0 || /^\W*(VER MAIS|MAIS|LISTA COMPLETA)\W*$/.test(tOrigD))) {
         const Ev = await carregaEscopo(B, { nome: mvD[1], filiais: [mvD[1]], grupo: null, supervisor: null, nacional: false });
         const v = (Ev.vend || []).find((x) => String(x.rca) === mvD[2]);
@@ -592,7 +609,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
       }
     }
     const ehGerP = c && /^gerente$/i.test(String(c.papel || '')) && /^[A-Z]{3}$/.test(String(c.filial || ''));
-    if (c && (/^(diretoria|ceo)$/i.test(String(c.papel || '')) || ehGerP) && !B.semIndice) {
+    if (c && (/^(diretoria|ceo)$/i.test(String(c.papel || '')) || ehGerP) && !B.semIndice && !ehAnaliticaExec) {
       const ultD = String(B.ultOut || ''), mg = ultD.match(/〔G:([^〕]*)〕/), nmD = t.match(/^\W*(\d{1,2})\W*$/);
       const PI0 = await import('./respostas/painel_industrias.js');
       const trava = (cam) => (ehGerP ? { ...cam, fil: String(c.filial) } : cam);
@@ -628,33 +645,37 @@ export async function respostaInterna(B, c, texto, anteriores) {
       const ult = String(B.ultOut || '');
       const internoS = async (q) => { const o = B.semIndice; B.semIndice = true; try { return await respostaPronta(B, c, q, []); } finally { B.semIndice = o; } };
       const nmS = t.match(/^\W*(\d{1,2})(?:[.,](\d{1,2}))?\W*$/);
-      const ehMenu = /^\W*(MENU|INICIO|INDICE|OPCOES|AJUDA|OI|OLA|BOM DIA|BOA TARDE|BOA NOITE)\W*(JOTA)?\W*$/.test(t);
+      const ehMenu = /^\W*(MENUS?|INICIO|INDICE|OPCOES|AJUDA|OI|OLA|BOM DIA+|BOA TA?RDE+|BOA RA+RDE+|BOA NOITE+|FALA+(?: PRA MIM)?)\W*(JOTA)?\W*$/.test(tOrig);
       const rodapeS = (k) => (SUB_SUPERVISOR[k] ? ['', `📌 *Quer detalhar?* Digite o número 〔S${k}〕`, ...SUB_SUPERVISOR[k].map(([rot], i) => `*${i + 1}* ${rot}`), '*0* Voltar ao menu'] : ['', `*0* Voltar ao menu 〔S${k}〕`]).join('\n');
       const equipe = async () => { const Ev = await carregaEscopo(B, esc); return (Ev.vend || []).filter((v) => v.ehVendedorReal !== false).sort((a, b) => Number(a.rca) - Number(b.rca)); };
       // MODO VENDEDOR: o supervisor navega no menu do vendedor escolhido (so vendedor da equipe dele)
       const mv = ult.match(/〔V:([A-Z]{3}):(\d+)〕/);
-      if (mv && !ehMenu && (nmS || /^\W*(VER MAIS|MAIS|LISTA COMPLETA)\W*$/.test(t))) {
+      if (mv && !ehMenu && (nmS || /^\W*(VER MAIS|MAIS|LISTA COMPLETA)\W*$/.test(tOrig))) {
         const eq = await equipe(), v = eq.find((x) => x.filial === mv[1] && String(x.rca) === mv[2]);
         if (v) {
           const cv = { nome: v.nome, papel: 'vendedor', filial: v.filial, rca: String(v.rca), celular: c.celular };
           const o = B.ultOut; B.ultOut = ult.replace(/\n?_👤 Menu do vendedor[^\n]*〕_?/, '');
-          let r; try { r = await respostaPronta(B, cv, t, []); } finally { B.ultOut = o; }
+          let r; try { r = await respostaPronta(B, cv, tOrig, []); } finally { B.ultOut = o; }
           return String(r) + `\n_👤 Menu do vendedor ${vn(v)} · mande *menu* para voltar ao seu 〔V:${v.filial}:${v.rca}〕_`;
         }
       }
       // 3 MOMENTOS DO SUPERVISOR (11/11/2026): 'mais' = menu do supervisor; numero de um vendedor da lista = o menu daquele vendedor
-      if (/〔MS:/.test(ult) && /^\W*(ESCREVA |VER |QUERO )?MAIS\W*$/.test(t)) return respMenuSupervisor(c);
+      if (/〔MS:/.test(ult) && /^\W*(ESCREVA |VER |QUERO )?MAIS\W*$/.test(tOrig)) return respMenuSupervisor(c);
       // 11/11/2026 (Cristiano TSJ digitou 06 = Jair e recebeu o item 6 do menu): o numero depois do momento e o CODIGO do vendedor ('06', '6', 'vendedor 6')
-      const codMS = /〔MS:/.test(ult) ? (t.match(/^\W*(?:VENDEDORA?\s*|RCA\s*|COD\w*\s*)?0*(\d{1,5})\W*$/) || [])[1] : null;
+      const codMS = /〔MS:/.test(ult) ? (tOrig.match(/^\W*(?:VENDEDORA?\s*|RCA\s*|COD\w*\s*)?0*(\d{1,5})\W*$/) || [])[1] : null;
       if (codMS) {
+        const eqS = await equipe();
         const lin = new RegExp('^• \\*' + codMS + ' - ', 'm').test(ult) ? codMS : null;
-        const v = lin && (await equipe()).find((x) => String(x.rca) === lin);
+        const v = eqS.find((x) => String(x.rca) === codMS && (lin || Number(codMS) > MENU_SUPERVISOR.length));
         if (v) return abreVendedorComoEle(B, c, v);
       }
       if (ehMenu || (nmS && Number(nmS[1]) === 0 && !nmS[2])) return respMenuSupervisor(c);
       const abreS = async (k, s) => {
         const item = MENU_SUPERVISOR[k - 1];
-        if (!item) return `Esse número não está no menu. Escolha de 1 a ${MENU_SUPERVISOR.length}.\n\n` + respMenuSupervisor(c);
+        if (!item) {
+          if (s == null) { const vCod = (await equipe()).find((x) => String(x.rca) === String(k)); if (vCod) return abreVendedorComoEle(B, c, vCod); }
+          return `Esse número não está no menu. Escolha de 1 a ${MENU_SUPERVISOR.length}.\n\n` + respMenuSupervisor(c);
+        }
         let chave = item[1];
         if (s != null) { const sub = (SUB_SUPERVISOR[k] || [])[s - 1]; if (!sub) return `A opção ${k}.${s} não existe.` + rodapeS(k); chave = sub[1]; }
         let r;
@@ -709,7 +730,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
         const ehContCliS = Boolean(B._ctxUltCli && (FICHA_ITENS.test(t) || FICHA_OFERTA.test(t) || FICHA_PEDIDOS.test(t) || /\bHISTORIC\w*\b/.test(t)));
         const passaS = /\b\d{7,11}\b/.test(t) /* 16/11/2026: numero de pedido */ || ehMatinalOuLanceS || ehContCliS || /^\W*(ZERAD\w*|SEM PEDIDO|QUEM (ESTA |TA )?ZERAD\w*)\W*$/.test(t) || /CLIENTE\s*#?\s*\d{3,}|#\d{3,}|\b\d{11,14}\b/.test(t) || /^\W*(JOTA\W+)?(TEM|TEMOS|VENDE|VENDEMOS)\s+\S/.test(t) || /^\W*CAMPANHA\s+[A-Z]{3,}/.test(t) || /\b(VENDEDOR|VENDEDORA|RCA|SETOR|COD\w*)\W*\d{2,5}\b|\b\d{2,5}\b/.test(t) || /CODIGO DO CLIENTE/i.test(ult) && /\d{3,}/.test(t);
         let citaVend = false; if (!passaS && /[A-Z]{4,}/.test(t)) { try { const ps = achaPessoa(await carregaEscopo(B, esc), t); citaVend = !!(ps && ps.tipo === 'vend'); } catch (e) { citaVend = false; } }   // 16/11/2026 (Sueli: 'Karina ja vendeu hoje' -> equipe inteira)
-        if (!passaS && !citaVend) { const k = temaDoTextoSup(t); if (k) return abreS(k, null); if (!t || /^\W*(MENU|OPCOES|OPCAO|AJUDA|HELP|OI|OLA|BOM DIA|BOA TARDE|BOA NOITE|E AI|FALA)\W*$/.test(t)) return respMenuSupervisor(c); }
+        if (!passaS && !citaVend) { const k = temaDoTextoSup(t); if (k) return abreS(k, null); if (!t || /^\W*(MENUS?|OPCOES|OPCAO|AJUDA|HELP|OI|OLA|BOM DIA+|BOA TA?RDE+|BOA RA+RDE+|BOA NOITE+|E AI|FALA+(?: PRA MIM)?)\W*(JOTA)?\W*$/.test(tOrig)) return respMenuSupervisor(c); }
       }
     }
     // RESPOSTA OFICIAL DO VENDEDOR PARA QUEM ESTA ACIMA (Vitorio, 11/11/2026: 'cada tipo de pergunta para o vendedor tem que ser a mesma para o andar de cima...
@@ -720,7 +741,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
       if (pessoa && pessoa.tipo === 'vend' && !(pessoa.outroSupervisor && c.papel === 'supervisor')) {
       const { temaDoTexto, MENU_VENDEDOR } = await import('./respostas/liga_mix.js');
       const sT = String(t).replace(new RegExp('\\b(' + sem(String(pessoa.alvo.nome || '')).split(/\s+/).filter((w) => w.length > 2).join('|') + ')\\b', 'g'), ' ');
-      if (/\b(MENU|INDICE|OPCOES)\b/.test(sT) && !/POSITIV|META|ROTA|DEVOLU|CURVA|LIGA|PROSPEC|CAMPANHA|PEDIDO|MIX|CORTES|CARTEIRA|FASEAMENTO/.test(sT)) return abreVendedorComoEle(B, c, pessoa.alvo);
+      if (/\b(MENUS?|INDICE|OPCOES)\b/.test(sT) && !/POSITIV|META|ROTA|DEVOLU|CURVA|LIGA|PROSPEC|CAMPANHA|PEDIDO|MIX|CORTES|CARTEIRA|FASEAMENTO/.test(sT)) return abreVendedorComoEle(B, c, pessoa.alvo);
       // 16/11/2026 (Vitorio: 'Venda Tamara TCV hoje' / 'Quanto a Tamara vendeu hoje' -> caia no item 1 = ficha do MES): pergunta do DIA = o dia cliente a cliente
       if (/\b(HOJE|HJ)\b/.test(sT) && /VEND|DIGIT|PEDID|POSITIV|FEZ|FOI O DIA/.test(sT) && !/\bMES\b|SEMANA|CURVA|ROTA DE HOJE|QUAIS CLIENTES|LIGA|CHAMPI/.test(sT)) return respDiaVendedor(B, E0, pessoa.alvo);
       const k = temaDoTexto(sT);
@@ -817,8 +838,8 @@ export async function respostaInterna(B, c, texto, anteriores) {
   if (/BLOQUEIO COMERCIAL|BLOQUEAD[OA]S? COMERCIAL|QUANTO.*BLOQUEIO/.test(t)) { const r = await respBloqueioComercial(B, await carregaEscopo(B, esc)); if (r) return r; }
   if (/FASEAMENTO.*SEMANA|SEMANA.*FASEAMENTO|\b[1-4][OA°º]?\s*SEMANA\b/.test(t)) return respFaseamentoSemana(B, await carregaEscopo(B, esc), t);
     // SABATINA 01/11/2026 (perguntas reais, respostas de outro assunto): sem "hoje", "nao vendeu" e a carteira do mes, nunca a rota do dia
-    { const mNv = t.match(/^\W*(?:QUAIS )?CLIENTES?(?: QUE)?(.*?)\b(?:NAO VENDEU|NAO TEM VENDA|SEM VENDA|SEM COMPRA)\b(.*)$/);
-      if (mNv && !/\bHOJE\b|\bHJ\b|\bROTA\b/.test(t)) { const quem = (mNv[1] + ' ' + mNv[2]).replace(/\b(DA|DO|DE|VENDEDORA?|NO|MES)\b/g, ' ').replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim(); if (quem) return reenvia('curva negativa do vendedor ' + quem); } }
+    { const mNv = t.match(/^\W*(?:QUAIS )?(?:CLIENTES?|LOJAS?)(?: QUE)?(.*?)\b(?:AINDA NAO (?:FORAM )?POSITIVAD\w*|NAO VENDEU|NAO TEM VENDA|SEM VENDA|SEM COMPRA)\b(.*)$/);
+      if (mNv && !/\bHOJE\b|\bHJ\b|\bROTA\b/.test(t)) { const quem = (mNv[1] + ' ' + mNv[2]).replace(/\b(DA|DO|DE|VENDEDORA?|NO|ESSE|ESTE|MES)\b/g, ' ').replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim(); if (quem) return reenvia('curva negativa do vendedor ' + quem); if (rcaV) return reenvia('curva negativa do vendedor ' + rcaV); } }
     // CONTINUACAO DA CONVERSA (sabatina 01/11/2026): "Do mes", "Mes todo" repetem a ultima pergunta no mes; "Mas so da Josiane?" abre a pessoa citada
     { const ultQ = (anteriores || []).length ? sem(String(anteriores[0] || '')).replace(/\b(HOJE|HJ|ONTEM)\b/g, ' ').trim() : '';
       // "Mes passado" sozinho (Sueli/API, 01/11/2026): e o fechamento gravado, aberto por vendedor se a conversa vinha nos vendedores; nunca a comparacao com o mes que acabou de comecar
@@ -873,7 +894,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
         const u = { d: ym + '-' + String(new Date(Date.UTC(Number(ym.slice(0, 4)), Number(ym.slice(5)), 0)).getUTCDate()).padStart(2, '0') };
         if (u && u.d) {
         const J0 = (k) => `SUM(json_extract(dados, '$."${k}"'))`;
-        const { results: fm2 } = await B.env.DB.prepare(`SELECT filial f, rca r, ${J0('Faturado bruto (R$)')} b, ${J0('Devolução (R$)')} dv, ${J0('Carteira pendente (R$)')} p, ${J0('Meta (R$)')} m, ${J0('Positivação (filial + CNPJ)')} pr, ${J0('Meta de positivação')} pm FROM gerot_vendedor_mes WHERE mes = ? AND rca NOT LIKE 'H|%' GROUP BY filial, rca`).bind(ym).all();
+        const { results: fm2 } = await B.env.DB.prepare(`SELECT filial f, rca r, ${J0('Faturado bruto (R$)')} b, ${J0('Devolução (R$)')} dv, ${J0('Carteira pendente (R$)')} p, ${J0('Meta (R$)')} m, ${J0('Positivação (filial + CNPJ)')} pr, ${J0('Meta de positivação')} pm FROM gerot_vendedor_mes WHERE mes = ? AND rca NOT LIKE '%|%' GROUP BY filial, rca`).bind(ym).all();
           const L = (fm2 || []).filter((x) => esc.nacional || chaves.has(x.f + '|' + x.r)), s = (k) => L.reduce((a, x) => a + (Number(x[k]) || 0), 0);
           let liq = s('b') - s('dv'), meta = s('m'), pos = s('pr'), mp = s('pm'), brT = s('b'), dvT = s('dv');
           // 23/11/2026 (dicionario 3.9/3.26, conflito 7): equipe/grupo = clientes distintos com faturado > 0 no mes fechado (regra 4), nunca a soma dos vendedores
@@ -1074,9 +1095,9 @@ export async function respostaInterna(B, c, texto, anteriores) {
   if (/COMPROMISSO|\bRET\b|\bRETS\b|ROTA DO SUPERVISOR/.test(t)) return respCompromisso(B, await carregaEscopo(B, esc));
   if (/PENALTI|PENALIDADE|IMPEDIMENTO|CARTA|VERMELHO|AMARELO|GOL CONTRA|\bGOLS?\b|LANCES?\b|HAT ?TRICK|DEFESAS?\b|CHECK.?IN FORA|FORA DO CLIENTE|00:00|CARTO(ES|ESS)?\b/.test(t) && !/LIGA|CHAMPIONS|CLASSIFICA|PONTOS? (FOMOS|PERDID|PENALIZ)|PENALIZAD/.test(t)) return respLances(B, await carregaEscopo(B, esc), t);
   // "VER MAIS" logo depois de uma lista truncada: re-executa a pergunta anterior completa (28/10/2026)
-  if (/^\W*(VER MAIS|MAIS|MOSTRA(R)? MAIS|ABRIR( A)? LISTA|ABRE( A)? LISTA|LISTA COMPLETA|QUERO VER (TODOS|MAIS|A LISTA)|VER (O )?RESTANTE|VER (OS )?OUTROS|OUTROS \d+|MAIS \d+|CONTINUA(CAO)?|PROXIMOS?)\b/i.test(t)) {
+  if (/^\W*(VER MAIS|MAIS|MOSTRA(R)? MAIS|ABRIR( A)? LISTA|ABRE( A)? LISTA|LISTA COMPLETA|QUERO VER (TODOS|MAIS|A LISTA)|VER (O )?RESTANTE|VER (OS )?OUTROS|OUTROS \d+|MAIS \d+|CONTINUA(CAO)?|PROXIMOS?)\W*$/i.test(tOrig)) {
     if ((anteriores || []).length) {
-      return respostaPronta(B, c, anteriores[0] + ' ' + texto, anteriores.slice(1));
+      return respostaPronta(B, c, anteriores[0] + (/^\W*MAIS\W*$/i.test(tOrig) ? ' ver mais' : ' ' + texto), anteriores.slice(1));
     }
     const Ev = await carregaEscopo(B, esc);
     const p = achaPessoa(Ev, t);
@@ -1531,12 +1552,16 @@ _Devolução do mês no GEROT (${E.nome}): *${R$(tot)}*. Os motivos acima cobrem
     // Ordem: quem comprou no mes passado primeiro (mais facil de recuperar), depois pela media dos ultimos 3 meses. O roteiro gravado fica de reserva.
     if (B.env && B.env.DB) {
       try {
-        const { results: GC } = await B.env.DB.prepare('SELECT cliente, nome, dados FROM gerot_cliente_mes WHERE mes = ? AND filial = ? AND rca = ?').bind(hojeSP().slice(0, 7), String(v.filial), String(v.rca)).all();
+        const [{ results: GC }, { results: RT }] = await Promise.all([
+          B.env.DB.prepare('SELECT cliente, nome, dados FROM gerot_cliente_mes WHERE mes = ? AND filial = ? AND rca = ?').bind(hojeSP().slice(0, 7), String(v.filial), String(v.rca)).all(),
+          B.env.DB.prepare('SELECT cliente FROM clube_roteiro WHERE dia = ? AND filial = ? AND rca = ?').bind(hojeSP(), String(v.filial), String(v.rca)).all().catch(() => ({ results: [] })),
+        ]);
+        const naRota = new Set([...(RT || []).map((r) => String(r.cliente)), ...(Array.isArray(v.rotaHoje) ? v.rotaHoje.filter((r) => !/FORA/i.test(String(r.status || ''))).map((r) => String(r.id_cliente)) : [])]);
         if (GC && GC.length) {
           const num = (d, k) => Number(d[k]) || 0;
           const C = GC.map((x) => { let d = {}; try { d = JSON.parse(x.dados || '{}'); } catch (e) { d = {}; } return { id: String(x.cliente), nome: titulo(String(x.nome || 'Cliente').toLowerCase()), pos: num(d, 'Positivação (filial + CNPJ)'), posCart: num(d, 'Positivação + Carteira'), m1: num(d, 'Positivação M-1'), m3: num(d, 'Positivação 3M (média)'), cart: num(d, 'Carteira pendente (R$)') }; });
           const comp = C.filter((x) => x.pos > 0).length, soCart = C.filter((x) => !(x.pos > 0) && x.posCart > 0).length;
-          const nao = C.filter((x) => !(x.pos > 0) && !(x.posCart > 0)).sort((a, b) => (b.m1 - a.m1) || (b.m3 - a.m3));
+          const nao = C.filter((x) => !(x.pos > 0) && !(x.posCart > 0)).sort((a, b) => ((naRota.has(b.id) ? 1 : 0) - (naRota.has(a.id) ? 1 : 0)) || (b.m1 - a.m1) || (b.m3 - a.m3));
           const ult = new Map();
           try { const ids = nao.slice(0, 80).map((x) => x.id); if (ids.length) { const { results } = await B.env.DB.prepare(`SELECT id_cliente, json_extract(json, '$.ult') u FROM ficha_cliente WHERE filial = ? AND id_cliente IN (${ids.map(() => '?').join(',')})`).bind(String(v.filial), ...ids).all(); for (const r of results || []) if (r.u) ult.set(String(r.id_cliente), String(r.u).slice(0, 10)); } } catch (e) { /* sem ficha */ }
           try { const { ultimaCompraGerot } = await import('./respostas/rota.js'); await ultimaCompraGerot(B, v.filial, nao.slice(0, 80).map((x) => x.id), ult); } catch (e) { /* so a ficha */ }   // 18/11: ultima compra tambem pelo GEROT
@@ -1544,15 +1569,15 @@ _Devolução do mês no GEROT (${E.nome}): *${R$(tot)}*. Os motivos acima cobrem
           // (09/11 NF 13710, 16/11 NF 14518) -> nao positiva, mas a lista diz que houve nota, para o vendedor nao achar que o JOTA errou
           const notaSemVenda = new Map();
           try { const ids = nao.slice(0, 80).map((x) => x.id); if (ids.length) { const { results } = await B.env.DB.prepare(`SELECT cliente, MAX(data) d, MAX(nf) nf FROM gerot_pedido WHERE mes = ? AND filial = ? AND cliente IN (${ids.map(() => '?').join(',')}) AND nf IS NOT NULL AND nf <> '' AND COALESCE(json_extract(dados, '$."Faturado líquido (R$)"'), 0) <= 0 GROUP BY cliente`).bind(hojeSP().slice(0, 7), String(v.filial), ...ids).all(); for (const r of results || []) if (r.d) notaSemVenda.set(String(r.cliente), { d: String(r.d), nf: r.nf }); } } catch (e) { /* sem pedidos */ }
-          const ehMaisG = /VER MAIS|LISTA COMPLETA|TODOS|COMPLETA|RESTANTE|RESTO|OUTROS|MAIS \d+/.test(t);
+          const ehMaisG = /VER MAIS|LISTA COMPLETA|TODOS|COMPLETA|RESTANTE|RESTO|OUTROS|MAIS \d+/.test(t) || /^\W*MAIS\W*$/.test(tOrig) || /\bMAIS\W*$/.test(t);
           const ini = ehMaisG ? 25 : 0, fim = ehMaisG ? nao.length : Math.min(25, nao.length), lista = nao.slice(ini, fim);
           const dd = (s) => `${s.slice(8, 10)}/${s.slice(5, 7)}`, dias = (s) => Math.round((Date.parse(hojeSP()) - Date.parse(s)) / 864e5);
           return [`📉 *Curva negativa — ${v.rca} - ${titulo(v.nome)}* (${v.filial})` + (ini ? ` _(continuação)_` : ''),
             `Carteira: *${C.length} clientes* · compraram no mês: *${comp}* · com pedido a faturar: *${soCart}* · *sem compra e sem pedido: ${nao.length}*`, '',
-            ...(lista.length ? ['_Cliente · comprou no mês passado? · última compra_'] : ['✅ Todos os clientes da carteira compraram ou têm pedido a faturar.']),
-            ...lista.map((x, i) => { const u = ult.get(x.id), uOk = u && u < hojeSP().slice(0, 7) + '-01'; /* data da ficha so se for antes do mes (o GEROT manda) */ return `${ini + i + 1}. ${x.nome} (#${x.id})${x.m1 > 0 ? ` · 🔁 comprou em ${['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'][(Number(hojeSP().slice(5, 7)) + 10) % 12]}` : x.m3 > 0 ? ' · comprou nos últimos 3 meses' : ''}${uOk ? ` · ${dd(u)} (${dias(u)} dias)` : ''}${notaSemVenda.has(x.id) ? ` · 🧾 nota ${dd(notaSemVenda.get(x.id).d)} (NF ${notaSemVenda.get(x.id).nf}) sem valor de venda no GEROT` : ''}`; }),
+            ...(lista.length ? ['_Cliente · na rota hoje? · comprou no mês passado? · última compra_'] : ['✅ Todos os clientes da carteira compraram ou têm pedido a faturar.']),
+            ...lista.map((x, i) => { const u = ult.get(x.id), uOk = u && u < hojeSP().slice(0, 7) + '-01'; /* data da ficha so se for antes do mes (o GEROT manda) */ return `${ini + i + 1}. ${x.nome} (#${x.id})${naRota.has(x.id) ? ' · 📍 na rota hoje' : ''}${x.m1 > 0 ? ` · 🔁 comprou em ${['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'][(Number(hojeSP().slice(5, 7)) + 10) % 12]}` : x.m3 > 0 ? ' · comprou nos últimos 3 meses' : ''}${uOk ? ` · ${dd(u)} (${dias(u)} dias)` : ''}${notaSemVenda.has(x.id) ? ` · 🧾 nota ${dd(notaSemVenda.get(x.id).d)} (NF ${notaSemVenda.get(x.id).nf}) sem valor de venda no GEROT` : ''}`; }),
             !ehMaisG && nao.length > fim ? `… e mais ${nao.length - fim} (peça "ver mais")` : '', '',
-            SUGESTAO + (nao.some((x) => x.m1 > 0) ? `começar pelos que compraram no mês passado (🔁): é o cliente mais fácil de recuperar.` : 'começar por quem comprou há menos tempo.')].filter((x) => x !== '').join('\n');
+            SUGESTAO + (nao.some((x) => naRota.has(x.id)) ? 'começar pelos que estão 📍 *na rota hoje* e compraram no mês passado (🔁).' : nao.some((x) => x.m1 > 0) ? `começar pelos que compraram no mês passado (🔁): é o cliente mais fácil de recuperar.` : 'começar por quem comprou há menos tempo.')].filter((x) => x !== '').join('\n');
         }
       } catch (e) { /* sem GEROT por cliente: segue o roteiro gravado */ }
     }
@@ -1594,7 +1619,7 @@ _Devolução do mês no GEROT (${E.nome}): *${R$(tot)}*. Os motivos acima cobrem
           nao.sort((a, b) => (a.d ?? 999) - (b.d ?? 999));
         } catch (e) { /* sem ficha: fica a conta do roteiro */ }
       }
-      const ehMais = /VER MAIS|LISTA COMPLETA|TODOS|COMPLETA|RESTANTE|RESTO|OUTROS|MAIS \d+/.test(t);
+      const ehMais = /VER MAIS|LISTA COMPLETA|TODOS|COMPLETA|RESTANTE|RESTO|OUTROS|MAIS \d+/.test(t) || /^\W*MAIS\W*$/.test(tOrig) || /\bMAIS\W*$/.test(t);
       const antJaTinhaMais = (anteriores || []).some((a) => /VER MAIS|LISTA COMPLETA|TODOS|COMPLETA|RESTANTE/.test(sem(String(a))));
       let ini = 0, fim = 25;
       if (ehMais) {
@@ -1665,7 +1690,7 @@ _Devolução do mês no GEROT (${E.nome}): *${R$(tot)}*. Os motivos acima cobrem
   }
   const temCitacaoIndustria = /POR (INDUSTRIA|FORNECEDOR)|INDUSTRIAS\b|DESEMPENHO DAS INDUSTRIAS|PERFORMANCE (DAS |DE )?(VENDAS )?(POR |DAS )?INDUSTRIA|REFERENTE (A|AO)?\s*(A\s+)?(INDUSTRIA|FORNECEDOR)\b|DA INDUSTRIA|NA INDUSTRIA|\b(DURACELL|AMPARO|HEINZ|MARS|ARCOR|MARILAN|MONDELEZ|NESTLE|GAROTO|COLGATE|RED\s*BULL|MAURI|MAGUARY|EBBA|AJINOMOTO|CONDOR|BR\s*SPICE|LEAO|MEDIX|LINDT|FANTONI|STOLFI|SUPER SAUDE)\b/i.test(t);
   const ehPerguntaProdutoOuRecuperacao = /COMPRAVA|PAROU|PARARAM|DEIXOU DE COMPRAR|DEIXARAM DE COMPRAR|QUEM NAO (COMPRA|COMPROU|COMPRARAM)|NAO (COMPROU|COMPRA|COMPRARAM).*EM |PRODUTOS? (QUE )?MAIS VEND|TOP \d* ?PRODUTOS|MAIS VENDIDOS|COMPAR(E|AR)|OPORTUNIDADES?/.test(t);
-  if (!ehPerguntaProdutoOuRecuperacao && (temCitacaoIndustria || (/\bMETAS?\b|KPI|PREMIA/.test(t) && /TICKET|\bMIX\b|FASEAMENTO|FASIAMENTO|FASAMENTO|RECORRENCIA|\bKPIS?\b/.test(t)) || /\bMETAS?\b|OBJETIVOS?\b/.test(t))) {
+  if (!ehAnaliticaExec && !ehPerguntaProdutoOuRecuperacao && (temCitacaoIndustria || (/\bMETAS?\b|KPI|PREMIA/.test(t) && /TICKET|\bMIX\b|FASEAMENTO|FASIAMENTO|FASAMENTO|RECORRENCIA|\bKPIS?\b/.test(t)) || /\bMETAS?\b|OBJETIVOS?\b/.test(t))) {
     const r = await respMetasIndustria(B, E, t, pessoa);
     if (r) return r;
   }
@@ -1688,7 +1713,7 @@ _Devolução do mês no GEROT (${E.nome}): *${R$(tot)}*. Os motivos acima cobrem
     if (/\[IMAGEM/i.test(String(texto || ''))) return `🔎 Para eu buscar o histórico certinho desse cliente, me manda o *código dele* (ex.: #252181), *CNPJ* ou a *razão social* por escrito! Como recebi imagem/print, ainda não consigo ler o texto dentro da foto diretamente. Com o código eu puxo todas as compras na hora! 🚀`;
     return `🔎 Não identifiquei qual cliente você quer consultar. Me manda o *código* (ex.: #252181), *CNPJ* ou *nome do cliente* que eu puxo na hora!`;
   }
-  if (/COMPRA|COMPROU|COMPRARAM|VENDEU DE |VENDERAM DE |VENDEU (O|A) |VENDE DE |POSITIVACAO D[OEA]S? |(VENDE MAIS|MAIS VENDE)(?!U)(?!.*(SUPERVISOR|VENDEDOR|FILIAL|GERENTE))|EM QUANTOS CLIENTES|CLIENTES COMPRARAM|PDVS COMPRARAM|SEMANA(L|IS)|MENSA(L|IS)|DIA DA SEMANA|QUAL DIA|QUE DIA|MELHOR DIA|MES A MES|POR SEMANA|SEMANA A SEMANA|POSITIVAND|(SEGUNDA|TERCA|QUARTA|QUINTA|SEXTA|SABADO) OU /.test(t) || /\b(MONDELEZ|MARS|ARCOR|BAGLEY|CONDOR|FERRERO|NESTLE|HERSHEY|FINI|DORI|PEPSICO|KELLOGG|LACTA|DIVERSAO)\b/.test(t)) {
+  if (!ehAnaliticaExec && (/COMPRA|COMPROU|COMPRARAM|VENDEU DE |VENDERAM DE |VENDEU (O|A) |VENDE DE |POSITIVACAO D[OEA]S? |(VENDE MAIS|MAIS VENDE)(?!U)(?!.*(SUPERVISOR|VENDEDOR|FILIAL|GERENTE))|EM QUANTOS CLIENTES|CLIENTES COMPRARAM|PDVS COMPRARAM|SEMANA(L|IS)|MENSA(L|IS)|DIA DA SEMANA|QUAL DIA|QUE DIA|MELHOR DIA|MES A MES|POR SEMANA|SEMANA A SEMANA|POSITIVAND|(SEGUNDA|TERCA|QUARTA|QUINTA|SEXTA|SABADO) OU /.test(t) || /\b(MONDELEZ|MARS|ARCOR|BAGLEY|CONDOR|FERRERO|NESTLE|HERSHEY|FINI|DORI|PEPSICO|KELLOGG|LACTA|DIVERSAO)\b/.test(t))) {
     const ri = await respIndustria(B, E, t, pessoa); if (ri && ri !== SEM_VENDAS) return ri;
     const rp = await respProduto(B, E, t, pessoa);
     if (rp === SEM_VENDAS || (!rp && !ri)) { const m = await respMix(B, E, t); if (m && !/^Não achei|^🧺 \*\+MIX —/.test(m)) return m; }   /* sem vendas item a item ainda: reserva = +MIX */
@@ -1741,7 +1766,7 @@ _Devolução do mês no GEROT (${E.nome}): *${R$(tot)}*. Os motivos acima cobrem
     return (await respVendedor(B, E, pessoa.alvo)) + amb;
   }
   if (/VISITAD\w* SEM COMPRA|VISITOU E NAO COMPR|30 DIAS SEM COMPRA/.test(t)) { const { respVisitadosSemCompra } = await import('./respostas/rota.js'); return respVisitadosSemCompra(E, B); }
-  if (/ZERAD|ZEROU|SEM PEDIDO|SEM VENDA|NAO VENDEU|NAO VENDERAM|NINGUEM VENDEU/.test(t)) return respZerados(E, B);
+  if (!ehAnaliticaExec && /ZERAD|ZEROU|SEM PEDIDO|SEM VENDA|NAO VENDEU|NAO VENDERAM|NINGUEM VENDEU/.test(t)) return respZerados(E, B);
   if (/POSITIV/.test(t) && /QUANTOS|QUANTO/.test(t) && !/110/.test(t)) return respPositivacao(B, E);
   // PEDIDO POR NUMERO (Ivayr/TCA, 26/10/2026: "ja faturou o pedido 1190000030" -> recebeu o resumo da equipe). O numero/status do pedido ainda NAO esta na base (D1);
   // fica no banco do Data Lake, que esta sendo levado para o D1. Ate la: diz a verdade e registra o pedido para a diretoria.
@@ -1761,11 +1786,11 @@ _Devolução do mês no GEROT (${E.nome}): *${R$(tot)}*. Os motivos acima cobrem
   if (/COMO (ESTA|TA|VAI|ESTAMOS|ANDA)|RESUMO|RESULTADO|PANORAMA|STATUS|GERAL|SITUACAO/.test(t) && !/ACUMULADO|DIGITAD/.test(t)) return respResumo(B, E);
   // Alex, 31/10/2026: "atualizacao do meu time pra este fechamento de Outubro" recebeu o digitado do dia; acumulado e fechamento do mes = resumo do mes
   if (/ACUMULAD|FECHAMENTO (D[EO] |DESSE |DESTE )?(MES|JANEIRO|FEVEREIRO|MARCO|ABRIL|MAIO|JUNHO|JULHO|AGOSTO|SETEMBRO|OUTUBRO|NOVEMBRO|DEZEMBRO)/.test(t) && !/HOJE|\bHJ\b|DIGITAD/.test(t)) return respResumo(B, E);
-  if (/HOJE|\bHJ\b|ACUMULADO|DIGITAD|PEDIDOS?\b|TICKET|VENDEU|VENDERAM|\bDIA\b|ROTA|VAREJO|\bAGORA\b|\bATUALIZAD/.test(t)) return respHoje(B, E, t);
+  if (!ehAnaliticaExec && /HOJE|\bHJ\b|ACUMULADO|DIGITAD|PEDIDOS?\b|TICKET|VENDEU|VENDERAM|\bDIA\b|ROTA|VAREJO|\bAGORA\b|\bATUALIZAD/.test(t)) return respHoje(B, E, t);
   if (/QUEM COBRAR|PLANO DO DIA|O QUE (EU )?FACO|ONDE ATACAR/.test(t)) return respFalta(B, E);
   if (/SUPERVIS/.test(t) && /PIOR|PRA BAIXO|PARA BAIXO|ATRAS|PUXANDO|MAL\b/.test(t)) { const S = [...agrupa(E.vend, (v) => supChave(v, E.nacional))].filter(([k]) => supReal(k) && !/^VAGO/.test(k)).filter(([, x]) => x.meta > 0).sort((a, b) => (a[1].pct ?? 999) - (b[1].pct ?? 999)); if (S.length) { const [k, x] = S[0]; return [`🔻 *Quem está puxando ${E.nome} para baixo:* ${supNome(k)} — *${pctTxt(x.pct)}* da meta (fat. ${R$(x.fat)} de ${R$(x.meta)}, pend. ${R$(x.pend)})`, '', '*Os mais atrás:*', ...S.slice(0, 4).map(([k2, y], i) => `${i + 1}. ${supNome(k2)} — ${pctTxt(y.pct)} · gap ${R$(Math.max(0, y.meta - y.fat - y.pend))}`), '', SUGESTAO + `sentar hoje com ${supNome(k)} e abrir vendedor por vendedor (peça "supervisor ${supNome(k).split(' ')[0]}").`].join('\n'); } }
   if (/SUPERVIS|POR EQUIPE|ABERT|POR GERENTE/.test(t)) return respPorSupervisor(E);
-  if (fm || /BRASIL|TODAS|NACIONAL|REDE|FILIAIS|QUAL FILIAL/.test(t)) { const r = await respResumo(B, E); const resto = t.split(/[^A-Z0-9]+/).filter((w) => w.length > 2 && !PAL.has(w) && !FILIAIS.includes(w) && !/^(BRASIL|TODAS|NACIONAL|REDE|FILIAIS|FILIAL|QUAL)$/.test(w)); return resto.length >= 2 ? fraca(r) : r; }
+  if (!ehAnaliticaExec && !ehReclamacaoMsg && (fm || /BRASIL|TODAS|NACIONAL|REDE|FILIAIS|QUAL FILIAL/.test(t))) { const r = await respResumo(B, E); const resto = t.split(/[^A-Z0-9]+/).filter((w) => w.length > 2 && !PAL.has(w) && !FILIAIS.includes(w) && !/^(BRASIL|TODAS|NACIONAL|REDE|FILIAIS|FILIAL|QUAL)$/.test(w)); return resto.length >= 2 ? fraca(r) : r; }
   return null;
 }
 

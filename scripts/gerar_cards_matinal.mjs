@@ -54,13 +54,13 @@ function buildHtml({ titulo, subtitulo, kpis, colunas, linhas }) {
   </div></body></html>`;
 }
 
-function summarize(rows, dias, gerotPosicao, ontemData) {
-  const totMeta = rows.reduce((a, x) => a + x.meta, 0);
-  const totVend = rows.reduce((a, x) => a + x.vend, 0);
+function summarize(rows, dias, gerotPosicao, ontemData, oficial = null) {
+  const totMeta = oficial && oficial.meta > 0 ? oficial.meta : rows.reduce((a, x) => a + x.meta, 0);
+  const totVend = oficial && oficial.meta > 0 ? oficial.vend : rows.reduce((a, x) => a + x.vend, 0);
   const totTend = rows.reduce((a, x) => a + x.tend, 0);
-  const tendPct = totMeta ? (totTend / totMeta) * 100 : 0;
-  const totPos = rows.reduce((a, x) => a + x.pos, 0);
-  const totMetaPos = rows.reduce((a, x) => a + x.metaPos, 0);
+  const tendPct = oficial && oficial.tendPct != null ? oficial.tendPct : (totMeta ? (totTend / totMeta) * 100 : 0);
+  const totPos = oficial && oficial.pos != null ? oficial.pos : rows.reduce((a, x) => a + x.pos, 0);
+  const totMetaPos = oficial && oficial.metaPos > 0 ? oficial.metaPos : rows.reduce((a, x) => a + x.metaPos, 0);
   const totOntVlr = rows.reduce((a, x) => a + (x.ontVlr || 0), 0);
   const totOntQtd = rows.reduce((a, x) => a + (x.ontQtd || 0), 0);
   const totOntPos = rows.reduce((a, x) => a + (x.ontPos || 0), 0);
@@ -153,9 +153,10 @@ async function main() {
     if (!bySup.has(k)) bySup.set(k, { filial: v.filial, cod_sup: String(v.cod_sup || ''), supervisor: v.supervisor || '', rows: [] });
     bySup.get(k).rows.push(v);
   }
+  const supMap = new Map((d.supervisores || []).map((s) => [`${s.filial}|${s.cod_sup || sem(s.supervisor)}`, s]));
   for (const [, g] of bySup) {
     if (!g.rows.length) continue;
-    const sum = summarize(g.rows, d.dias, d.fonte.gerotPosicao, d.ontemData);
+    const sum = summarize(g.rows, d.dias, d.fonte.gerotPosicao, d.ontemData, supMap.get(`${g.filial}|${g.cod_sup || sem(g.supervisor)}`) || null);
     jobs.push({
       chave: `sup:${g.filial}:${g.cod_sup || sem(g.supervisor)}`,
       filial: g.filial, cod_sup: g.cod_sup, supervisor: g.supervisor,
@@ -169,8 +170,9 @@ async function main() {
     if (!byFil.has(v.filial)) byFil.set(v.filial, []);
     byFil.get(v.filial).push(v);
   }
+  const filMap = new Map((d.filiais || []).map((f) => [f.filial, f]));
   for (const [fil, rows] of byFil) {
-    const sum = summarize(rows, d.dias, d.fonte.gerotPosicao, d.ontemData);
+    const sum = summarize(rows, d.dias, d.fonte.gerotPosicao, d.ontemData, filMap.get(fil) || null);
     jobs.push({
       chave: `fil:${fil}`, filial: fil, cod_sup: '', supervisor: '',
       html: buildHtml({ titulo: `Filial ${fil} (Top 20 prioridade)`, ...sum, colunas: cols, linhas: rows.slice(0, 20).map(rowVendHtml) })
@@ -178,7 +180,9 @@ async function main() {
   }
 
   // 3. Brasil (por filial consolidado)
-  const sumBr = summarize(d.vendedores, d.dias, d.fonte.gerotPosicao, d.ontemData);
+  const brOficial = (d.filiais || []).length ? (d.filiais || []).reduce((a, f) => ({ meta: a.meta + f.meta, vend: a.vend + f.vend, tend: a.tend + f.tend, pos: a.pos + f.pos, metaPos: a.metaPos + f.metaPos }), { meta: 0, vend: 0, tend: 0, pos: 0, metaPos: 0 }) : null;
+  if (brOficial && brOficial.meta > 0) brOficial.tendPct = (brOficial.tend / brOficial.meta) * 100;
+  const sumBr = summarize(d.vendedores, d.dias, d.fonte.gerotPosicao, d.ontemData, brOficial);
   const filRows = (d.filiais || []).slice().sort((a, b) => a.tendPct - b.tendPct).map((f) => {
     const sub = byFil.get(f.filial) || [];
     const rota = sub.reduce((a, x) => a + x.rota, 0), prosp = sub.reduce((a, x) => a + x.prospects, 0);

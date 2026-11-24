@@ -152,7 +152,9 @@ export function respRanking(E, t) {
   const querPior = /PIOR|ATRAS|\bMAL\b|FUNDO|ULTIMOS|LANTERNA/.test(t), querMelhor = /MELHOR|TOP|DESTAQUE|LIDER|PRIMEIROS/.test(t) || !querPior;
   const canalOk = (v) => (as ? /^(AS|PET AS)$/.test(String(v.canal).toUpperCase()) : v.varejo);
   const minimo = pos ? (v) => (v.metaPos || 0) >= 40 : hoje ? () => true : (v) => (v.meta || 0) >= 10000;
-  const V = E.vend.filter((v) => pessoaReal(v) && canalOk(v) && minimo(v) && (pos ? v.metaPos : hoje ? true : v.meta));
+  const V0 = E.vend.filter((v) => pessoaReal(v) && canalOk(v) && (pos ? v.metaPos : hoje ? true : v.meta));
+  const comMin = V0.filter((v) => minimo(v));
+  const V = (pos && comMin.length < 3) ? V0 : comMin;
   const val = (v) => (pos ? v.pos / v.metaPos * 100 : hoje ? v.dig : v.pct ?? -1);
   const fmt = (v) => (pos ? `*${N(v.pos)}* de ${N(v.metaPos)} clientes (${P(v.pos, v.metaPos)})` : hoje ? `*${R$(v.dig)}* em ${v.ped} ped.` : `*${pctTxt(v.pct)}* · ${R$(v.fat)} de ${R$(v.meta)}`);
   const S = V.slice().sort((a, b) => val(b) - val(a));
@@ -179,9 +181,47 @@ export async function respPositivacao(B, E) {
   // 23/11/2026 (dicionario 3.9, conflito 7): linha de filial = positivacao da filial no GEROT; linha de supervisor = clientes distintos da equipe (regra 4). Nunca a soma dos vendedores.
   if (!porVend && B.env && B.env.DB) {
     if (E.nacional) { const { kpisMes } = await import('../../fatos/index.js'); const K = await kpisMes(B.env.DB, { nivel: 'brasil' }); if (K && K.porFilial) for (const [k, y] of G) { const f = K.porFilial[k]; if (f) { y.pos = f.pos || 0; y.metaPos = f.metaPos || 0; } } }
-    else { const PG = await positivacaoPorGrupos(B.env.DB, E.filiais[0], new Map(G.map(([k, y]) => [k, y.V.map((v) => v.rca)]))); if (PG) for (const [k, y] of G) { y.pos = (PG.get(k) || {}).pos || 0; y.metaPos = 0; } }
+    else {
+      const [PG, supRows] = await Promise.all([
+        positivacaoPorGrupos(B.env.DB, E.filiais[0], new Map(G.map(([k, y]) => [k, y.V.map((v) => v.rca)]))),
+        B.env.DB.prepare(`SELECT cod_sup, supervisor, json_extract(dados, '$."Meta de positivação"') mp FROM gerot_supervisor_mes WHERE mes = ? AND filial = ?`).bind(hojeSP().slice(0, 7), E.filiais[0]).all().then((r) => r.results || []).catch(() => []),
+      ]);
+      const mpPorCod = new Map(), mpPorNome = new Map(), supNomePorCod = new Map();
+      for (const r of supRows) {
+        const mp = Math.round(Number(r.mp) || 0);
+        if (r.cod_sup && r.supervisor) supNomePorCod.set(String(Number(r.cod_sup)), sem(r.supervisor));
+        if (!(mp > 0)) continue;
+        if (r.cod_sup) mpPorCod.set(String(Number(r.cod_sup)), mp);
+        const nm = sem(r.supervisor);
+        if (nm) mpPorNome.set(nm, mp);
+      }
+      const achaMetaSup = (k, y) => {
+        const nk = sem(k), toks = nk.split(/\s+/).filter(Boolean);
+        if (mpPorNome.has(nk)) return mpPorNome.get(nk);
+        for (const [nm, mp] of mpPorNome) if (toks.length >= 2 && nm.includes(toks[0]) && nm.includes(toks[1])) return mp;
+        for (const v of y.V || []) {
+          const cs = v.supCod ? String(Number(v.supCod)) : '';
+          if (cs && mpPorCod.has(cs)) {
+            const nmDono = supNomePorCod.get(cs) || '';
+            if (!nmDono || (toks[0] && nmDono.includes(toks[0]))) return mpPorCod.get(cs);
+          }
+        }
+        return 0;
+      };
+      for (const [k, y] of G) {
+        if (PG) y.pos = (PG.get(k) || {}).pos || 0;
+        y.metaPos = achaMetaSup(k, y);
+      }
+    }
   }
-  G.sort((a, b) => (b[1].pos / (b[1].metaPos || 1)) - (a[1].pos / (a[1].metaPos || 1)));
+  G.sort((a, b) => {
+    const am = Number(a[1].metaPos) > 0, bm = Number(b[1].metaPos) > 0;
+    if (am !== bm) return bm - am;
+    return am ? ((b[1].pos / b[1].metaPos) - (a[1].pos / a[1].metaPos)) : ((b[1].pos || 0) - (a[1].pos || 0));
+  });
+  const GcomMeta = G.filter(([, y]) => Number(y.metaPos) > 0);
+  const GpiorPool = GcomMeta.length ? GcomMeta : G.filter(([, y]) => Number(y.pos) > 0);
+  const piorSupOuFil = GpiorPool.length ? GpiorPool[GpiorPool.length - 1] : null;
   // META OFICIAL DE POSITIVACAO POR FILIAL (Premiacao, 27.000 no grupo) — base TEMPORARIA ate o CEVEN corrigir a tela Filiais (27/10/2026)
   let oficial = '';
   if (!E.supervisor && !E.grupo && !E.rca && typeof B.metaPosFilial === 'function') {
@@ -194,7 +234,7 @@ export async function respPositivacao(B, E) {
     } catch (e) {}
   }
   return [`👥 *Positivação — ${E.nome}* (clientes com faturamento no mês)`, ...(oficial ? [oficial] : []), (temMeta ? `*${N(x.pos)} de ${N(x.metaPos)}* (${P(x.pos, x.metaPos)}) · faltam ${N(Math.max(0, x.metaPos - x.pos))} → ${N(Math.ceil(Math.max(0, x.metaPos - x.pos) / Math.max(dn, 1)))} por dia útil _(conta do Jota: falta ÷ ${dn} dias úteis)_` + (x.metaPosRotulo && !/do GEROT$/.test(x.metaPosRotulo) ? ` _(${x.metaPosRotulo})_` : '') : `*${N(x.pos)}* clientes com faturado no mês (clientes distintos, sem repetir) · meta de positivação do grupo ainda não definida`), '',
-    /* 21/11/2026 (R17 'Rcas Inativos: 0 de 0 (sem dado)'): grupo sem positivacao e sem meta nao tem numero para mostrar */ ...G.filter(([, y]) => Number(y.pos) || Number(y.metaPos)).map(([k, y]) => `• ${E.nacional || porVend ? k : nome2(k)}: ${N(y.pos)}${Number(y.metaPos) ? ` de ${N(y.metaPos)} (${P(y.pos, y.metaPos)}) · faltam ${N(Math.max(0, y.metaPos - y.pos))}` : ' _(sem meta)_'}`), '', SUGESTAO + (G.length ? `o mais atrás é ${E.nacional || porVend ? G[G.length - 1][0] : nome2(G[G.length - 1][0])}.` : 'sem meta de positivação cadastrada.'),
+    /* 21/11/2026 (R17 'Rcas Inativos: 0 de 0 (sem dado)'): grupo sem positivacao e sem meta nao tem numero para mostrar */ ...G.filter(([, y]) => Number(y.pos) || Number(y.metaPos)).map(([k, y]) => `• ${E.nacional || porVend ? k : nome2(k)}: ${N(y.pos)}${Number(y.metaPos) ? ` de ${N(y.metaPos)} (${P(y.pos, y.metaPos)}) · faltam ${N(Math.max(0, y.metaPos - y.pos))}` : ' _(sem meta)_'}`), '', SUGESTAO + (piorSupOuFil ? `o mais atrás é ${E.nacional || porVend ? piorSupOuFil[0] : nome2(piorSupOuFil[0])}.` : 'sem meta de positivação cadastrada.'),
     E.nacional
       // BRASIL (Vitorio, 26/10/2026): deixar claro por que a soma passa da meta do grupo (27.000 PDVs) e o que nao entra
       ? '_Total = soma das 11 filiais no GEROT (o CNPJ é contado uma vez em cada filial); cada linha é a positivação oficial da filial. Não entram os PDVs com pedido ainda pendente de faturamento._'

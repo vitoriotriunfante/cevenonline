@@ -10,9 +10,18 @@ const J = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 
 const resp = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: J });
 
 // GET ?roteiro_dia=AAAA-MM-DD -> quando a rota do dia foi lida (o coletor so rele depois de 3 h)
+// GET ?status_dia=AAAA-MM-DD  -> ultima leitura gravada em clube_venda_dia para conferir se o dia anterior fechou apos a meia-noite BRT
 export async function onRequestGet({ request, env }) {
   if (!(await chaveEvoValida(request, env))) return resp({ erro: 'nao autorizado' }, 401);
-  const d = new URL(request.url).searchParams.get('roteiro_dia') || '';
+  const u = new URL(request.url);
+  const sd = u.searchParams.get('status_dia') || '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(sd)) {
+    try {
+      const r = await env.DB.prepare('SELECT MAX(lido_em) lido_em, COUNT(*) vendedores FROM clube_venda_dia WHERE dia = ?').bind(sd).first();
+      return resp({ dia: sd, lido_em: (r && r.lido_em) || null, vendedores: Number(r && r.vendedores) || 0 });
+    } catch (e) { return resp({ dia: sd, lido_em: null, vendedores: 0 }); }
+  }
+  const d = u.searchParams.get('roteiro_dia') || '';
   if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return resp({ erro: 'roteiro_dia obrigatorio' }, 400);
   try { return resp((await env.DB.prepare('SELECT dia, filiais, linhas, lido_em FROM clube_roteiro_leitura WHERE dia = ?').bind(d).first()) || { dia: d, filiais: 0 }); } catch (e) { return resp({ dia: d, filiais: 0 }); }
 }

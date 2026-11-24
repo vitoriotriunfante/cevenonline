@@ -119,7 +119,11 @@ export async function onRequestPost({ request, env }) {
       }
     }
     const antes = validos.length;
-    for (let i = validos.length - 1; i >= 0; i--) if (PRECISA_PROVA.test(validos[i].chave) && String(validos[i].obs || '').length <= 3) validos.splice(i, 1);
+    const PEN_PROVA = /^(?:[A-Z]{3}[|])?pen[|](?:estoque|fechado)[|]/;
+    for (let i = validos.length - 1; i >= 0; i--) {
+      if (PRECISA_PROVA.test(validos[i].chave) && String(validos[i].obs || '').trim().length <= 3) { validos.splice(i, 1); continue; }
+      if (PEN_PROVA.test(validos[i].chave) && ((String(validos[i].obs || '').trim().length <= 3 && !String(validos[i].motivo || '').trim()) || (!(Number(validos[i].dias_sem_compra) > 0) && !validos[i].ultima_compra))) validos.splice(i, 1);
+    }
     const semProvaIgnorados = antes - validos.length;
     let novos = [];
     // Devolucao: uma NOTA gera UM lance na vida toda (a nota continua na janela de 3 dias e voltaria a cada dia).

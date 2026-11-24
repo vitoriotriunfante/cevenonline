@@ -40,11 +40,13 @@ export async function respPlanoDia(B, E) {
     q(`SELECT filial, rca, fornecedor, json_extract(dados, '$."Meta (R$)"') m, json_extract(dados, '$."Faturado líquido (R$)"') fa, json_extract(dados, '$."Carteira pendente (R$)"') ca FROM gerot_vendas WHERE mes = ? AND filial IN (${qs})`, mes, ...fil),
     q(`SELECT filial, rca, roteiros, lido_em FROM clube_venda_dia WHERE dia = ? AND filial IN (${qs})`, hoje, ...fil),
   ]);
-  // ultimo dia util (seg-sab) com venda da equipe, pelo Clube
+  // ultimo dia util (seg-sex, sem feriado) com venda da equipe, pelo Clube
   let ont = null;
   try {
-    const d = await db.prepare(`SELECT dia FROM clube_venda_dia WHERE filial IN (${qs}) AND dia < ? AND strftime('%w', dia) <> '0' GROUP BY dia HAVING SUM(total_pedido) > 0 ORDER BY dia DESC LIMIT 1`).bind(...fil, hoje).first();
-    if (d && d.dia) { const R = (await q(`SELECT filial, rca, total_pedido v, ped_total n FROM clube_venda_dia WHERE dia = ? AND filial IN (${qs})`, d.dia, ...fil)).filter((x) => ks.has(x.filial + '|' + x.rca)); ont = { d: d.dia, v: R.reduce((a, x) => a + (Number(x.v) || 0), 0), n: R.reduce((a, x) => a + (Number(x.n) || 0), 0), quem: R.filter((x) => Number(x.v) > 0).length }; }
+    const { ehFeriado } = await import('../../feriados.js');
+    const ds = await q(`SELECT dia FROM clube_venda_dia WHERE filial IN (${qs}) AND dia < ? AND strftime('%w', dia) BETWEEN '1' AND '5' GROUP BY dia HAVING SUM(total_pedido) > 0 ORDER BY dia DESC LIMIT 10`, ...fil, hoje);
+    const dUlt = (ds.map((x) => x.dia).find((x) => x && !ehFeriado(x))) || null;
+    if (dUlt) { const R = (await q(`SELECT filial, rca, total_pedido v, ped_total n FROM clube_venda_dia WHERE dia = ? AND filial IN (${qs})`, dUlt, ...fil)).filter((x) => ks.has(x.filial + '|' + x.rca)); ont = { d: dUlt, v: R.reduce((a, x) => a + (Number(x.v) || 0), 0), n: R.reduce((a, x) => a + (Number(x.n) || 0), 0), quem: R.filter((x) => Number(x.v) > 0).length }; }
   } catch (e) { ont = null; }
   // carteira por cliente (GEROT): positivacao da equipe sem contar o mesmo cliente duas vezes; quem esta sem compra e sem pedido
   const semCompra = new Map(), posCli = new Set(), cartCli = new Set(), fatCli = new Map();

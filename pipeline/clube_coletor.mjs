@@ -139,6 +139,20 @@ if (process.argv.includes('--api') && process.env.EVO_KEY) {
     body: JSON.stringify({ dia: res.dia, lido_em: res.lido_em, vendedores, pedidos, checkins, justificativas, rodada: { vendedores: vendedores.length, checkins: CK ? checkins.length : null, justificativas: JU ? justificativas.length : null, nao_sinc: naoSinc, falhas: falhas.join(', '), duracao_s: res.duracao_s } })
   }).then((x) => x.json()).catch((e) => ({ erro: String(e) }));
   log('API /api/clube-carga', JSON.stringify(rApi));
+  // Fecha o dia anterior pela API quando ainda nao houve leitura apos a meia-noite BRT (garante pedidos colocados entre a ultima rodada da noite e 23:59 BRT)
+  if (!process.argv.includes('--sem-ontem') && !(process.argv[2] && /^\d{8}$/.test(process.argv[2]))) {
+    const dOnt = new Date(Date.now() - 3 * 3600e3 - 86400e3);
+    if (dOnt.getUTCDay() !== 0) {
+      const ontIso = dOnt.toISOString().slice(0, 10), ont = ontIso.replace(/-/g, '');
+      const st = await fetch(`${baseUrl}/api/clube-carga?status_dia=${ontIso}`, { headers: { 'X-Evo-Key': process.env.EVO_KEY } }).then((x) => x.json()).catch(() => null);
+      const lidoBrt = st && st.lido_em ? new Date(Date.parse(st.lido_em) - 3 * 3600e3).toISOString().slice(0, 10) : '';
+      if (!st || !st.lido_em || lidoBrt <= ontIso) {
+        log('API: fechando dia anterior', ontIso, '(ultima leitura BRT:', lidoBrt || 'nenhuma', ')');
+        const ro = spawnSync(process.execPath, [process.argv[1], ont, '--api', '--sem-ontem', '--saida=' + path.join(os.tmpdir(), `clube_${ont}.json`)], { encoding: 'utf8', stdio: 'inherit' });
+        log('API fechamento ontem:', ro.status === 0 ? 'OK' : 'status ' + ro.status);
+      }
+    }
+  }
 }
 if (process.argv.includes('--d1')) {
   // grava SO o que mudou (custo D1 = linhas gravadas): ON CONFLICT ... WHERE algum numero mudou

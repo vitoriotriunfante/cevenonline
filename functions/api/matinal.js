@@ -67,9 +67,13 @@ export async function onRequestGet({ request, env }) {
   const fil = (u.searchParams.get('filial') || '').toUpperCase().trim();
   const sup = (u.searchParams.get('sup') || '').trim();
   const hoje = hojeSP();
-  // 17/11/2026 (Vitorio: matinal do Gessandro com 'Ontem (13/11)' e rota zerada): ultimo dia UTIL (seg-sab) com venda no Clube; reserva = a regra antiga
+  // 24/11/2026: ultimo dia UTIL (seg-sex sem feriado — NUNCA sabado/domingo) com venda no Clube; reserva = ultimoDiaUtil(hoje)
   let ultUtil = ultimoDiaUtil(hoje);
-  try { const uu = await env.DB.prepare("SELECT max(dia) d FROM clube_venda_dia WHERE dia < ? AND strftime('%w', dia) <> '0' AND total_pedido > 0").bind(hoje).first(); if (uu && uu.d) ultUtil = uu.d; } catch (e) { /* sem Clube: regra antiga */ }
+  try {
+    const { results: ds } = await env.DB.prepare("SELECT DISTINCT dia FROM clube_venda_dia WHERE dia < ? AND strftime('%w', dia) BETWEEN '1' AND '5' AND total_pedido > 0 ORDER BY dia DESC LIMIT 10").bind(hoje).all();
+    const dOk = (ds || []).map((x) => x.dia).find((d) => !diaSemLance(d));
+    if (dOk) ultUtil = dOk;
+  } catch (e) { /* sem Clube: regra antiga */ }
   const mes = hoje.slice(0, 7);
   const dias = diasUteis(hoje);
 
@@ -162,7 +166,12 @@ export async function onRequestGet({ request, env }) {
     });
 
     const vendedores = (vendRows.results || [])
-      .filter((v) => !sup || String(v.cod_sup) === sup || String(v.supervisor || '').toUpperCase().includes(sup.toUpperCase()))
+      .filter((v) => {
+        if (String(v.rca || '').includes('|')) return false;
+        if (/(Hist[oó]rico|\bVAGO\b)/i.test(String(v.vendedor || ''))) return false;
+        if (sup && String(v.cod_sup) !== sup && !String(v.supervisor || '').toUpperCase().includes(sup.toUpperCase())) return false;
+        return true;
+      })
       .map((v) => {
         const m = parseDados(v.dados);
         const vend = m.fat + m.pend;
@@ -194,6 +203,7 @@ export async function onRequestGet({ request, env }) {
           ontPos: ont.pos
         };
       })
+      .filter((v) => v.meta > 0 || v.fat !== 0 || v.pend !== 0 || v.ontVlr > 0 || v.rotaHoje > 0)
       .sort((a, b) => a.tendPct - b.tendPct || b.meta - a.meta);
 
     const accInd = (map, chave, ind, m) => {

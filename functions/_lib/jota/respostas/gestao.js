@@ -475,7 +475,8 @@ export async function respMatinal(B, E) {
       '',
       `🎯 *Prioridades de hoje:*`,
       ...prio().slice(0, 4).map((x, i) => `${i + 1}. *${rotVend(x)}*: ritmo *${x.tendPct.toFixed(0)}%* · precisa ${R$(x.precisaDia)}/d${x.rota ? " · rota " + x.rota : " · sem rota hoje"}${x.bloqQtd ? ' · 🚫' + x.bloqQtd : ''}`),
-      ...linhaParados()
+      ...linhaParados(),
+      ...(posGerot ? ['', `_Fonte: ${posGerot.replace(/^\s*·\s*/, '')}._`] : ['', '_Fonte: GEROT / Clube da Venda._'])
     ].join('\n');
   }
 
@@ -491,5 +492,6 @@ export async function respMatinal(B, E) {
     ...prio().slice(0, 10).map((x, i) => `${i + 1}. *${rotVend(x)}*: ritmo *${x.tendPct.toFixed(0)}%* (${P(x.vend, x.meta)}) · ${R$(x.precisaDia)}/d${x.rota ? " · rota " + x.rota : " · sem rota hoje"}${x.bloqQtd ? ' · 🚫' + x.bloqQtd : ''}`),
     ...(rows.length > 10 ? [`_… e mais ${rows.length - 10} vendedor(es) na equipe._`] : []),
     ...linhaParados(),
+    ...(posGerot ? ['', `_Fonte: ${posGerot.replace(/^\s*·\s*/, '')}._`] : ['', '_Fonte: GEROT / Clube da Venda._']),
   ].join('\n');
 }

@@ -46,7 +46,9 @@ async function tabelas(db) {
     // 18/11/2026: faturado (e todos os calculos) por FILIAL x DIA = 'ate a data' x mes passado
     db.prepare('CREATE TABLE IF NOT EXISTS gerot_filial_dia (mes TEXT NOT NULL, filial TEXT NOT NULL, data TEXT NOT NULL, dados TEXT NOT NULL, hash TEXT, em TEXT, PRIMARY KEY (filial, data))'),
     db.prepare('CREATE TABLE IF NOT EXISTS gerot_horario (id INTEGER PRIMARY KEY AUTOINCREMENT, lido_em TEXT, ok INTEGER, ultima TEXT, carga TEXT, posicao TEXT, segundos INTEGER, erro TEXT)'),
-    db.prepare('CREATE TABLE IF NOT EXISTS gerot_coleta_status (id INTEGER PRIMARY KEY AUTOINCREMENT, mes TEXT, linhas INTEGER, enviadas INTEGER, posicao TEXT, colunas TEXT, em TEXT)')
+    db.prepare('CREATE TABLE IF NOT EXISTS gerot_coleta_status (id INTEGER PRIMARY KEY AUTOINCREMENT, mes TEXT, linhas INTEGER, enviadas INTEGER, posicao TEXT, colunas TEXT, em TEXT)'),
+    // 24/11/2026: foto diaria do GEROT por vendedor para a Liga AS (substitui varredura_central_rca do CEVEN, parada em 16/11)
+    db.prepare('CREATE TABLE IF NOT EXISTS liga_as_foto_dia (dia TEXT NOT NULL, filial TEXT NOT NULL, rca TEXT NOT NULL, meta REAL, faturado REAL, pendente REAL, em TEXT, PRIMARY KEY (dia, filial, rca))')
   ]);
 }
 
@@ -275,6 +277,20 @@ export async function onRequestPost({ request, env }) {
   ).bind(String(x.mes), String(x.filial), String(x.nivel), String(x.cod), x.nome || null, x.nivel === 'vendedor' && x.sup_cod != null ? String(x.sup_cod) : '', x.objetivo ?? null, x.meta ?? null, x.positivados ?? null, x.faturado ?? null, x.pdvs_afat ?? null, x.vlr_afat ?? null, x.pdvs_vend ?? null, String(x.hash || ''), agora)));
   if (b.status && MES.test(String(b.status.mes || ''))) {
     const s = b.status;
+    const diaSP = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
+    if (String(s.mes) === diaSP.slice(0, 7)) {
+      await env.DB.prepare(
+        `INSERT OR REPLACE INTO liga_as_foto_dia (dia, filial, rca, meta, faturado, pendente, em)
+         SELECT ?, filial, CAST(CAST(rca AS INTEGER) AS TEXT),
+                SUM(COALESCE(json_extract(dados, '$."Meta (R$)"'), 0)),
+                SUM(COALESCE(json_extract(dados, '$."Faturado líquido (R$)"'), 0)),
+                SUM(COALESCE(json_extract(dados, '$."Carteira pendente (R$)"'), 0)),
+                ?
+           FROM gerot_vendedor_mes
+          WHERE mes = ? AND rca NOT LIKE '%|%' AND CAST(rca AS INTEGER) > 0
+          GROUP BY filial, CAST(CAST(rca AS INTEGER) AS TEXT)`
+      ).bind(diaSP, agora, String(s.mes)).run().catch(() => {});
+    }
     await env.DB.prepare('INSERT INTO gerot_coleta_status (mes, linhas, enviadas, posicao, colunas, em) VALUES (?,?,?,?,?,?)')
       .bind(String(s.mes), Number(s.linhas) || 0, Number(s.enviadas) || 0, String(s.posicao || ''), JSON.stringify(s.colunas || []).slice(0, 4000), agora).run();
     if (Math.random() < 0.05) await env.DB.prepare("DELETE FROM gerot_coleta_status WHERE em < datetime('now','-30 days')").run();

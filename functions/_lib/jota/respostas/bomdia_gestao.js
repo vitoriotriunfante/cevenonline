@@ -47,15 +47,22 @@ export async function respBomDiaGestao(B, nivel, esc) {
     }
   } catch (e) { filhos = []; }
   const T = K ? { meta: K.meta, fat: K.fat, cart: K.cart, cap: K.cap, ideal: K.ideal, nec: K.nec, capM1: K.capM1, pos: K.pos, posC: K.posC, metaPos: K.metaPos, posM1: K.posM1 } : {};
-  // ontem (ultimo dia util com dado no Clube) e hoje
-  let ont = null, hj = null, ontV = [];
+  // ontem (ultimo dia util seg-sex sem feriado com dado no Clube) e hoje
+  let ont = null, hj = null, ontV = [], opp = null;
   try {
-    const dUlt = await db.prepare(`SELECT MAX(dia) d FROM clube_venda_dia WHERE dia < ? AND filial IN (${qs(F)})${fr} AND total_pedido > 0`).bind(hoje, ...F, ...(rcas || [])).first();
-    if (dUlt && dUlt.d) {
-      ont = await db.prepare(`SELECT ? dia, SUM(total_pedido) v, SUM(ped_total) p, SUM(visitas_rota) vis, SUM(roteiros) rot, SUM(CASE WHEN roteiros > 0 AND ped_total = 0 THEN 1 ELSE 0 END) zer, SUM(CASE WHEN roteiros > 0 AND visitas_rota = 0 THEN 1 ELSE 0 END) semv FROM clube_venda_dia WHERE dia = ? AND filial IN (${qs(F)})${fr}`).bind(dUlt.d, dUlt.d, ...F, ...(rcas || [])).first();
-      if (nivel === 'supervisor') ontV = (await db.prepare(`SELECT rca, nome, roteiros, visitas_rota, ped_total FROM clube_venda_dia WHERE dia = ? AND filial = ?${fr} AND roteiros > 0 AND ped_total = 0`).bind(dUlt.d, F[0], ...(rcas || [])).all()).results || [];
+    const { ehFeriado } = await import('../../feriados.js');
+    const { results: dsUlt } = await db.prepare(`SELECT DISTINCT dia FROM clube_venda_dia WHERE dia < ? AND strftime('%w', dia) BETWEEN '1' AND '5' AND filial IN (${qs(F)})${fr} AND total_pedido > 0 ORDER BY dia DESC LIMIT 10`).bind(hoje, ...F, ...(rcas || [])).all();
+    const dUlt = ((dsUlt || []).map((x) => x.dia).find((d) => !ehFeriado(d))) || null;
+    if (dUlt) {
+      ont = await db.prepare(`SELECT ? dia, SUM(total_pedido) v, SUM(ped_total) p, SUM(visitas_rota) vis, SUM(roteiros) rot, SUM(CASE WHEN roteiros > 0 AND ped_total = 0 THEN 1 ELSE 0 END) zer, SUM(CASE WHEN roteiros > 0 AND visitas_rota = 0 THEN 1 ELSE 0 END) semv FROM clube_venda_dia WHERE dia = ? AND filial IN (${qs(F)})${fr}`).bind(dUlt, dUlt, ...F, ...(rcas || [])).first();
+      if (nivel === 'supervisor') ontV = (await db.prepare(`SELECT rca, nome, roteiros, visitas_rota, ped_total FROM clube_venda_dia WHERE dia = ? AND filial = ?${fr} AND roteiros > 0 AND ped_total = 0`).bind(dUlt, F[0], ...(rcas || [])).all()).results || [];
     }
     hj = await db.prepare(`SELECT SUM(roteiros) rot, SUM(CASE WHEN roteiros > 0 THEN 1 ELSE 0 END) comRota, SUM(CASE WHEN roteiros > 0 AND roteiros < 20 THEN 1 ELSE 0 END) curta, SUM(visitas_rota) vis, SUM(total_pedido) v, MAX(lido_em) lido FROM clube_venda_dia WHERE dia = ? AND filial IN (${qs(F)})${fr}`).bind(hoje, ...F, ...(rcas || [])).first();
+    const [rOpp, pOpp] = await Promise.all([
+      db.prepare(`SELECT SUM(CASE WHEN EXISTS (SELECT 1 FROM cliente_focos f WHERE f.filial = r.filial AND f.rca IN ('', r.rca) AND f.id_cliente = r.cnpj AND f.tag LIKE '%RECORR%') THEN 1 ELSE 0 END) rec, SUM(CASE WHEN fc.json IS NOT NULL AND json_extract(fc.json, '$.ult') IS NOT NULL AND substr(json_extract(fc.json, '$.ult'), 1, 10) <= date(?, '-30 days') THEN 1 ELSE 0 END) inat30 FROM clube_roteiro r LEFT JOIN ficha_cliente fc ON fc.filial = r.filial AND fc.id_cliente = r.cliente WHERE r.dia = ? AND r.filial IN (${qs(F)})${fr.replace(/rca/g, 'r.rca')}`).bind(hoje, hoje, ...F, ...(rcas || [])).first().catch(() => null),
+      db.prepare(`SELECT COUNT(*) n FROM prospects_mapa WHERE filial IN (${qs(F)})${fr}`).bind(...F, ...(rcas || [])).first().catch(() => null),
+    ]);
+    opp = { rec: Number((rOpp && rOpp.rec) || 0), inat30: Number((rOpp && rOpp.inat30) || 0), prosp: Number((pOpp && pOpp.n) || 0) };
   } catch (e) { /* sem Clube */ }
   // alertas: bloqueados na carteira, "cliente nao pediu" do mes
   let bloq = null, naoPediu = null;
@@ -75,7 +82,8 @@ export async function respBomDiaGestao(B, nivel, esc) {
   }
   if (T.metaPos) L.push(`👥 Positivação com carteira *${N(T.posC || T.pos || 0)}* de ${N(T.metaPos)} (*${pc(T.posC || T.pos || 0, T.metaPos)}*)${T.posM1 ? ` · mês passado inteiro ${N(T.posM1)}` : ''}${K && K.metaPosRotulo && !/do GEROT$/.test(K.metaPosRotulo) ? ` _(${K.metaPosRotulo})_` : ''}`);
   else if (T.pos != null) L.push(`👥 Positivação: *${N(T.pos)}* clientes faturados · com carteira *${N(T.posC || T.pos)}* (clientes distintos, sem repetir) · meta de positivação do grupo ainda não definida`);
-  if (hj && hj.rot) L.push(`🚶 *Hoje:* ${N(hj.rot)} clientes na rota de ${N(hj.comRota || 0)} vendedores${hj.curta ? ` · *${N(hj.curta)} com rota curta (<20)*: encaixar prospects e curva negativa` : ''}${hj.vis ? ` · já visitados ${N(hj.vis)}` : ''}`);
+  if (hj && hj.rot) L.push(`🎯 *Oportunidades hoje:* ${N(hj.rot)} visitas em ${N(hj.comRota || 0)} rotas${hj.curta ? ` · ⚠️ *${N(hj.curta)} rota curta (<20)*` : ''}${opp && opp.rec ? ` · 🔄 *${N(opp.rec)}* recorrência` : ''}${opp && opp.inat30 ? ` · ⏳ *${N(opp.inat30)}* +30d sem compra` : ''}${opp && opp.prosp ? ` · 📍 *${N(opp.prosp)}* cadastros no mapa` : ''}`);
+  else if (opp && opp.prosp) L.push(`🎯 *Oportunidades hoje:* 📍 *${N(opp.prosp)}* cadastros/prospects no mapa`);
   // 3 prioridades: pior ritmo (com meta)
   const rit = (x) => (x.cap != null && x.ideal ? x.cap / x.ideal * 100 : x.meta ? ((x.fat || 0) + (x.cart || 0)) / x.meta * 100 : null);
   // sem contas de gerente/internas e sem quem tem menos de 2% da meta do grupo (18/11/2026: "Gerente Tph" e meta pequena apareciam como prioridade)

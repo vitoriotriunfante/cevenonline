@@ -76,9 +76,25 @@ export function criaBase(origin, env) {
     baseDe: () => cache.baseDe || null,
     lances: () => memo('lances', () => api('/api/brasileirao-lances?dia=' + hojeSP())),
     sups: (f) => memo('sup' + f, () => api('/api/tv-supervisores?filial=' + f)),
-    // Liga e +MIX: datasets gerados no GitHub (a copia do site pode estar velha); mesma ordem que as telas usam (26/10/2026)
-    liga: () => memo('liga', () => gh('public/dados_brasileirao.json').then((t) => JSON.parse(t)).catch(() => est('/dados_brasileirao.json'))),
-    mix: () => memo('mix', () => gh('public/dados_mix.json').then((t) => JSON.parse(t)).catch(() => est('/dados_mix.json'))),
+    // Liga e +MIX: compara gerado_em entre Pages (est) e GitHub (gh) e usa a copia mais recente (24/11/2026)
+    ...(() => {
+      const maisNovo = (k, gp, ep) => memo(k, () => Promise.allSettled([gh(gp).then((t) => JSON.parse(t)), est(ep)]).then(([g, e]) => {
+        const gv = g.status === 'fulfilled' ? g.value : null;
+        const ev = e.status === 'fulfilled' ? (typeof e.value === 'string' ? JSON.parse(e.value) : e.value) : null;
+        if (ev && gv && k === 'liga') {
+          const eOut = Array.isArray(ev?.as?.meses) && ev.as.meses.includes('2026-10');
+          const gOut = Array.isArray(gv?.as?.meses) && gv.as.meses.includes('2026-10');
+          if (eOut && !gOut) return ev;
+        }
+        if (ev && (!gv || String(ev.gerado_em || '') >= String(gv.gerado_em || ''))) return ev;
+        if (gv) return gv;
+        throw (e.reason || g.reason || new Error('sem ' + k));
+      }));
+      return {
+        liga: () => maisNovo('liga', 'public/dados_brasileirao.json', '/dados_brasileirao.json'),
+        mix: () => maisNovo('mix', 'public/dados_mix.json', '/dados_mix.json'),
+      };
+    })(),
     pedidosDia: () => memo('ped', () => api('/api/pedidos-dia?dia=' + hojeSP())),
     pedidosAbertos: (filial, rca) => memo('pedab' + (filial || '') + (rca || ''), () => api('/api/pedidos-dia?abertos=1' + (filial ? '&filial=' + encodeURIComponent(filial) : '') + (rca ? '&rca=' + encodeURIComponent(rca) : ''))),
     rechecaPedidosVend: (filial, rca) => memo('rech_' + filial + '_' + rca, () => api(`/api/cron-lances?so_recheca=1&filial=${encodeURIComponent(filial)}&rca=${encodeURIComponent(rca)}`)),

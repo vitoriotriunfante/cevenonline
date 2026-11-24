@@ -407,8 +407,23 @@ export async function rotearIntencao(B, c, t, info) {
       return r || '⏳ Não consegui ler as justificativas do Clube da Venda agora. Pergunte de novo em 1 minuto.';
     }
     // visitas / plano de visitas / aderencia pelo Clube (Evandro, 18/11: "abrir por filial, supervisor ou vendedor; rota do dia e acumulado do mes")
+    // 24/11/2026: "Visitas Tamara de TCV hoje" nao cai na filial se um vendedor do escopo foi citado
     if (/\bVISITAS?\b|PLANO DE VISITA|ADERENCIA/.test(t) && !/\b(ONDE|ELA|ELE|DELA|DELE)\b/.test(t) && !/SEM COMPRA|SEM VENDA|VISITADOS/.test(t)) {
-      const e = await escG(); const por = /POR VENDEDOR|VENDEDORES/.test(t) ? 'vendedor' : /POR SUPERVISOR|SUPERVISORES/.test(t) ? 'supervisor' : e.nacional ? 'filial' : papel === 'supervisor' ? 'vendedor' : 'supervisor';
+      if (!/POR VENDEDOR|POR SUPERVISOR|VENDEDORES|SUPERVISORES|TODAS|BRASIL|RANKING/.test(t)) {
+        const escVis = (papel === 'diretoria' || papel === 'ceo') && filCit ? { nome: filCit, filiais: [filCit], grupo: null, supervisor: null, nacional: false } : esc;
+        const Ev = await carregaEscopo(B, escVis).catch(() => null);
+        if (Ev) {
+          const { achaPessoa } = await import('./escopo.js');
+          const pVis = achaPessoa(Ev, t);
+          if (pVis && pVis.tipo === 'vend') {
+            const { respOndeEsta } = await import('./respostas/momentos.js');
+            const rv = await respOndeEsta(B, pVis.alvo).catch(() => null);
+            if (rv) return rv;
+          }
+        }
+      }
+      const e = await escG();
+      const por = /POR VENDEDOR|VENDEDORES/.test(t) ? 'vendedor' : /POR SUPERVISOR|SUPERVISORES/.test(t) ? 'supervisor' : e.nacional ? 'filial' : papel === 'supervisor' ? 'vendedor' : 'supervisor';
       const r = await (await G()).respVisitasClube(B, e, por).catch(() => null); if (r) return r;
     }
     // devolucao por motivo (tela do GEROT; Vitorio 18/11: "vc nao abriu por motivo quando eu pedi!!!")
@@ -441,7 +456,7 @@ export async function rotearIntencao(B, c, t, info) {
     const E = await carregaEscopo(B, { nome: 'Brasil', filiais: FILIAIS, grupo: null, nacional: true }); const r = await respTendencia(B, E); if (r) return r;
   }
   // C4 · POSITIVACAO COMPARADA (Brasil/filial): faturado + carteira e o mes anterior, pelo GEROT (nunca a base de vendas parada)
-  if (/POSITIVA/.test(t) && /(COMPARA|MES(ES)? ANTERIOR|MES PASSADO|MELHOR|PIOR|OUTUBRO|CARTEIRA|BRASIL|FILIAIS|COMO ESTA|COMO ESTAMOS|\bA-?1\b|BENCH|\b3M\b|\bM-?1\b)/.test(t) && (papel === 'diretoria' || papel === 'ceo' || papel === 'gerente')) {
+  if (/POSITIVA/.test(t) && /(COMPARA|MES(ES)? ANTERIOR|MES PASSADO|MELHOR|PIOR|OUTUBRO|CARTEIRA|BRASIL|FILIAIS|COMO ESTA|COMO ESTAMOS|\bA-?1\b|BENCH|\b3M\b|\bM-?1\b)/.test(t) && !/\bVENDEDOR(ES|A|AS)?\b|\bSUPERVISOR(ES|A|AS)?\b/.test(t) && (papel === 'diretoria' || papel === 'ceo' || papel === 'gerente')) {
     if (papel === 'gerente' && c.grupo && !filCit) { const { respPositivacao } = await import('./respostas/rota.js'); const r0 = await respPositivacao(B, await carregaEscopo(B, esc)).catch(() => null); if (r0) return r0; }   /* 23/11/2026: grupo ve o grupo (regra 4), nunca a filial inteira */
     const r = await respPositivacaoComparada(B, filCit || (papel === 'gerente' ? c.filial : null)); if (r) return r;
   }

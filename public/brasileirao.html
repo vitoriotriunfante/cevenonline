@@ -634,28 +634,28 @@ main { padding: 0 clamp(8px, 1.6vw, 24px); }
     <div class="stat-card">
       <div class="stat-icon green">⚽</div>
       <div class="stat-info">
-        <h3>Vitórias das FILIAIS (3 pts)</h3>
+        <h3 id="lbl-vitorias">Vitórias das FILIAIS (3 pts)</h3>
         <div class="num" id="stat-vitorias">0</div>
       </div>
     </div>
     <div class="stat-card">
       <div class="stat-icon gold">🟡</div>
       <div class="stat-info">
-        <h3>Empates das FILIAIS (1 pt)</h3>
+        <h3 id="lbl-empates">Empates das FILIAIS (1 pt)</h3>
         <div class="num" id="stat-empates">0</div>
       </div>
     </div>
     <div class="stat-card">
       <div class="stat-icon red">🔴</div>
       <div class="stat-info">
-        <h3>Derrotas das FILIAIS (0 pts)</h3>
+        <h3 id="lbl-derrotas">Derrotas das FILIAIS (0 pts)</h3>
         <div class="num" id="stat-derrotas">0</div>
       </div>
     </div>
     <div class="stat-card">
       <div class="stat-icon blue">🔥</div>
       <div class="stat-info">
-        <h3>Lances Auditados no D1</h3>
+        <h3 id="lbl-lances">Lances Auditados no D1</h3>
         <div class="num" id="stat-lances">2.855</div>
       </div>
     </div>
@@ -1602,10 +1602,8 @@ function renderizarTudo() {
       `;
     }).join('');
 
-    document.getElementById('stat-vitorias').textContent = totV;
-    document.getElementById('stat-empates').textContent = totE;
-    document.getElementById('stat-derrotas').textContent = totD;
-    document.getElementById('stat-lances').textContent = DADOS.total_lances_auditados || '2.855';
+    window._varejoHero = { v: totV, e: totE, d: totD, l: DADOS.total_lances_auditados || '2.855' };
+    atualizaCardsTopo();
   }
 
   // 2. Gerentes
@@ -1796,6 +1794,25 @@ async function buscarLancesPeriodo(dia, filial) {
   return { lances, porNivel, total: lances.length, periodo: per, dias };
 }
 
+function atualizaCardsTopo() {
+  const set = (id, t) => { const e = document.getElementById(id); if (e) e.textContent = t; };
+  if (CANAL === 'AS' && DADOS && DADOS.as && Array.isArray(DADOS.as.vendedores)) {
+    const V = DADOS.as.vendedores;
+    const totV = V.reduce((a, x) => a + (Number(x.vitorias) || 0), 0);
+    const totE = V.reduce((a, x) => a + (Number(x.empates) || 0), 0);
+    const totD = V.reduce((a, x) => a + (Number(x.derrotas) || 0), 0);
+    set('lbl-vitorias', 'Vitórias AS (semanas)'); set('stat-vitorias', totV);
+    set('lbl-empates', 'Empates AS (semanas)'); set('stat-empates', totE);
+    set('lbl-derrotas', 'Derrotas AS (semanas)'); set('stat-derrotas', totD);
+    set('lbl-lances', 'Vendedores AS (temporada)'); set('stat-lances', V.length);
+    return;
+  }
+  const vh = window._varejoHero || { v: 0, e: 0, d: 0, l: (DADOS && DADOS.total_lances_auditados) || '0' };
+  set('lbl-vitorias', 'Vitórias das FILIAIS (3 pts)'); set('stat-vitorias', vh.v);
+  set('lbl-empates', 'Empates das FILIAIS (1 pt)'); set('stat-empates', vh.e);
+  set('lbl-derrotas', 'Derrotas das FILIAIS (0 pts)'); set('stat-derrotas', vh.d);
+  set('lbl-lances', 'Lances Auditados no D1'); set('stat-lances', vh.l);
+}
 function setCanal(c) {
   CANAL = c === 'AS' ? 'AS' : 'VAREJO';
   try { localStorage.setItem('brasileirao_canal', CANAL); } catch (e) {}
@@ -1819,6 +1836,7 @@ function aplicaCanalNaTela() {
   document.querySelectorAll('.so-as').forEach(e => { e.style.display = as ? '' : 'none'; });
   const lc = document.getElementById('lances-canal'); if (lc) lc.value = as ? 'AS' : 'VAREJO';
   LANCES_CARREGADOS_HOJE = false;
+  atualizaCardsTopo();
   filtrarSupervisores(); filtrarVendedores(); montaRegulamentoAS(); filtraRegrasAS(); montaTextoGolQualificado();
   const ativa = (document.querySelector('.tab-content.active') || {}).id;
   if (ativa === 'tab-lances') carregarLances();
@@ -1859,7 +1877,7 @@ function renderVendedoresAS() {
   if (q) lista = lista.filter(v => v.nome.toLowerCase().includes(q) || String(v.rca).includes(q) || (v.supervisor || '').toLowerCase().includes(q));
   tb.innerHTML = lista.slice(0, 150).map(v => {
     const pos = isBrasil ? v.pos_brasil : v.pos_filial, cls = pos <= 3 ? 'pos-g4' : 'pos-mid', sub = !isBrasil ? '<span style="font-size:10px;color:var(--tx-mut);display:block">(' + v.pos_brasil + 'º no Brasil)</span>' : '';
-    const det = (v.semanas || []).filter(s => s.jogada).map(s => 'Semana ' + s.n + ': lances ' + s.pts_lances + ' + faseamento ' + s.pts_faseamento + ' + bônus ' + s.pts_bonus + ' = ' + s.score + ' (' + s.resultado + ')').join(' | ');
+    const det = (v.semanas || []).filter(s => s.jogada).map(s => (s.mes ? s.mes.slice(5) + '/' + s.mes.slice(2, 4) + ' S' + (s.semana_mes || s.n) : 'Semana ' + s.n) + ': lances ' + s.pts_lances + ' + faseamento ' + s.pts_faseamento + ' + bônus ' + s.pts_bonus + ' = ' + s.score + ' (' + s.resultado + ')').join(' | ');
     return '<tr><td><span class="pos-box ' + cls + '">' + pos + 'º</span>' + mov(pos, isBrasil ? v.pos_brasil_ant : v.pos_filial_ant) + sub + '</td><td><div style="font-weight:700;color:#fff">' + esc(v.nome) + '</div><div style="font-size:11px;color:var(--tx-mut)">RCA ' + esc(v.rca) + '</div></td>' +
       '<td><span class="tag-badge" style="background:rgba(56,189,248,0.15);color:var(--acc);">' + esc(v.filial) + '</span></td><td style="color:var(--tx-mut);font-size:12px;">' + esc(v.supervisor || '—') + '</td>' +
       '<td style="text-align:right" class="pts-cell">' + v.pts_tabela + '</td><td style="text-align:center"><span class="tag-badge tag-v">' + v.vitorias + '</span></td><td style="text-align:center"><span class="tag-badge tag-e">' + v.empates + '</span></td><td style="text-align:center"><span class="tag-badge tag-d">' + v.derrotas + '</span></td>' +

@@ -109,15 +109,15 @@ export async function respCarteiraStatus(B, filiais, rcas, nome, soBloq, porFil,
 export async function respCarteiraNivel(B, esc, { papel = 'diretoria', modo = 'bloq', tipo = null, abrir = false, forn = null } = {}) {
   const db = B.env && B.env.DB; if (!db) return null;
   const F = esc.filiais && esc.filiais.length ? esc.filiais : FILIAIS, rc = esc.rcas && esc.rcas.length ? esc.rcas.map(String) : null;
-  let R = [], NM = [];
+  const selForn = forn && forn.length ? ', fornecedores' : '';
+  let R = [];
   try {
-    R = (await db.prepare(`SELECT filial, pedido, rca, vendedor, entrada, situacao, COALESCE(NULLIF(motivo, ''), '') motivo, cliente, cnpj, status_cliente sc, positivado pos, valor, fornecedores FROM gerot_carteira WHERE filial IN (${qs(F)})${rc ? ` AND rca IN (${qs(rc)})` : ''}`).bind(...F, ...(rc || [])).all()).results || [];
+    R = (await db.prepare(`SELECT filial, pedido, rca, vendedor, entrada, situacao, COALESCE(NULLIF(motivo, ''), '') motivo, cliente, cnpj, status_cliente sc, positivado pos, valor${selForn} FROM gerot_carteira WHERE filial IN (${qs(F)})${rc ? ` AND rca IN (${qs(rc)})` : ''}`).bind(...F, ...(rc || [])).all()).results || [];
     // 22/11/2026: so os pedidos que tem a industria pedida (o valor mostrado e o do pedido inteiro)
     if (forn && forn.length) { const nn = (x) => String(x || '').toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/^[A-Z]\s*-\s*/, '').replace(/\b(LTDA|S\.?A\.?|SA|ME)\b\.?/g, '').replace(/\s+/g, ' ').trim(); const alvo = forn.map(nn).filter(Boolean); R = R.filter((r) => { let fs = []; try { fs = JSON.parse(r.fornecedores || '[]'); } catch (e) { fs = []; } return fs.some((f) => alvo.some((a) => nn(f).includes(a) || a.includes(nn(f)))); }); }
-    NM = (await db.prepare(`SELECT filial, rca, MAX(supervisor) sup FROM gerot_vendedor_mes WHERE mes = ? AND filial IN (${qs(F)}) GROUP BY filial, rca`).bind(mesAtual(), ...F).all()).results || [];
   } catch (e) { return null; }
   // 23/11/2026 (equipe = Gestao de Equipe, config_equipe_soberana): supervisor da linha = o da Gestao; RCA sem equipe = 'fora das equipes' (total = linhas)
-  const supDe = new Map(); void NM;
+  const supDe = new Map();
   try { const c = JSON.parse(((await db.prepare('SELECT conteudo_json FROM config_equipe_soberana LIMIT 1').first()) || {}).conteudo_json || '{}'); for (const [k, Lc] of Object.entries(c.filiais || {})) for (const v of Lc || []) if (v && v.supervisor) supDe.set(k.split('_')[0] + '|' + String(Number(v.rca)), nomeCurto(String(v.supervisor))); } catch (e) { /* sem Gestao */ }
   const ehBloq = (s) => /BLOQ/i.test(s), tipoOk = (s) => !tipo || new RegExp(tipo, 'i').test(s);
   const A = R.filter((r) => (modo === 'total' || ehBloq(r.situacao)) && tipoOk(r.situacao));
@@ -134,7 +134,7 @@ _Carteira Total do GEROT · ${await fontesG(db) || 'sem hora'}_`; }
   if (modo === 'bloq' && papel === 'vendedor') L.push(`Carteira em aberto: ${fmt(soma(R))}`);   /* 23/11/2026: vendedor ve o bloqueado e a carteira inteira dele (3.11/3.12) */
   const linhaSit = (Ls) => SIT.filter(([s]) => modo === 'total' || /BLOQ/i.test(s)).filter(([s]) => tipoOk(s)).map(([s, ic]) => { const x = soma(Ls.filter((r) => r.situacao === s)); return x.n ? `${ic} ${s === 'Pendente' ? 'Pendente (ainda sem carga)' : s}: ${fmt(x)}` : null; }).filter(Boolean);
   L.push(...linhaSit(A));
-  if (modo === 'total') { const fat = soma(A.filter((r) => /MONTAD|LIBERAD/i.test(r.situacao))), bq = soma(A.filter((r) => /BLOQ/i.test(r.situacao))); if (!tipo && bq.n) L.push(`🚫 Bloqueados (financeiro + comercial): ${fmt(bq)}`); L.push(`✅ Faturável (montado + liberado): ${fmt(fat)}`); }
+  if (modo === 'total') { const fat = soma(A.filter((r) => /MONTAD|LIBERAD/i.test(r.situacao))), bq = soma(A.filter((r) => /BLOQ/i.test(r.situacao))); if (!tipo) L.push(bq.n ? `🚫 Bloqueados (financeiro + comercial): ${fmt(bq)}` : '🚫 Bloqueados: nenhum (R$ 0 · 0 ped.)'); L.push(`✅ Faturável (montado + liberado): ${fmt(fat)}`); }
   const nac = papel === 'diretoria' && F.length > 1 && !abrir;
   if (nac) {
     L.push('', '*Por filial:*');
@@ -394,6 +394,7 @@ export async function respDevolucaoMotivoVend(B, esc) {
   try { X = (await db.prepare(`SELECT motivo, rca, vendedor, valor, clientes, em FROM gerot_devolucao_motivo_vend WHERE mes = ? AND filial = ?${R ? ` AND rca IN (${qs(R)})` : ''}`).bind(mesAtual(), fil, ...(R || [])).all()).results || []; } catch (e) { return null; }
   if (!X.length) return null;
   em = X.reduce((a, x) => (x.em > a ? x.em : a), '');
+  try { const gUlt = await db.prepare('SELECT MAX(em) ult FROM gerot_devolucao_motivo_vend WHERE mes = ?').bind(mesAtual()).first(); if (gUlt && gUlt.ult && gUlt.ult > em) em = gUlt.ult; } catch (e) { /* fica o da linha */ }
   const tot = X.reduce((a, x) => a + (Number(x.valor) || 0), 0), um = R && R.length === 1;
   const mot = new Map(); for (const x of X) mot.set(x.motivo, (mot.get(x.motivo) || 0) + (Number(x.valor) || 0));
   const marca = (m) => (LIGA_VERMELHO.test(m) ? '🟥' : LIGA_GOLCONTRA.test(m) ? '⚽' : '•');

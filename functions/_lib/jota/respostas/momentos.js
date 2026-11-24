@@ -54,20 +54,41 @@ async function recorrenciaGerot(B, v) {
   try { return await B.env.DB.prepare(/* 23/11/2026 (dicionario 3.18, conflito 13): so a pasta ATUAL (a do supervisor de hoje no GEROT), nunca a soma com a pasta velha */ "SELECT r.objetivo, r.meta, r.positivados FROM gerot_recorrencia_pasta r WHERE r.mes = ? AND r.filial = ? AND r.nivel = 'vendedor' AND r.cod = ? ORDER BY (r.sup = (SELECT g.cod_sup FROM gerot_vendedor_mes g WHERE g.mes = r.mes AND g.filial = r.filial AND CAST(g.rca AS INTEGER) = CAST(r.cod AS INTEGER) ORDER BY coalesce(json_extract(g.dados, '$.\"Faturado líquido (R$)\"'), 0) DESC LIMIT 1)) DESC, r.em DESC LIMIT 1").bind(hojeSP().slice(0, 7), String(v.filial), String(v.rca)).first(); } catch (e) { return null; }
 }
 // Resultado do ultimo dia fechado no Clube da Venda (ontem) para compor o planejamento matinal (Vitorio, 13/11/2026)
-// PLANEJAMENTO DO DIA (Vitorio, 23/11/2026: 'de manha nao tem pedidos... coloque as oportunidades do dia: tags recorrencia hoje na rota,
-//   vendedores de varejo com menos de 20 visitas no dia por filial... informacao para comecar o dia'). Rota de hoje do Clube + TAG do admin.
-//   V = vendedores do escopo (com .varejo, .filial, .rca). Devolve por filial: clientes na rota, vendedores com rota, TAG recorrencia na rota,
-//   vendedores de varejo com rota < 20 (nome), e o total. Sem rota gravada hoje = null (nunca inventa).
+// PLANEJAMENTO E OPORTUNIDADES DO DIA (Vitorio, 23-24/11/2026: de manha nao mostrar venda/zerados — mostrar oportunidades reais:
+//   visitas planejadas, vendedores varejo < 20 visitas, TAG recorrencia na rota, +30d sem compra na rota, prospects e pedidos bloqueados).
+//   Query enxuta usando PK de cliente_focos (filial, rca IN ('', r.rca), id_cliente, tag) e PK de ficha_cliente (< 100ms no D1).
 export async function planejamentoHoje(B, V) {
   if (!B || !B.env || !B.env.DB) return null;
   const hj = hojeSP(), F = [...new Set((V || []).map((v) => String(v.filial)).filter(Boolean))]; if (!F.length) return null;
   const meus = new Map((V || []).map((v) => [v.filial + '|' + v.rca, v]));
-  let R0 = [];
-  try { R0 = (await B.env.DB.prepare(`SELECT r.filial, r.rca, COUNT(*) n, SUM(CASE WHEN EXISTS (SELECT 1 FROM cliente_focos f WHERE f.filial = r.filial AND f.id_cliente = r.cnpj AND f.tag LIKE '%RECORR%') THEN 1 ELSE 0 END) rec FROM clube_roteiro r WHERE r.dia = ? AND r.filial IN (${F.map(() => '?').join(',')}) GROUP BY r.filial, r.rca`).bind(hj, ...F).all()).results || []; } catch (e) { return null; }
-  R0 = R0.filter((r) => meus.has(r.filial + '|' + r.rca)); if (!R0.length) return null;
+  const qs = F.map(() => '?').join(','), db = B.env.DB;
+  let R0 = [], P0 = [], B0 = [], CVD = [];
+  try {
+    const [rRot, rPro, rBlq, rCvd] = await Promise.all([
+      db.prepare(`SELECT r.filial, r.rca, COUNT(*) n, SUM(CASE WHEN EXISTS (SELECT 1 FROM cliente_focos f WHERE f.filial = r.filial AND f.rca IN ('', r.rca) AND f.id_cliente = r.cnpj AND f.tag LIKE '%RECORR%') THEN 1 ELSE 0 END) rec, SUM(CASE WHEN fc.json IS NOT NULL AND json_extract(fc.json, '$.ult') IS NOT NULL AND substr(json_extract(fc.json, '$.ult'), 1, 10) <= date(?, '-30 days') THEN 1 ELSE 0 END) inat30 FROM clube_roteiro r LEFT JOIN ficha_cliente fc ON fc.filial = r.filial AND fc.id_cliente = r.cliente WHERE r.dia = ? AND r.filial IN (${qs}) GROUP BY r.filial, r.rca`).bind(hj, hj, ...F).all().catch(() => ({ results: [] })),
+      db.prepare(`SELECT filial, rca, COUNT(*) n FROM prospects_mapa WHERE filial IN (${qs}) GROUP BY filial, rca`).bind(...F).all().catch(() => ({ results: [] })),
+      db.prepare(`SELECT filial, rca, COUNT(*) n, COALESCE(SUM(valor), 0) v FROM gerot_carteira WHERE situacao LIKE 'Bloqueado%' AND filial IN (${qs}) GROUP BY filial, rca`).bind(...F).all().catch(() => ({ results: [] })),
+      db.prepare(`SELECT filial, rca, roteiros n FROM clube_venda_dia WHERE dia = ? AND filial IN (${qs}) AND roteiros > 0`).bind(hj, ...F).all().catch(() => ({ results: [] })),
+    ]);
+    R0 = rRot.results || []; P0 = rPro.results || []; B0 = rBlq.results || []; CVD = rCvd.results || [];
+  } catch (e) { return null; }
+  const rotMap = new Map();
+  for (const r of R0) { const k = r.filial + '|' + r.rca; if (meus.has(k)) rotMap.set(k, { filial: r.filial, rca: r.rca, n: Number(r.n) || 0, rec: Number(r.rec) || 0, inat30: Number(r.inat30) || 0 }); }
+  for (const r of CVD) { const k = r.filial + '|' + r.rca; if (meus.has(k) && !rotMap.has(k)) rotMap.set(k, { filial: r.filial, rca: r.rca, n: Number(r.n) || 0, rec: 0, inat30: 0 }); }
   const pf = new Map();
-  for (const r of R0) { const v = meus.get(r.filial + '|' + r.rca), o = pf.get(r.filial) || { cli: 0, vend: 0, rec: 0, curtos: [] }; o.cli += r.n; o.vend++; o.rec += Number(r.rec) || 0; if (v && v.varejo && r.n < 20) o.curtos.push(`${r.rca} (${r.n})`); pf.set(r.filial, o); }
-  const tot = { cli: 0, vend: 0, rec: 0, curtos: 0 }; for (const o of pf.values()) { tot.cli += o.cli; tot.vend += o.vend; tot.rec += o.rec; tot.curtos += o.curtos.length; }
+  const getF = (fil) => { if (!pf.has(fil)) pf.set(fil, { cli: 0, vend: 0, rec: 0, inat30: 0, curtos: [], prospects: 0, bloqN: 0, bloqV: 0 }); return pf.get(fil); };
+  for (const [k, r] of rotMap) {
+    const v = meus.get(k), o = getF(r.filial);
+    o.cli += r.n; o.vend++; o.rec += r.rec; o.inat30 += r.inat30;
+    if (v && v.varejo && r.n > 0 && r.n < 20) o.curtos.push(`${r.rca} (${r.n})`);
+  }
+  const hasK = (fil, raw) => { const k1 = fil + '|' + raw; if (meus.has(k1)) return true; const num = Number(raw); return Number.isFinite(num) && meus.has(fil + '|' + String(num)); };
+  for (const p of P0) { if (hasK(p.filial, p.rca)) getF(p.filial).prospects += Number(p.n) || 0; }
+  for (const b of B0) { if (hasK(b.filial, b.rca)) { const o = getF(b.filial); o.bloqN += Number(b.n) || 0; o.bloqV += Number(b.v) || 0; } }
+  if (!pf.size) return null;
+  const tot = { cli: 0, vend: 0, rec: 0, inat30: 0, curtos: 0, prospects: 0, bloqN: 0, bloqV: 0 };
+  for (const o of pf.values()) { tot.cli += o.cli; tot.vend += o.vend; tot.rec += o.rec; tot.inat30 += o.inat30; tot.curtos += o.curtos.length; tot.prospects += o.prospects; tot.bloqN += o.bloqN; tot.bloqV += o.bloqV; }
+  if (!tot.cli && !tot.prospects && !tot.bloqN) return null;
   return { porFilial: pf, tot };
 }
 
@@ -156,7 +177,7 @@ export async function diaClube(B, v) {
         }
       } catch (e) { /* sem rota: fica so a quantidade */ }
     }
-    return { t, vis: [...vis.values()], semPed, comPed, naoVis, naoVisNomes, lido: t.lido_em ? new Date(t.lido_em).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }) : null };
+    return { t, vis: [...vis.values()], semPed, comPed, pedHojeCli: [...pedHojeCli], naoVis, naoVisNomes, lido: t.lido_em ? new Date(t.lido_em).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }) : null };
   } catch (e) { return null; }
 }
 // ONDE ESTA / ROTA DE HOJE DE UM VENDEDOR (Vitorio, 17/11/2026: "onde esta a Fernanda de TSJ" veio o card do mes; "gostei muito mais da resposta" do Cleverson
@@ -165,10 +186,13 @@ export async function respOndeEsta(B, v) {
   const D = await diaClube(B, v);
   if (!D) return `📍 *${vn(v)}* (${v.filial}): sem leitura do Clube da Venda hoje ainda.`;
   const db = B.env.DB, dia = hojeSP(), fil = String(v.filial), rca = String(v.rca);
-  const comPed = new Set((D.comPed || []).map((x) => String(x.id)));
+  const comPed = new Set([...(D.comPed || []).map((x) => String(x.id)), ...(D.pedHojeCli || []).map(String)]);
   try {
     const { results } = await db.prepare('SELECT cliente FROM gerot_pedido WHERE filial = ? AND rca = ? AND data = ?').bind(fil, rca, dia).all(); for (const r of results || []) comPed.add(String(r.cliente));
   } catch (e) { /* sem GEROT do dia */ }
+  try {
+    const { results } = await db.prepare('SELECT cliente FROM gerot_carteira WHERE filial = ? AND CAST(rca AS INTEGER) = ? AND entrada = ?').bind(fil, Number(rca), dia).all(); for (const r of results || []) comPed.add(String(r.cliente));
+  } catch (e) { /* sem carteira do dia */ }
   const jus = new Map(D.semPed.map((x) => [String(x.id), x]));
   const V = D.vis.filter((x) => x.ini).sort((a, b) => a.ini.localeCompare(b.ini)), ult = V[V.length - 1];
   const t = D.t, L = [`📍 *${vn(v)}* (${v.filial}) · hoje`];
@@ -452,11 +476,23 @@ export async function respMomentoSupervisor(B, c, Ev, momentoForcado = null) {
     const g = await recorrenciaEquipe(B, filial, nomeSup); if (g && g.meta) L.push(`🔄 Recorrência: *${N(g.positivados || 0)} de ${N(g.meta)}* da meta`);
     const st = await statusSupervisor(B, filial, nomeSup);
     if (st.compromisso === true) L.push('', '✅ Compromisso de hoje: *feito*');
-    else if (st.compromisso === false) L.push('', minHM(hhmm()) < 10 * 60 ? '⏰ Compromisso de hoje: *ainda não feito* · prazo até as 10h' : '⚠️ Compromisso de hoje: *não feito*');
+    else if (st.compromisso === false) L.push('', minHM(hhmm()) < 9 * 60 + 30 ? '⏰ Compromisso de hoje: *ainda não feito* · prazo até as 09h30' : '⚠️ Compromisso de hoje: *não feito*');
+    const PLN = await planejamentoHoje(B, V).catch(() => null);
+    if (PLN) {
+      const p = PLN.tot;
+      const pts = [`*${N(p.cli)}* visitas planejadas`];
+      if (p.rec) pts.push(`🔄 *${N(p.rec)}* TAG Recorrência na rota`);
+      if (p.inat30) pts.push(`⏳ *${N(p.inat30)}* +30d sem comprar`);
+      if (p.curtos) pts.push(`⚠️ *${N(p.curtos)}* <20 visitas`);
+      if (p.prospects) pts.push(`🆕 *${N(p.prospects)}* prospects`);
+      if (p.bloqN) pts.push(`🔒 *${N(p.bloqN)}* bloqueados (${R$(p.bloqV)})`);
+      L.push('', `🎯 *Oportunidades de hoje:* ${pts.join(' · ')}`);
+    }
     // RET sugerida: vendedor de rota mais atras do ritmo da meta, com os 5 de foco dele
     const cand = linhas.filter((x) => x.prog && x.pct != null).sort((a, b) => a.pct - b.pct)[0];
     if (cand) { L.push('', `🚗 *RET sugerida: ${curto(cand.v)}* (${pc(vend(cand.v), cand.v.meta)} da meta, o mais atrás da equipe)`); if (cand.foco.length) { const rep = new Set(cand.foco.map((f) => f.nome).filter((nm, i, a) => a.indexOf(nm) !== i)); L.push(`   Foco dele hoje: ${cand.foco.slice(0, 5).map((f) => f.nome + (rep.has(f.nome) ? ` (#${f.id})` : '')).join(' · ')}`); } }
-    if (!soAS) { const semCk = linhas.filter((x) => x.prog && !x.feitas); L.push('', `🚶 Rota: *${linhas.filter((x) => x.feitas).length} de ${linhas.filter((x) => x.prog).length}* vendedores já começaram` + (semCk.length ? ` · ainda sem check-in: ${semCk.slice(0, 4).map((x) => curto(x.v)).join(', ')}` : '')); }
+    if (!soAS && minHM(hhmm()) >= 9 * 60 + 30) { const semCk = linhas.filter((x) => x.prog && !x.feitas); L.push('', `🚶 Rota: *${linhas.filter((x) => x.feitas).length} de ${linhas.filter((x) => x.prog).length}* vendedores já começaram` + (semCk.length ? ` · ainda sem check-in: ${semCk.slice(0, 4).map((x) => curto(x.v)).join(', ')}` : '')); }
+    else if (!soAS && linhas.some((x) => x.feitas > 0)) { L.push('', `🚶 Rota: *${linhas.filter((x) => x.feitas).length} de ${linhas.filter((x) => x.prog).length}* vendedores já iniciaram os check-ins`); }
     if (porDia > 0) L.push(`💡 Para o ritmo da meta, a equipe precisa de *${R$(porDia)}* por dia útil.`);
   } else if (momento === 'meio') {
     if (meta > 0) L.push(`📊 *Mês:* *${pc(vd, meta)}* da meta${porDia > 0 ? ` · ritmo hoje: *${R$(porDia)}*` : ''}`);
@@ -534,13 +570,23 @@ export async function respMomentoGerente(B, c, Ev, momentoForcado = null) {
     try { const gf = (await posGerotFiliais(B)).get(filial); if (gf) { if (gf.pos != null) posG = gf.pos; if (gf.metaPos != null) mp = gf.metaPos; } } catch (e) { /* usa soma */ }
   }
   if (momento === 'abertura') {
-    if (porDia > 0) L.push(`🎯 *Hoje:* a ${filial} precisa captar *${R$(porDia)}* por dia útil para a meta (GEROT, ${du}d úteis)`);
+    if (porDia > 0) L.push(`🎯 *Ritmo necessário (GEROT):* a ${filial} precisa captar *${R$(porDia)}*/dia útil (${du}d úteis)`);
     if (mp) L.push(`👥 Positivação: *${N(posG)} de ${N(mp)}* clientes`);
     const vAS = TODOS.filter(ehAS); if (vAS.length) { const m = soma(vAS, (v) => v.meta), f = soma(vAS, (v) => v.fat); if (m > 0) L.push(`📐 Faseamento AS (60% até o dia 20): *${pc(f, m * 0.6)}* do alvo`); }
     try { const g = await B.env.DB.prepare("SELECT objetivo, meta, positivados FROM gerot_recorrencia_pasta WHERE mes = ? AND filial = ? AND nivel = 'filial' LIMIT 1").bind(hojeSP().slice(0, 7), filial).first(); if (g && g.meta && !c.grupo) L.push(`🔄 Recorrência: *${N(g.positivados || 0)} de ${N(g.meta)}* da meta`); } catch (e) { /* sem GEROT */ }
+    const PLN = await planejamentoHoje(B, V).catch(() => null);
+    if (PLN) {
+      const p = PLN.tot;
+      const pts = [`*${N(p.cli)}* visitas planejadas (${N(p.vend)} vend.)`];
+      if (p.curtos) pts.push(`⚠️ *${N(p.curtos)}* <20 visitas`);
+      if (p.rec) pts.push(`🔄 *${N(p.rec)}* TAG Recorrência`);
+      if (p.inat30) pts.push(`⏳ *${N(p.inat30)}* +30d sem compra`);
+      if (p.prospects) pts.push(`🆕 *${N(p.prospects)}* prospects`);
+      if (p.bloqN) pts.push(`🔒 *${N(p.bloqN)}* bloqueados (${R$(p.bloqV)})`);
+      L.push(`🎯 *Oportunidades de hoje:* ${pts.join(' · ')}`);
+    }
     const semComp = S.filter((x, i) => st[i] && st[i].compromisso === false).map(([s]) => titulo(s.split(' ')[0]));
     if (st.length) L.push(`🗓️ Compromisso: *${S.length - semComp.length} de ${S.length}* supervisores` + (semComp.length ? ` · faltam: ${semComp.join(', ')}` : ' ✅'));
-    if (porDia > 0) L.push(`💡 Para a meta, a ${filial} precisa captar *${R$(porDia)}* por dia útil (GEROT).`);
   } else {
     if (mp) L.push(`👥 Positivação: *${N(posG)} de ${N(mp)}* clientes`);
     if (porDia > 0) { const fh = Math.max(0, porDia - dig); L.push(fh > 0 ? `🎯 *Ritmo de hoje:* meta *${R$(porDia)}* · faltam *${R$(fh)}*` : `🎯 *Ritmo de hoje:* *batido!* (meta ${R$(porDia)}) 🎉`); }
@@ -669,11 +715,26 @@ export async function respMomentoDiretoria(B, c, Ev, momentoForcado = null) {
     L.push(`📊 *Ritmo:* ${statusRitmo} (calendário pede *${esp.toFixed(0)}%*)` + (du && meta > vd ? ` · precisa *${R$(porDia)}/dia útil* (${du}d)` : ''));
   }
   if (mpos > 0) L.push(`👥 *Positivação (GEROT):* *${N(pos)} de ${N(mpos)}* (${pc(pos, mpos)})` + (recMeta > 0 ? ` · 🔄 Recorrência: *${N(recPos)} de ${N(recMeta)}* (${pc(recPos, recMeta)})` : ''));
-  // 23/11/2026: de manha, sem pedido ainda, o 'hoje R$ 0' vira o PLANEJAMENTO do dia (rota, recorrencia na rota, rota curta)
-  const PLN = !ped ? await planejamentoHoje(B, V).catch(() => null) : null;
-  if (PLN) L.push(`🗓️ *Planejamento de hoje (rota do Clube):* *${N(PLN.tot.cli)}* clientes · ${N(PLN.tot.vend)} vendedores · 🔄 *${N(PLN.tot.rec)}* com TAG de recorrência na rota` + (PLN.tot.curtos ? ` · ⚠️ *${N(PLN.tot.curtos)}* vendedores de varejo com menos de 20 visitas` : ''));
-  else L.push(`📝 *Hoje (Clube):* *${R$(dig)}* em *${N(ped)}* pedidos` + (ped ? ` (ticket ${R$(dig / ped)})` : ''));
-  if (visP > 0) L.push(`🚶 *Rota varejo:* *${N(visF)} de ${N(visP)}* visitas · ⚠️ *${zerados}* em rota sem pedido`);
+  // 24/11/2026 (Vitorio): na ABERTURA nao mostrar venda/zerados de hoje — mostrar OPORTUNIDADES do dia (visitas, <20, TAG recorrencia, +30d, prospects, bloqueados).
+  const ehAbertura = momento === 'abertura';
+  const PLN = ehAbertura ? await planejamentoHoje(B, V).catch(() => null) : null;
+  if (ehAbertura) {
+    if (PLN) {
+      const p = PLN.tot;
+      const pts = [`*${N(p.cli)}* visitas planejadas (${N(p.vend)} vend.)`];
+      if (p.curtos) pts.push(`⚠️ *${N(p.curtos)}* varejo < 20 visitas`);
+      if (p.rec) pts.push(`🔄 *${N(p.rec)}* TAG Recorrência na rota`);
+      if (p.inat30) pts.push(`⏳ *${N(p.inat30)}* +30d sem compra na rota`);
+      if (p.prospects) pts.push(`🆕 *${N(p.prospects)}* prospects mapeados`);
+      if (p.bloqN) pts.push(`🔒 *${N(p.bloqN)}* pedidos bloqueados (${R$(p.bloqV)})`);
+      L.push(`🎯 *Oportunidades de hoje:* ${pts.join(' · ')}`);
+    } else {
+      L.push('🎯 *Oportunidades de hoje:* rota do Clube em carregamento.');
+    }
+  } else {
+    L.push(`📝 *Hoje (Clube):* *${R$(dig)}* em *${N(ped)}* pedidos` + (ped ? ` (ticket ${R$(dig / ped)})` : ''));
+    if (visP > 0) L.push(`🚶 *Rota varejo:* *${N(visF)} de ${N(visP)}* visitas · ⚠️ *${zerados}* em rota sem pedido`);
+  }
 
   try {
     const [lc, lg] = await Promise.all([B.lances(), B.liga()]);
@@ -689,16 +750,28 @@ export async function respMomentoDiretoria(B, c, Ev, momentoForcado = null) {
   // Por filial: 11 filiais ordenadas por % vendido (fat + a faturar / meta)
   porFil.sort((a, b) => b.pct - a.pct);
   if (porFil.length) {
-    L.push('', PLN ? '*Por filial (% vendido · fat. · rota de hoje):*' : '*Por filial (% vendido · fat. · hoje):*');
+    L.push('', ehAbertura ? '*Por filial (% vendido · fat. · oportunidades hoje):*' : '*Por filial (% vendido · fat. · hoje):*');
     for (const f of porFil) {
       const p0 = PLN && PLN.porFilial.get(f.sig);
-      L.push(`• *${f.sig}* ${pc(f.vdF, f.mF)} (fat ${pc(f.fF, f.mF)}) · ` + (PLN ? (p0 ? `${N(p0.cli)} cli. na rota · 🔄 ${N(p0.rec)} recorr.${p0.curtos.length ? ` · ⚠️ ${p0.curtos.length} vend. < 20 visitas` : ''}` : 'sem rota hoje') : `hoje ${R$(f.dF)}` + (visP > 0 ? ` · ${f.zF} zer.` : '')));
+      if (ehAbertura) {
+        const opp = !p0 ? 'sem rota carregada hoje'
+          : p0.cli > 0 ? `${N(p0.cli)} vis. · 🔄 ${N(p0.rec)} rec. · ⏳ ${N(p0.inat30)} +30d` + (p0.curtos.length ? ` · ⚠️ ${p0.curtos.length} <20v` : '') + (p0.bloqN ? ` · 🔒 ${p0.bloqN} blq.` : '')
+          : [p0.prospects ? `🆕 ${N(p0.prospects)} prosp.` : '', p0.bloqN ? `🔒 ${p0.bloqN} blq.` : ''].filter(Boolean).join(' · ') || 'sem rota carregada hoje';
+        L.push(`• *${f.sig}* ${pc(f.vdF, f.mF)} (fat ${pc(f.fF, f.mF)}) · ${opp}`);
+      } else {
+        L.push(`• *${f.sig}* ${pc(f.vdF, f.mF)} (fat ${pc(f.fF, f.mF)}) · hoje ${R$(f.dF)}` + (visP > 0 ? ` · ${f.zF} zer.` : ''));
+      }
     }
     const pior = porFil[porFil.length - 1];
-    const maisZer = visP > 0 ? porFil.slice().sort((a, b) => b.zF - a.zF)[0] : null;
     const obs = [];
     if (pior) obs.push(`cobrar *${pior.sig}* (${pc(pior.vdF, pior.mF)} da meta, a mais atrás)`);
-    if (maisZer && maisZer.zF > 0 && (!pior || maisZer.sig !== pior.sig)) obs.push(`destravar *${maisZer.sig}* (${maisZer.zF} zerados em rota)`);
+    if (ehAbertura) {
+      const maisInat = PLN ? [...PLN.porFilial.entries()].filter(([, o]) => o.inat30 > 0).sort((a, b) => b[1].inat30 - a[1].inat30)[0] : null;
+      if (maisInat && (!pior || maisInat[0] !== pior.sig)) obs.push(`atacar *${maisInat[0]}* (${N(maisInat[1].inat30)} +30d e 🔄 ${N(maisInat[1].rec)} rec. na rota)`);
+    } else {
+      const maisZer = visP > 0 ? porFil.slice().sort((a, b) => b.zF - a.zF)[0] : null;
+      if (maisZer && maisZer.zF > 0 && (!pior || maisZer.sig !== pior.sig)) obs.push(`destravar *${maisZer.sig}* (${maisZer.zF} zerados em rota)`);
+    }
     if (obs.length) L.push('', `💡 *Leitura do Jota:* ${obs.join(' e ')}.`);
   }
 
