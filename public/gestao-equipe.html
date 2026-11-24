@@ -806,6 +806,18 @@ table { font-size: clamp(11px, .95vw, 13px) !important; }
     </div>
   </div>
 
+  <!-- METAS DE POSITIVACAO POR GRUPO (so Diretoria: MCD / TPH / filiais divididas) -->
+  <div id="painel-metas-pos-grupo" class="controls-card" style="display:none; flex-direction:column; align-items:stretch; gap:10px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+      <div>
+        <strong style="color:#fff;font-size:16px;">🎯 Metas de Positivação por Grupo</strong>
+        <div style="color:var(--tx-mut);font-size:12.5px;margin-top:2px;">Filiais divididas (ex.: MCD / TPH): meta manual do grupo (clientes distintos). Vazio = sem meta cadastrada.</div>
+      </div>
+      <button class="nav-btn btn-save-main" onclick="salvarAlteracoesMaster()">💾 Salvar Metas</button>
+    </div>
+    <div id="lista-metas-pos-grupo" style="display:flex; flex-wrap:wrap; gap:12px;"></div>
+  </div>
+
   <!-- DIVERGENCIAS COM O CEVEN (so Diretoria): lista viva do que o CEVEN/banco tem e esta Gestao de Equipe nao tem -->
   <div id="painel-divergencias" class="controls-card" style="display:none; flex-direction:column; align-items:stretch; gap:10px;">
     <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
@@ -1009,8 +1021,11 @@ function aplicarPerfilUsuario() {
     btnAddVend.textContent = '➕ Novo Vendedor (Direto)';
     document.getElementById('banner-msg').innerHTML = '<span>👑</span><div><strong>Modo Diretoria Geral:</strong> Você tem autoridade total para aprovar solicitações de gerentes e efetuar edições diretas na base soberana.</div>';
     carregarSolicitacoesD1();
+    renderizarMetasPosGrupo();
     carregarDivergencias();
   } else {
+    const pm = document.getElementById('painel-metas-pos-grupo');
+    if (pm) pm.style.display = 'none';
     selectFilial.value = USUARIO_LOGADO.perfil;
     selectFilial.disabled = true; // Trava o gerente na filial dele!
     btnCentralAprov.style.display = 'none';
@@ -1031,12 +1046,14 @@ async function carregarDados() {
     }
     BASE_MOSTRA = await res.json();
     atualizarKPIs();
+    renderizarMetasPosGrupo();
     filtrarTabela();
   } catch (err) {
     try {
       const res = await fetch('/mostra_vendedores.json?t=' + Date.now());
       BASE_MOSTRA = await res.json();
       atualizarKPIs();
+      renderizarMetasPosGrupo();
       filtrarTabela();
     } catch (e2) {
       document.getElementById('tabela-corpo').innerHTML = `<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--bad);">Erro ao carregar lista de vendedores: ${err.message}</td></tr>`;
@@ -1050,6 +1067,58 @@ async function carregarDados() {
 let DIV_ITENS = [];
 const brlD = (x) => 'R$ ' + (Number(x) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const escD = (t) => String(t == null ? '' : t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+/* ===== METAS DE POSITIVACAO POR GRUPO (Diretoria: filiais divididas como MCD / TPH) ===== */
+function renderizarMetasPosGrupo() {
+  const box = document.getElementById('painel-metas-pos-grupo');
+  const listaEl = document.getElementById('lista-metas-pos-grupo');
+  if (!box || !listaEl) return;
+  if (!USUARIO_LOGADO || !USUARIO_LOGADO.isDiretoria) {
+    box.style.display = 'none';
+    return;
+  }
+  box.style.display = 'flex';
+  if (!BASE_MOSTRA || !BASE_MOSTRA.filiais) {
+    listaEl.innerHTML = '<span style="color:var(--muted);font-size:13px;">Carregando grupos…</span>';
+    return;
+  }
+  const grupos = new Map();
+  Object.entries(BASE_MOSTRA.filiais).forEach(([k, lista]) => {
+    const fil = k.split('_')[0].toUpperCase();
+    (Array.isArray(lista) ? lista : []).forEach((v) => {
+      const g = String(v.grupo || '').trim().toUpperCase();
+      if (!g) return;
+      const chave = fil + '|' + g;
+      if (!grupos.has(chave)) grupos.set(chave, { fil, g, qtd: 0 });
+      if (v.na_arvore !== false) grupos.get(chave).qtd++;
+    });
+  });
+  const atuais = (BASE_MOSTRA.metas_pos_grupo && typeof BASE_MOSTRA.metas_pos_grupo === 'object') ? BASE_MOSTRA.metas_pos_grupo : {};
+  Object.keys(atuais).forEach((chave) => {
+    const [fil, g] = String(chave).split('|');
+    if (fil && g && !grupos.has(chave)) grupos.set(chave, { fil, g, qtd: 0 });
+  });
+  const itens = [...grupos.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+  if (!itens.length) {
+    listaEl.innerHTML = '<span style="color:var(--muted);font-size:13px;">Nenhum grupo cadastrado nos vendedores ainda.</span>';
+    return;
+  }
+  listaEl.innerHTML = itens.map(([chave, info]) => {
+    const val = atuais[chave] > 0 ? String(Math.round(atuais[chave])) : '';
+    return `<label style="display:flex;align-items:center;gap:8px;background:rgba(15,23,42,.55);border:1px solid rgba(148,163,184,.25);border-radius:10px;padding:8px 12px;font-size:13px;color:#e2e8f0;">
+      <span><strong>${escD(info.fil)} · ${escD(info.g)}</strong> <span style="color:var(--muted);font-size:11.5px;">(${info.qtd} RCA${info.qtd === 1 ? '' : 's'})</span></span>
+      <input type="number" min="0" step="1" placeholder="sem meta" value="${escD(val)}" data-chave="${escD(chave)}" onchange="atualizarMetaPosGrupo(this.dataset.chave, this.value)" oninput="atualizarMetaPosGrupo(this.dataset.chave, this.value)" style="width:92px;padding:5px 8px;border-radius:7px;border:1px solid rgba(148,163,184,.35);background:#0f172a;color:#fff;font-size:13px;font-weight:600;text-align:right;">
+    </label>`;
+  }).join('');
+}
+
+function atualizarMetaPosGrupo(chave, valor) {
+  if (!BASE_MOSTRA || !chave) return;
+  if (!BASE_MOSTRA.metas_pos_grupo || typeof BASE_MOSTRA.metas_pos_grupo !== 'object') BASE_MOSTRA.metas_pos_grupo = {};
+  const n = Number(String(valor == null ? '' : valor).replace(/[^\d]/g, ''));
+  if (n > 0) BASE_MOSTRA.metas_pos_grupo[chave] = Math.round(n);
+  else delete BASE_MOSTRA.metas_pos_grupo[chave];
+}
 async function carregarDivergencias() {
   const box = document.getElementById('painel-divergencias');
   if (!box || !USUARIO_LOGADO || !USUARIO_LOGADO.isDiretoria) return;

@@ -11,7 +11,7 @@
 // DIAS: média = dias úteis (seg-sex) decorridos do dia 1 até ontem; necessidade = dias úteis de hoje até o FIM DO MÊS (17/11/2026, Vitório: "até dia 20? de onde tirou isso" — dia 20 é só o faseamento do AS).
 // Nunca inventa: sem dado = "sem dado".
 // =========================================================================
-import { R$, N, titulo, nome2, FILIAIS, hojeSP } from '../base.js';
+import { R$, N, titulo, nome2, FILIAIS, hojeSP, sem } from '../base.js';
 import { nomeForn } from './metas_industria.js';
 import { ehFeriado } from '../../feriados.js';
 
@@ -99,6 +99,41 @@ const linhaCurta = (rot, g) => `*${rot}*: ${g.meta > 0 ? `${R$(g.fat)} de ${R$(g
 const agrupa = (rs, k) => { const m = new Map(); for (const x of rs) { const c = k(x); if (!m.has(c)) m.set(c, []); m.get(c).push(x); } return m; };
 const ordemInd = (a, b) => (b[1].meta > 0) - (a[1].meta > 0) || b[1].meta - a[1].meta || b[1].fat - a[1].fat;
 
+// Supervisor = Gestão de Equipe (config_equipe_soberana); só aparece quem ATENDE a indústria (meta > 0 ou vendido >= 1% do total);
+// contas internas/histórico/gerente/vago/negativo ficam na linha "fora das equipes / ajustes". Ordem única para exibição e navegação por número.
+async function supGestaoMapa(env) {
+  const m = new Map();
+  try {
+    const row = await env.DB.prepare('SELECT conteudo_json FROM config_equipe_soberana LIMIT 1').first();
+    const cc = JSON.parse((row && row.conteudo_json) || '{}');
+    for (const [k, Lc] of Object.entries(cc.filiais || {})) {
+      const sig = k.split('_')[0];
+      for (const v of Lc || []) if (v && v.rca != null && v.supervisor) m.set(sig + '|' + String(Number(v.rca)), String(v.supervisor));
+    }
+  } catch (e) { /* sem Gestao */ }
+  return m;
+}
+function supervisoresQueAtendem(rs, cfgS) {
+  const porSup = new Map(), foraRows = [], totG = soma(rs), totV = Math.abs(totG.fat + totG.cart) || 1;
+  for (const x of rs) {
+    const sg = cfgS.get(x.filial + '|' + String(Number(x.rca)));
+    if (!sg || /^(GERENTE|VAGO|SUPERVISOR \d)/i.test(sg)) { foraRows.push(x); continue; }
+    const kn = sem(sg);
+    if (!porSup.has(kn)) porSup.set(kn, { id: 'G:' + kn, rot: titulo(nome2(sg)), rows: [] });
+    porSup.get(kn).rows.push(x);
+  }
+  const ativos = [];
+  for (const o of porSup.values()) {
+    const g = soma(o.rows), vend = g.fat + g.cart;
+    if (g.meta > 0 || (vend > 0 && vend >= totV * 0.01)) ativos.push([o.id, g, o.rot, o.rows]);
+    else foraRows.push(...o.rows);
+  }
+  ativos.sort((a, b) => b[1].fat - a[1].fat);
+  const foraG = foraRows.length ? soma(foraRows) : null;
+  const temFora = foraG && (Math.abs(foraG.fat + foraG.cart) > 1 || foraG.meta > 0);
+  return { ativos, foraG: temFora ? foraG : null };
+}
+
 // caminho: { mes, fil, ind, sup, rca }  -> texto com marcador 〔G:mes|fil|ind|sup|rca〕
 export async function respPainelIndustrias(env, B, cam) {
   if (!env || !env.DB) return null;
@@ -112,9 +147,16 @@ export async function respPainelIndustrias(env, B, cam) {
   const st = await env.DB.prepare('SELECT posicao FROM gerot_coleta_status WHERE mes = ? ORDER BY id DESC LIMIT 1').bind(mes).first().catch(() => null);
   const fonte = `_Fonte: GEROT${st && st.posicao ? ' (' + st.posicao.replace(/^Atual\s*·\s*/, 'posição ') + ')' : ''} · média = dias úteis decorridos; necessidade = dias úteis até o fim do mês._`;
   if (!L.length) return `🏭 *Painel das indústrias* · ${nm}\nNão há linha no GEROT para esse recorte e mês. Não vou estimar.\n\n${fonte}`;
-  let rs = cam.inds && cam.inds.length ? L.filter((x) => cam.inds.includes(x.ind)) : L; if (cam.ind) rs = rs.filter((x) => x.ind === cam.ind); if (cam.sup) rs = rs.filter((x) => x.sup === cam.sup); if (cam.rca) rs = rs.filter((x) => x.rca === cam.rca);
+  const cfgS = cam.ind && (cam.fil || cam.sup) ? await supGestaoMapa(env) : new Map();
+  let rs = cam.inds && cam.inds.length ? L.filter((x) => cam.inds.includes(x.ind)) : L;
+  if (cam.ind) rs = rs.filter((x) => x.ind === cam.ind);
+  if (cam.sup) {
+    if (String(cam.sup).startsWith('G:')) { const kn = String(cam.sup).slice(2); rs = rs.filter((x) => sem(cfgS.get(x.filial + '|' + String(Number(x.rca))) || '') === kn); }
+    else rs = rs.filter((x) => x.sup === cam.sup);
+  }
+  if (cam.rca) rs = rs.filter((x) => x.rca === cam.rca);
   const out = [];
-  const prM = cam.ind ? undefined : (cam.inds && cam.inds.length ? null : await posReal(env, mes, cam));   // positivacao real (clientes distintos) quando ha varias industrias juntas
+  const prM = cam.ind ? undefined : (cam.inds && cam.inds.length ? null : await posReal(env, mes, { ...cam, sup: String(cam.sup || '').startsWith('G:') ? null : cam.sup }));   // positivacao real (clientes distintos) quando ha varias industrias juntas
   // TODAS AS INDUSTRIAS DE UM VENDEDOR OU DE UMA EQUIPE (17/11/2026, auditoria: o item 13 do vendedor e o 9 do supervisor liam a Premiacao/RV, fora do ar;
   // agora a mesma fonte do painel da diretoria = GEROT). Sem navegacao por numero: para uma industria, o nome dela.
   if ((cam.rca || cam.sup) && !cam.ind && cam.fil) {
@@ -132,8 +174,9 @@ export async function respPainelIndustrias(env, B, cam) {
     const x0 = rs[0] || {}; out.push(`🏭 *${cam.ind} — ${cam.rca} - ${nome2(x0.vend || '')}* (${cam.fil}) · ${nm}`, ...blocos(soma(rs), D, cevenOk), '', '*0* Voltar ao supervisor');
   } else if (cam.sup) {
     // NIVEL 3: supervisor -> vendedores
-    const x0 = rs[0] || {}; const vs = [...agrupa(rs, (x) => x.rca)].map(([k, v]) => [k, soma(v), v[0]]).sort((a, b) => (b[1].meta ? b[1].fat / b[1].meta : -1) - (a[1].meta ? a[1].fat / a[1].meta : -1) || b[1].fat - a[1].fat);
-    out.push(`🏭 *${cam.ind} — sup. ${cam.sup} - ${nome2(x0.supNome || '')}* (${cam.fil}) · ${nm}`, ...blocos(soma(rs), D, cevenOk), '', `*Vendedores (${vs.length}):*`,
+    const x0 = rs[0] || {}; const supLabel = String(cam.sup).startsWith('G:') ? titulo(nome2(cfgS.get(x0.filial + '|' + String(Number(x0.rca))) || String(cam.sup).slice(2))) : `${cam.sup} - ${nome2(x0.supNome || '')}`;
+    const vs = [...agrupa(rs, (x) => x.rca)].map(([k, v]) => [k, soma(v), v[0]]).sort((a, b) => (b[1].meta ? b[1].fat / b[1].meta : -1) - (a[1].meta ? a[1].fat / a[1].meta : -1) || b[1].fat - a[1].fat);
+    out.push(`🏭 *${cam.ind} — sup. ${supLabel}* (${cam.fil}) · ${nm}`, ...blocos(soma(rs), D, cevenOk), '', `*Vendedores (${vs.length}):*`,
       ...vs.map(([k, g, x], i) => `${i + 1}. ${linhaCurta(`${k} - ${nome2(x.vend)}`, g)}`));
     const comMeta = vs.filter(([, g]) => g.meta > 0), zero = vs.filter(([, g]) => !(g.fat > 0) && !(g.cart > 0)), baixa = vs.filter(([, g]) => g.metaPosC > 0 && g.posG / g.metaPosC < 0.3);
     out.push('', '📌 *Sinais:*');
@@ -149,12 +192,14 @@ export async function respPainelIndustrias(env, B, cam) {
     out.push(`🏭 *${cam.ind} — Brasil* · ${nm}`, ...blocos(soma(rs), D, cevenOk), '', '*Filiais:*', ...fs2.map(([k, g], i) => `${i + 1}. ${linhaCurta(k, g)}`),
       '', '👉 *Digite o número da filial* para abrir por supervisor · *0* volta ao painel');
   } else if (cam.ind) {
-    // NIVEL 2: filial + industria -> supervisores
-    const ss = [...agrupa(rs, (x) => x.sup)].map(([k, v]) => [k, soma(v), v[0], v]).sort((a, b) => b[1].fat - a[1].fat);
-    const zeroV = [...agrupa(rs, (x) => x.rca)].filter(([, v]) => { const g = soma(v); return !(g.fat > 0) && !(g.cart > 0); });
-    out.push(`🏭 *${cam.ind} — ${cam.fil}* · ${nm}`, ...blocos(soma(rs), D, cevenOk), '', `*Supervisores (${ss.length}):*`,
-      ...ss.map(([k, g, x], i) => `${i + 1}. ${linhaCurta(`${k ? k + ' - ' : ''}${nome2(x.supNome || 'sem supervisor')}`, g)}`),
-      '', zeroV.length ? `📌 Vendedores sem venda dessa indústria na filial: *${zeroV.length}*` : '📌 Todos os vendedores com venda ou pedido dessa indústria ✅',
+    // NIVEL 2: filial + industria -> supervisores (Gestão de Equipe + só quem atende; resto = fora das equipes / ajustes)
+    const { ativos, foraG } = supervisoresQueAtendem(rs, cfgS);
+    const rsEq = rs.filter((x) => { const sg = cfgS.get(x.filial + '|' + String(Number(x.rca))); return sg && !/^(GERENTE|VAGO|SUPERVISOR \d)/i.test(sg); });
+    const zeroV = [...agrupa(rsEq, (x) => x.rca)].filter(([, v]) => { const g = soma(v); return !(g.fat > 0) && !(g.cart > 0); });
+    const lFora = foraG ? [`• _fora das equipes / ajustes_: ${R$(foraG.fat)}${foraG.meta > 0 ? ' de ' + R$(foraG.meta) : ''} · a faturar ${R$(foraG.cart)}`] : [];
+    out.push(`🏭 *${cam.ind} — ${cam.fil}* · ${nm}`, ...blocos(soma(rs), D, cevenOk), '', `*Supervisores que atendem (${ativos.length}):*`,
+      ...ativos.map(([, g, rot], i) => `${i + 1}. ${linhaCurta(rot, g)}`), ...lFora,
+      '', zeroV.length ? `📌 Vendedores das equipes sem venda dessa indústria na filial: *${zeroV.length}*` : '📌 Todos os vendedores das equipes com venda ou pedido dessa indústria ✅',
       '', '👉 *Digite o número do supervisor* para abrir a equipe · *0* volta à filial');
   } else if (cam.fil) {
     // NIVEL 1: filial -> industrias (com meta primeiro; depois as sem meta, todas com venda)
@@ -178,11 +223,17 @@ export async function respPainelNumero(env, B, marcador, k) {
   const [mes, fil, ind, sup, rca, indsTxt] = marcador.split('|'); const inds = indsTxt ? indsTxt.split(',').filter(Boolean) : null;
   if (k === 0) { if (rca) return respPainelIndustrias(env, B, { mes, fil, ind, sup }); if (sup) return respPainelIndustrias(env, B, { mes, fil, ind }); if (ind && fil) return respPainelIndustrias(env, B, { mes, fil, inds }); return respPainelIndustrias(env, B, { mes, inds }); }
   const { L } = await base(env, B, mes, fil || null);
-  let rs = inds ? L.filter((x) => inds.includes(x.ind)) : L; if (ind) rs = rs.filter((x) => x.ind === ind); if (sup) rs = rs.filter((x) => x.sup === sup);
+  const cfgS = ind && (fil || sup) ? await supGestaoMapa(env) : new Map();
+  let rs = inds ? L.filter((x) => inds.includes(x.ind)) : L;
+  if (ind) rs = rs.filter((x) => x.ind === ind);
+  if (sup) {
+    if (String(sup).startsWith('G:')) { const kn = String(sup).slice(2); rs = rs.filter((x) => sem(cfgS.get(x.filial + '|' + String(Number(x.rca))) || '') === kn); }
+    else rs = rs.filter((x) => x.sup === sup);
+  }
   if (rca) return null;
   if (sup) { const vs = [...agrupa(rs, (x) => x.rca)].map(([k2, v]) => [k2, soma(v)]).sort((a, b) => (b[1].meta ? b[1].fat / b[1].meta : -1) - (a[1].meta ? a[1].fat / a[1].meta : -1) || b[1].fat - a[1].fat); const x = vs[k - 1]; return x ? respPainelIndustrias(env, B, { mes, fil, ind, sup, rca: x[0] }) : null; }
   if (ind && !fil) { const fs2 = [...agrupa(rs, (x) => x.filial)].map(([k2, v]) => [k2, soma(v)]).filter(([, g]) => g.meta > 0 || g.fat || g.cart).map(([k2]) => k2).sort((a, b) => FILIAIS.indexOf(a) - FILIAIS.indexOf(b)); const x = fs2[k - 1]; return x ? respPainelIndustrias(env, B, { mes, fil: x, ind }) : null; }
-  if (ind) { const ss = [...agrupa(rs, (x) => x.sup)].map(([k2, v]) => [k2, soma(v)]).sort((a, b) => b[1].fat - a[1].fat); const x = ss[k - 1]; return x ? respPainelIndustrias(env, B, { mes, fil, ind, sup: x[0] }) : null; }
+  if (ind) { const { ativos } = supervisoresQueAtendem(rs, cfgS); const x = ativos[k - 1]; return x ? respPainelIndustrias(env, B, { mes, fil, ind, sup: x[0] }) : null; }
   if (fil) { const is = [...agrupa(rs, (x) => x.ind)].map(([k2, v]) => [k2, soma(v)]).filter(([, g]) => g.meta > 0 || g.fat > 0 || g.cart > 0).sort(ordemInd); const x = is[k - 1]; return x ? respPainelIndustrias(env, B, { mes, fil, ind: x[0] }) : null; }
   const fs = [...agrupa(rs, (x) => x.filial)].map(([k2]) => k2).sort((a, b) => FILIAIS.indexOf(a) - FILIAIS.indexOf(b)); const x = fs[k - 1];
   return x ? respPainelIndustrias(env, B, { mes, fil: x, inds }) : null;

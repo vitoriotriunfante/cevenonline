@@ -164,7 +164,8 @@ _Carteira Total do GEROT · ${await fontesG(db) || 'sem hora'}_`; }
     if (semPos.length) L.push(`• *${N(cli(semPos))} clientes sem compra no mês* com pedido travado (${R$(soma(semPos).v)}): se liberar, são *${N(cli(semPos))} positivações* a mais.`);
     if (duro.length) L.push(`• *${N(cli(duro))} clientes com cadastro bloqueado/definitivo/excluído* (${R$(soma(duro).v)} em ${N(duro.length)} ped.): dificilmente liberam — tratar com o financeiro antes de vender de novo.`);
   }
-  L.push('', '_Carteira Total do GEROT (valor do item conferido contra a tela). Status do cliente e positivado no mês: GEROT._');
+  const posG = await fontesG(db);
+  L.push('', `_Carteira Total do GEROT${posG ? ' (' + posG + ')' : ''} (valor do item conferido contra a tela). Status do cliente e positivado no mês: GEROT._`);
   return L.join(String.fromCharCode(10));
 }
 
@@ -318,7 +319,7 @@ export async function respDevolucaoMotivo(B, filiais, nome) {
   for (const x of R.slice(0, 14)) L.push(`${LIGA_VERMELHO.test(x.motivo) ? '🟥' : LIGA_GOLCONTRA.test(x.motivo) ? '⚽' : '•'} ${titulo(String(x.motivo).toLowerCase())}: *${R$(x.valor)}* (${pc(x.valor, tot)})${uma ? '' : ` · ${N(x.notas)} nota(s)`} · ${N(x.clientes)} cliente(s)`   /* 18/11: notas por filial nao bate com o total do GEROT (valor e clientes batem); fica fora ate corrigir a leitura */);
   if (R.length > 14) L.push(`… e mais ${R.length - 14} motivo(s)`);
   if (!uma) { try { const { results: F } = await db.prepare("SELECT filial, valor FROM gerot_devolucao_motivo WHERE mes = ? AND motivo = 'CLIENTE NAO PEDIU' AND filial <> '' ORDER BY valor DESC").bind(mesAtual()).all(); if (F && F.length) L.push('', '*"Cliente não pediu" por filial:* ' + F.map((x) => `${x.filial} ${R$(x.valor)}`).join(' · ')); } catch (e) { /* sem filial */ } }
-  L.push('', `_GEROT · tela Devoluções, por motivo${em ? ' · lido ' + new Date(em).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : ''}${F.length > 1 ? '. Peça "devolução por motivo" + a sigla da filial para abrir uma.' : ''}_`);
+  L.push('', `_GEROT · tela Devoluções, por motivo${em ? ' · lido ' + new Date(em).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : ''}${!uma ? '. Peça "devolução por motivo" + a sigla da filial para abrir uma.' : ''}_`);
   return L.join(String.fromCharCode(10));
 }
 

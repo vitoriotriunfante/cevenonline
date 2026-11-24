@@ -97,8 +97,8 @@ function porPedido(arq, alvo) {
     // MARCA PROPRIA (Liga): fornecedor TRIUNFANTE BRASIL, sem o palete (SKU 8171 'TRIUNFANTE (NAO E MARCA PROPRIA)', regra de 10/11/2026)
     { const fN = String(I.forn >= 0 ? r[I.forn] || '' : '').toUpperCase(), sk = String(I.sku >= 0 ? r[I.sku] ?? '' : '').replace(/\D/g, ''), pN = String(I.prod >= 0 ? r[I.prod] || '' : '').toUpperCase();
       if (/TRIUNFANTE BRASIL|MARCA PROPRIA/.test(fN) && sk !== '8171' && !/PALLET|PALETE/.test(pN)) ln.mpOk = true;
-      // 23/11/2026 (Vitorio: TOPEI 9169 BISC PALITO CREME AVELA CACAU conta como marca propria)
-      if (sk === '9169' || /\bTOPEI\b/.test(fN)) ln.mpOk = true;
+      // 23/11/2026 (Vitorio: TOPEI só o SKU 9169 BISC PALITO CREME AVELA CACAU conta como marca propria, nao outros itens da Goncalves 17097)
+      if (sk === '9169') ln.mpOk = true;
       if (fN && vItem > 0) x._f.add(fN); if (sk && vItem > 0) x._s.add(sk); } x.qped += num(I.qped >= 0 ? r[I.qped] : 0); x.qfat += num(I.qfat >= 0 ? r[I.qfat] : 0);
     const f = I.forn >= 0 ? String(r[I.forn] || '').trim() : ''; if (f && !x.fornecedores.includes(f) && x.fornecedores.length < 8) x.fornecedores.push(f);
   }

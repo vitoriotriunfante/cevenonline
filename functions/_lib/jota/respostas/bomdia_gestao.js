@@ -28,7 +28,7 @@ export async function respBomDiaGestao(B, nivel, esc) {
   const gestao = cfg && cfg.filiais ? Object.entries(cfg.filiais).filter(([k]) => k.split('_')[0] === F[0]).flatMap(([, L]) => L || []) : [];
   if (nivel === 'gerente' && esc.grupo && !(esc.rcas && esc.rcas.length)) esc = { ...esc, rcas: gestao.filter((v) => String(v.grupo || '').toUpperCase() === String(esc.grupo).toUpperCase()).map((v) => String(v.rca)) };
   const rcas = esc.rcas && esc.rcas.length ? esc.rcas.map(String) : null, fr = rcas ? ` AND CAST(rca AS INTEGER) IN (${rcas.map(Number).filter((x) => !Number.isNaN(x)).join(',') || -1})` : '';
-  const K = await (nivel === 'supervisor' ? F8.kpisMes(db, { nivel: 'equipe', filiais: [F[0]], rcas: rcas || [], supCod: esc.supCod }) : nivel === 'gerente' && esc.grupo ? F8.kpisMes(db, { nivel: 'grupo', filiais: [F[0]], rcas: rcas || [] }) : F8.kpisMes(db, { nivel: F.length > 1 ? 'brasil' : 'filial', filiais: F })).catch(() => null);
+  const K = await (nivel === 'supervisor' ? F8.kpisMes(db, { nivel: 'equipe', filiais: [F[0]], rcas: rcas || [], supCod: esc.supCod }) : nivel === 'gerente' && esc.grupo ? F8.kpisMes(db, { nivel: 'grupo', filiais: [F[0]], grupo: esc.grupo, rcas: rcas || [] }) : F8.kpisMes(db, { nivel: F.length > 1 ? 'brasil' : 'filial', filiais: F })).catch(() => null);
   // filhos (prioridades): supervisor -> vendedores da equipe; gerente -> equipes da Gestao (soma dos vendedores); diretoria -> filiais
   let filhos = [];
   try {

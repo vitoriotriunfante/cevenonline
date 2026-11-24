@@ -33,15 +33,15 @@ export async function onRequestGet({ env, request }) {
     if (!Object.keys(filiais).length) return resp({ erro: 'sem metas do GEROT para ' + mes }, 404);
     // LINK DE GRUPO DA TV (?filial=TPH&grupo=VAGNER, 23/11/2026, docs/DICIONARIO_KPIS.md conflito 2): o grupo do gerente pela camada functions/_lib/fatos.
     // R$ = soma dos vendedores do grupo na Gestão de Equipe (GEROT por vendedor); positivados = clientes distintos com faturado > 0 (regra 4), nunca a soma.
-    // Meta de positivação do grupo: o GEROT não tem (decisão pendente do Vitório) -> null, a TV mostra sem meta.
+    // Meta de positivação do grupo: campo manual em Gestão de Equipe (metas_pos_grupo) ou null se ainda não cadastrada.
     let grupo = null;
     const u = new URL(request.url), gf = String(u.searchParams.get('filial') || '').toUpperCase(), gg = String(u.searchParams.get('grupo') || '').toUpperCase();
     if (gf && gg) {
       try {
         const c = JSON.parse(((await env.DB.prepare('SELECT conteudo_json FROM config_equipe_soberana LIMIT 1').first()) || {}).conteudo_json || '{}');
         const rcas = Object.entries(c.filiais || {}).filter(([k]) => k.split('_')[0] === gf).flatMap(([, L]) => L || []).filter((v) => String(v.grupo || '').toUpperCase() === gg).map((v) => String(v.rca));
-        const K = rcas.length ? await kpisMes(env.DB, { nivel: 'grupo', filiais: [gf], rcas }) : null;
-        if (K) grupo = { filial: gf, grupo: gg, vendedores: rcas.length, meta_fat: K.meta, fat_liq: K.fat, carteira: K.cart, positivados: K.pos, meta_pos: null, fonte: 'GEROT por vendedor do grupo (Gestão de Equipe); positivados = clientes distintos' };
+        const K = rcas.length ? await kpisMes(env.DB, { nivel: 'grupo', filiais: [gf], grupo: gg, rcas }) : null;
+        if (K) grupo = { filial: gf, grupo: gg, vendedores: rcas.length, meta_fat: K.meta, fat_liq: K.fat, carteira: K.cart, positivados: K.pos, meta_pos: K.metaPos, ...(K.metaPosRotulo ? { meta_pos_rotulo: K.metaPosRotulo } : {}), fonte: 'GEROT por vendedor do grupo (Gestão de Equipe); positivados = clientes distintos' };
       } catch (e) { grupo = null; }
     }
     return resp({ mes, fonte: 'GEROT (meta da filial)', posicao: st ? st.posicao : null, atualizado_em: new Date().toISOString(), filiais, total: { ...total, meta_pos: Math.round(total.meta_pos) }, ...(grupo ? { grupo } : {}) });

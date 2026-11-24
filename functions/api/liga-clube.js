@@ -56,17 +56,43 @@ export async function calculaLances(env, origin, dia, conferir = false) {
   // PEDIDOS DO DIA (GEROT): filial|rca|cliente -> pedidos
   const { results: PD } = await db.prepare('SELECT filial, rca, cliente, pedido, dados FROM gerot_pedido WHERE data = ?').bind(dia).all();
   const ped = new Map(); for (const p of PD || []) { const k = `${p.filial}|${p.rca}|${p.cliente}`; if (!ped.has(k)) ped.set(k, []); if (!ped.get(k).includes(p.pedido)) ped.get(k).push(p.pedido); }
+  // SUPER PEDIDO WINTHOR/GEROT (23/11/2026, Vitorio): soma do valor aceito no Winthor/GEROT no dia (carteira aberta com entrada=dia + faturado de entrada=dia + faturado no dia sem entrada anterior no mes), sem contar devolucoes nem duplicar pedidos.
+  const pedWin = new Map();
+  try {
+    const mesDia = dia.slice(0, 7);
+    const addPW = (fil, rca, pedId, val) => {
+      if (!fil || !rca || !pedId || !(Number(val) > 0)) return;
+      const kp = fil + '|' + pedId, cur = pedWin.get(kp) || { kr: fil + '|' + rca, val: 0 };
+      cur.val += Number(val); pedWin.set(kp, cur);
+    };
+    const { results: CW } = await db.prepare('SELECT filial, rca, pedido, valor FROM gerot_carteira WHERE entrada = ?').bind(dia).all();
+    for (const r of CW || []) addPW(r.filial, r.rca, r.pedido, r.valor);
+    const { results: PE } = await db.prepare(`SELECT e.filial, COALESCE(p.rca, e.rca) rca, e.pedido, SUM(CASE WHEN json_extract(p.dados, '$."Faturado líquido (R$)"') > 0 THEN json_extract(p.dados, '$."Faturado líquido (R$)"') ELSE 0 END) v FROM gerot_pedido_entrada e JOIN gerot_pedido p ON p.mes = ? AND p.filial = e.filial AND p.pedido = e.pedido WHERE e.entrada = ? GROUP BY e.filial, e.pedido`).bind(mesDia, dia).all();
+    const emEntDia = new Set((PE || []).map((r) => r.filial + '|' + r.pedido));
+    for (const r of PE || []) addPW(r.filial, r.rca, r.pedido, r.v);
+    const { results: EA } = await db.prepare('SELECT filial, pedido FROM gerot_pedido_entrada WHERE entrada >= ? AND entrada < ?').bind(mesDia + '-01', dia).all();
+    const entAnt = new Set((EA || []).map((r) => r.filial + '|' + r.pedido));
+    for (const p of PD || []) {
+      const kp = p.filial + '|' + p.pedido;
+      if (pedWin.has(kp) || emEntDia.has(kp) || entAnt.has(kp)) continue;
+      let dJson = {}; try { dJson = JSON.parse(p.dados || '{}'); } catch (e) { dJson = {}; }
+      const fl = Number(dJson['Faturado líquido (R$)']) || 0;
+      if (fl > 0) addPW(p.filial, p.rca, p.pedido, fl);
+    }
+  } catch (e) { /* segue sem digWinthor se faltar alguma tabela */ }
+  const digWinthor = new Map();
+  for (const o of pedWin.values()) digWinthor.set(o.kr, (digWinthor.get(o.kr) || 0) + o.val);
   // 17/11/2026: no 'Pedidos' do GEROT a data do pedido JA FATURADO e a do faturamento; a data do pedido vem da ENTRADA na Carteira Total (guardada em gerot_pedido_entrada)
   const pedC = new Map(); const addC = (r) => { const k = `${r.filial}|${r.rca}|${String(r.cnpj || '').replace(/\D/g, '')}`; if (!r.rca || !r.cnpj) return; if (!pedC.has(k)) pedC.set(k, []); if (!pedC.get(k).includes(r.pedido)) pedC.get(k).push(r.pedido); };
   for (const sql of ['SELECT filial, rca, cnpj, pedido FROM gerot_pedido_entrada WHERE entrada = ?', 'SELECT filial, rca, cnpj, pedido FROM gerot_carteira WHERE entrada = ?']) { try { const { results } = await db.prepare(sql).bind(dia).all(); for (const r of results || []) addC(r); } catch (e) { /* tabela ainda vazia */ } }
-  // 18/11/2026: MARCA PROPRIA DO PEDIDO DO DIA pelos itens da Carteira Total do GEROT (mp = R$ de TRIUNFANTE BRASIL sem o palete 8171; o maior valor ja visto do pedido)
+  // 18/11/2026: MARCA PROPRIA DO PEDIDO DO DIA pelos itens da Carteira Total do GEROT (mp = R$ de TRIUNFANTE BRASIL sem o palete 8171 + TOPEI SKU 9169; o maior valor ja visto do pedido)
   const mpPorPed = new Map();
   for (const sql of ['SELECT filial, rca, cnpj, pedido, mp, skus FROM gerot_pedido_entrada WHERE entrada = ? AND (mp > 0 OR skus > 0)', 'SELECT filial, rca, cnpj, pedido, mp, skus FROM gerot_carteira WHERE entrada = ? AND (mp > 0 OR skus > 0)']) { try { const { results } = await db.prepare(sql).bind(dia).all(); for (const r of results || []) { const kp = r.filial + '|' + r.pedido; const o = mpPorPed.get(kp), cn = String(r.cnpj || '').replace(/\D/g, ''); mpPorPed.set(kp, { k: `${r.filial}|${r.rca}|${cn}`, filial: r.filial, cnpj: cn, pedido: r.pedido, mp: Math.max(Number(r.mp) || 0, o ? o.mp : 0), skus: Math.max(Number(r.skus) || 0, o ? o.skus : 0) }); } } catch (e) { /* colunas ainda nao existem */ } }
   const mpPed = new Map(); for (const o of mpPorPed.values()) { const x = mpPed.get(o.k) || { mp: 0, pedido: o.pedido, skus: 0, pedSkus: o.pedido }; x.mp += o.mp; if (o.skus > x.skus) { x.skus = o.skus; x.pedSkus = o.pedido; } mpPed.set(o.k, x); }
   // 22/11/2026 (auditoria dos agentes: o 'maior valor ja visto' guardou leituras da formula antiga, multiplicadas por 3 a 9): a MP do pedido nunca passa
-  //   da MP do cliente NO MES pelo GEROT (cliente x industria, 24318 Triunfante: faturado + carteira). Sem esse dado = sem prova = sem gol.
+  //   da MP do cliente NO MES pelo GEROT (cliente x industria, 24318 Triunfante + 17097 Goncalves para o SKU 9169: faturado + carteira). Sem esse dado = sem prova = sem gol.
   { const capMp = new Map();
-    try { const { results } = await db.prepare(`SELECT f.filial, f.rca, m.cnpj, COALESCE(json_extract(f.dados, '$."Faturado líquido (R$)"'), 0) + COALESCE(json_extract(f.dados, '$."Carteira pendente (R$)"'), 0) v FROM gerot_cliente_forn_mes f JOIN gerot_cliente_mes m ON m.mes = f.mes AND m.filial = f.filial AND m.rca = f.rca AND m.cliente = f.cliente WHERE f.mes = ? AND (f.forn_cod = '24318' OR f.fornecedor LIKE '%TOPEI%')`   /* 23/11/2026: TOPEI 9169 tambem e marca propria */).bind(dia.slice(0, 7)).all();
+    try { const { results } = await db.prepare(`SELECT f.filial, f.rca, m.cnpj, COALESCE(json_extract(f.dados, '$."Faturado líquido (R$)"'), 0) + COALESCE(json_extract(f.dados, '$."Carteira pendente (R$)"'), 0) v FROM gerot_cliente_forn_mes f JOIN gerot_cliente_mes m ON m.mes = f.mes AND m.filial = f.filial AND m.rca = f.rca AND m.cliente = f.cliente WHERE f.mes = ? AND (f.forn_cod = '24318' OR f.forn_cod = '17097')`   /* 23/11/2026: SKU 9169 TOPEI pertence ao fornecedor 17097 (Goncalves); mpPed so acumula SKU 9169 + 24318 */).bind(dia.slice(0, 7)).all();
       for (const r of results || []) { const kk = `${r.filial}|${r.rca}|${String(r.cnpj || '').replace(/\D/g, '')}`; capMp.set(kk, (capMp.get(kk) || 0) + (Number(r.v) || 0)); } } catch (e) { /* sem cruzamento: nenhum gol de MP */ }
     for (const [kk, x] of mpPed) { const cap = capMp.get(kk); x.mp = cap == null ? 0 : Math.min(x.mp, cap); } }
   // DOBROU O MIX (mesma regra de tv-vendedor.js mixDobrado): SKUs do pedido de hoje x media de SKUs dos pedidos ANTERIORES do cliente.
@@ -78,7 +104,17 @@ export async function calculaLances(env, origin, dia, conferir = false) {
   }
   const mixDobrado = (atual, media, canal) => (atual == null || media == null ? false : canal === 'AS' ? atual >= media + 2 : media <= 5 ? atual >= 10 : atual >= 2 * media);
   // 17/11/2026: PEDIDO DO CLUBE (Relatorio de Pedido): vendedor + cliente + dia, na hora — a prova mais direta de 'comprou na visita'
-  const pedCl = new Map(); try { const { results } = await db.prepare('SELECT filial, rca, cliente, pedido, pedido_winthor FROM clube_pedido WHERE dia = ?').bind(dia).all(); for (const r of results || []) { const k = r.filial + '|' + r.rca + '|' + r.cliente, n = r.pedido_winthor && Number(r.pedido_winthor) > 0 ? r.pedido_winthor : r.pedido; if (!pedCl.has(k)) pedCl.set(k, []); pedCl.get(k).push(n); } } catch (e) { /* dia sem a tabela */ }
+  // 23/11/2026: guarda tambem a hora mais cedo do pedido no dia (BRT: data_emissao || data_inicial) para livrar amarelo/vermelho de abandono (<10h/<11h)
+  const pedCl = new Map(), primPed = new Map();
+  try {
+    const { results } = await db.prepare('SELECT filial, rca, cliente, pedido, pedido_winthor, data_emissao, data_inicial FROM clube_pedido WHERE dia = ?').bind(dia).all();
+    for (const r of results || []) {
+      const k = r.filial + '|' + r.rca + '|' + r.cliente, n = r.pedido_winthor && Number(r.pedido_winthor) > 0 ? r.pedido_winthor : r.pedido;
+      if (!pedCl.has(k)) pedCl.set(k, []); pedCl.get(k).push(n);
+      const hp = hmDe(r.data_emissao || r.data_inicial);
+      if (hp && hp.min >= 5 * 60) { const kr = `${r.filial}|${r.rca}`; const prev = primPed.get(kr); if (prev == null || hp.min < prev) primPed.set(kr, hp.min); }
+    }
+  } catch (e) { /* dia sem a tabela */ }
   // VISITAS por vendedor: cliente -> entrada/saida
   const vis = new Map();
   for (const c of CK || []) {
@@ -148,7 +184,8 @@ export async function calculaLances(env, origin, dia, conferir = false) {
     if (feitas >= 8 && comVenda / feitas >= 0.5) add({ chave: `gol_conversao|${e.rca}`, nivel: 'gol', obs: `${comVenda} com venda em ${feitas} visitas = ${Math.round(comVenda / feitas * 100)}%${fonte}`, hora_sp: hhmmss(Math.max(V[V.length - 1].ini.min, 6 * 60)) });
     if (comVenda >= 10) add({ chave: `gol_goleada|${e.rca}`, nivel: 'gol', obs: `${comVenda} clientes positivados na rota (${Number(d.ped_total) || 0} pedidos, digitado ${brl(dig)})${fonte}`, hora_sp: hhmmss(Math.max(V[V.length - 1].ini.min, 6 * 60)) });
     const minSuper = as ? 75000 : 15000;
-    if (dig >= minSuper) add({ chave: `gol_super|${e.rca}`, nivel: 'gol', obs: `digitado do dia ${brl(dig)} (minimo R$ ${minSuper.toLocaleString('pt-BR')})${fonte}`, hora_sp: '19:00:00' });
+    const digW = digWinthor.get(k) || 0;
+    if (digW >= minSuper) add({ chave: `gol_super|${e.rca}`, nivel: 'gol', obs: `venda aceita do dia no Winthor/GEROT ${brl(digW)} (minimo R$ ${minSuper.toLocaleString('pt-BR')}) | FONTE: GEROT`, hora_sp: '19:00:00' });
     // relampago / acrescimos pelo horario do check-in (mesma regra do coletor antigo)
     const limR = (fuso ? 10 : 9) * 60, cedo = V.find((x) => x.ini.min < limR && x.ini.min >= 6 * 60 && venda(x));   /* regulamento: PEDIDO fechado com check-in antes das 9h */
     if (cedo) add({ chave: `gol_relampago|${e.rca}`, nivel: 'gol', obs: `check-in as ${cedo.ini.hms} (antes das ${limR / 60}h)${fonte}`, hora_sp: hhmmss(cedo.ini.min) });
@@ -162,12 +199,12 @@ export async function calculaLances(env, origin, dia, conferir = false) {
         add({ chave: `gol_marca_propria|${e.rca}|${x.id}`, nivel: 'gol', cliente_id: x.id, cliente: x.nome, obs: `MARCA PROPRIA R$ ${m.mp.toFixed(2).replace('.', ',')} (minimo R$ 50) | PEDIDO DE HOJE: ${m.pedido} · GEROT Carteira Total | check-in ${x.ini.hms}${fonte}`, hora_sp: hhmmss(Math.max(x.ini.min, 6 * 60)) }); }
       for (const x of V.filter(venda)) { const m = x.cnpj ? mpPed.get(`${k}|${x.cnpj}`) : null, h = m && mixHist.get(`${d.filial}|${x.cnpj}`); if (m && h && h.n >= 1 && m.skus > 0 && mixDobrado(m.skus, h.m, e.canal)) add({ chave: `gol_mix|${e.rca}|${x.id}`, nivel: 'gol', cliente_id: x.id, cliente: x.nome, obs: `PEDIDO DE HOJE: ${m.pedSkus} · GEROT Carteira Total | MIX: ${m.skus} SKUs hoje x média ${h.m.toFixed(1).replace('.', ',')} em ${h.n} pedido(s) anterior(es) | check-in ${x.ini.hms}${fonte}`, hora_sp: hhmmss(Math.max(x.ini.min, 6 * 60)) }); }
       if (mpCli.length >= 3) add({ chave: `gol_mp_tripla|${e.rca}`, nivel: 'gol', obs: `${mpCli.length} clientes com R$ 50+ de MARCA PROPRIA no dia (minimo 3): ` + mpCli.map(({ x, m }) => `${x.nome} R$ ${m.mp.toFixed(2).replace('.', ',')}`).join('; ') + fonte, hora_sp: hhmmss(Math.max(mpCli[mpCli.length - 1].x.ini.min, 6 * 60)) }); }
-    // META DO 1o TEMPO (so ao vivo, antes das 14h: o digitado do Clube NAQUELE momento >= meta proporcional do dia, a mesma conta do coletor antigo)
+    // META DO 1o TEMPO (23/11/2026, Vitorio: meta DIARIA = meta / dias uteis, antes das 14h, exigindo check-in)
     if (dia === hojeAgora.dia && hojeAgora.min < 14 * 60 && V.length) {
       const mf1 = metaFat.get(k), [yy, mm] = dia.split('-').map(Number), fimM = new Date(Date.UTC(yy, mm, 0)).getUTCDate();
-      let totU = 0, ateH = 0; for (let dd = 1; dd <= fimM; dd++) { const iso = `${dia.slice(0, 8)}${String(dd).padStart(2, '0')}`, w = new Date(iso + 'T12:00:00Z').getUTCDay(); if (w > 0 && w < 6 && !ehFeriado(iso)) { totU++; if (iso <= dia) ateH++; } }
-      const metaDia = mf1 && mf1.meta > 0 && totU ? mf1.meta / totU * ateH : 0;
-      if (metaDia > 0 && dig >= metaDia) add({ chave: `gol_meta1t|${e.rca}`, nivel: 'gol', obs: `digitado R$ ${Math.round(dig).toLocaleString('pt-BR')} >= meta proporcional do dia R$ ${Math.round(metaDia).toLocaleString('pt-BR')}; check-in as ${V[V.length - 1].ini.hms}${fonte}`, hora_sp: hhmmss(hojeAgora.min) });
+      let totU = 0; for (let dd = 1; dd <= fimM; dd++) { const iso = `${dia.slice(0, 8)}${String(dd).padStart(2, '0')}`, w = new Date(iso + 'T12:00:00Z').getUTCDay(); if (w > 0 && w < 6 && !ehFeriado(iso)) totU++; }
+      const metaDia = mf1 && mf1.meta > 0 && totU ? mf1.meta / totU : 0;
+      if (metaDia > 0 && dig >= metaDia) add({ chave: `gol_meta1t|${e.rca}`, nivel: 'gol', obs: `digitado R$ ${Math.round(dig).toLocaleString('pt-BR')} >= meta diária R$ ${Math.round(metaDia).toLocaleString('pt-BR')}; check-in as ${V[V.length - 1].ini.hms}${fonte}`, hora_sp: hhmmss(hojeAgora.min) });
     }
     const mf = metaFat.get(k);
     if (mf && mf.meta > 0 && mf.fat >= mf.meta && !campeaoJa.has(k)) add({ chave: `gol_campeao|${e.rca}|${dia.slice(0, 7)}`, nivel: 'gol', obs: `faturado do mes ${brl(mf.fat)} >= meta ${brl(mf.meta)} | FONTE: GEROT`, hora_sp: '19:00:00' });
@@ -200,10 +237,12 @@ export async function calculaLances(env, origin, dia, conferir = false) {
         const xv = M.get(String(c.cliente)), hc = hmDe(String(c.checkout || '').replace('T', ' ')) || (xv && xv.fim) || null;
         add({ chave: `imp|gps|${e.rca}|${c.cliente}`, nivel: 'impedimento', cliente_id: String(c.cliente), cliente: (xv && xv.nome) || `Cliente #${c.cliente}`, obs: `check-out a ${Math.round(dM)} m do cadastro do cliente; cadastro ${c.cli_lat},${c.cli_lon}; check-out ${c.co_lat},${c.co_lon}${c.checkin ? ' | check-in ' + c.checkin : ''}${c.checkout ? ' | check-out ' + c.checkout : ''} | FONTE: CEVEN (gerente)`, hora_sp: hc ? hhmmss(Math.max(hc.min, 6 * 60)) : '12:00:00' });
       } }
-    // cartoes de rota: rota no Clube e nenhum check-in ate o limite
-    const rot = Number(d.roteiros) || 0, prim = V.length ? V[0].ini.min : null, limA = (fuso ? 11 : 10) * 60, limV = (fuso ? 12 : 11) * 60;
-    if (rot > 0 && (prim == null || prim >= limA)) add({ chave: `ven10|${e.rca}`, nivel: 'amarelo', obs: `nenhuma visita nem check-in de varejo (${rot} clientes na rota) as ${limA / 60}h (limite ${limA / 60}h)${fonte}`, hora_sp: hhmmss(limA) });
-    if (rot > 0 && (prim == null || prim >= limV)) add({ chave: `vis11|${e.rca}`, nivel: 'vermelho', obs: `${rot} clientes na rota, 0 visitas feitas as ${limV / 60}h (limite ${limV / 60}h)${fonte}`, hora_sp: hhmmss(limV) });
+    // cartoes de rota: rota no Clube e nenhum check-in NEM pedido ate o limite (pedido <10h/11h livra o cartao; gols de visita seguem exigindo check-in)
+    const rot = Number(d.roteiros) || 0, prim = V.length ? V[0].ini.min : null, pPed = primPed.get(k) ?? null;
+    const primAtiv = prim != null && pPed != null ? Math.min(prim, pPed) : (prim ?? pPed);
+    const limA = (fuso ? 11 : 10) * 60, limV = (fuso ? 12 : 11) * 60;
+    if (rot > 0 && (primAtiv == null || primAtiv >= limA)) add({ chave: `ven10|${e.rca}`, nivel: 'amarelo', obs: `nenhuma visita (check-in) nem pedido de varejo (${rot} clientes na rota) as ${limA / 60}h (limite ${limA / 60}h)${fonte}`, hora_sp: hhmmss(limA) });
+    if (rot > 0 && (primAtiv == null || primAtiv >= limV)) add({ chave: `vis11|${e.rca}`, nivel: 'vermelho', obs: `${rot} clientes na rota, 0 visitas e 0 pedidos as ${limV / 60}h (limite ${limV / 60}h)${fonte}`, hora_sp: hhmmss(limV) });
   }
   return { L, vendedores: VD.length, pedidos_gerot: (PD || []).length };
 }

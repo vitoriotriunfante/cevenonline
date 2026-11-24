@@ -179,8 +179,10 @@ export async function rotearIntencao(B, c, t, info) {
       else if (pp === 'vendedor') e = { filiais: [c.filial], nome: `${rcaV} - ${nome2(c.nome || '')}`, rcas: [String(rcaV)] };
       else { const Ev = await carregaEscopo(B, esc), V = (Ev && Ev.vend) || []; if (pp === 'supervisor' && !V.length) return '👥 Não encontrei vendedores na sua equipe na Gestão de Equipe, então não mostro a carteira da filial. Peça ao gerente para conferir a sua equipe.'; e = pp === 'gerente' ? { filiais: [c.filial], nome: (Ev && Ev.nome) || c.filial, rcas: c.grupo ? V.map((v) => String(v.rca)) : null } : { filiais: [c.filial], nome: (Ev && Ev.nome) || 'Equipe', rcas: V.map((v) => String(v.rca)) }; }
       const soB = /BLOQUEAD|BLOQUEIO/.test(t) && !/CARTEIRA TOTAL|STATUS|SITUAC/.test(t);
-      const r = await (await import('./respostas/gestao_gerot.js')).respCarteiraNivel(B, e, { papel: pp, modo: soB ? 'bloq' : 'total', tipo: /COMERCIA/.test(t) && !/FINANCEIR/.test(t) ? 'COMERC' : /FINANCEIR/.test(t) && !/COMERCIA/.test(t) ? 'FINANC' : null, abrir: pp === 'diretoria' && !!filCit });
-      if (r) return r;
+      const gg = await import('./respostas/gestao_gerot.js');
+      let r = await gg.respCarteiraNivel(B, e, { papel: pp, modo: soB ? 'bloq' : 'total', tipo: /COMERCIA/.test(t) && !/FINANCEIR/.test(t) ? 'COMERC' : /FINANCEIR/.test(t) && !/COMERCIA/.test(t) ? 'FINANC' : null, abrir: pp === 'diretoria' && !!filCit }).catch(() => null);
+      if (!r) r = await gg.respCarteiraNivel(B, e, { papel: pp, modo: soB ? 'bloq' : 'total', tipo: /COMERCIA/.test(t) && !/FINANCEIR/.test(t) ? 'COMERC' : /FINANCEIR/.test(t) && !/COMERCIA/.test(t) ? 'FINANC' : null, abrir: pp === 'diretoria' && !!filCit }).catch(() => null);
+      return r || '⏳ Não consegui ler a Carteira Total do GEROT agora. Pergunte de novo em 1 minuto.';
     } catch (err) { /* segue */ }
   }
   // A4 · CURVA NEGATIVA DE UMA INDUSTRIA (bateria real 21/11: Gessandro 'curva negativa de Bonobon do setor 336', 'curva negativa da industria Leao'):
@@ -391,7 +393,7 @@ export async function rotearIntencao(B, c, t, info) {
     if ((papel === 'diretoria' || papel === 'ceo') && /ATINGIMENTO|PERCENTUAL (DA META|DE META|DE ATINGIMENTO)|% DA META/.test(t) && !filCit) { const { respBrasilGerot } = await import('./respostas/gerot_painel.js'); const r = await respBrasilGerot(B, null).catch(() => null); if (r) return r; }
     // carteira por status / motivo (Micheleto, 18/11: "bloqueio financeiro, bloqueio comercial e todos os outros motivos")
     // 22/11/2026 (Vitorio: "Pedidos pendentes" caiu na lista velha do CEVEN, parada em 13/11): pendente/liberado/em aberto/a faturar tambem vem da Carteira Total do GEROT
-    if (((/CARTEIRA|PEDIDOS? (EM CARTEIRA|PENDENTES?|BLOQUEAD)|BLOQUEIO (FINANCEIRO|COMERCIAL)/.test(t) && /STATUS|MOTIVO|BLOQUE|ABERT|SITUACAO/.test(t)) || /PEDIDOS? (PENDENTES?|LIBERADOS?|MONTADOS?|EM ABERTO|ABERTOS|A FATURAR|NAO FATURADOS?)|\bBLOQUEADOS?\b/.test(t)) && !/\b\d{7,}\b/.test(t) && !/CLIENTES? BLOQUEAD/.test(t)) { const e = await escG(); const soB = /BLOQUEAD|BLOQUEIO/.test(t) && !/STATUS|CARTEIRA|TODOS OS (STATUS|MOTIVOS)|OUTROS MOTIVOS|SITUACAO/.test(t); /* 22/11/2026 (Vitorio): carteira e bloqueados por nivel, sempre R$ + quantidade */ const pp = papel === 'ceo' ? 'diretoria' : papel; const r = await (await G()).respCarteiraNivel(B, e, { papel: pp, modo: soB ? 'bloq' : 'total', tipo: /COMERCIA/.test(t) && !/FINANCEIR/.test(t) ? 'COMERC' : /FINANCEIR/.test(t) && !/COMERCIA/.test(t) ? 'FINANC' : null, abrir: pp === 'diretoria' && !!filCit }).catch(() => null); if (r) return r; }
+    if (((/CARTEIRA|PEDIDOS? (EM CARTEIRA|PENDENTES?|BLOQUEAD)|BLOQUEIO (FINANCEIRO|COMERCIAL)/.test(t) && /STATUS|MOTIVO|BLOQUE|ABERT|SITUACAO/.test(t)) || /PEDIDOS? (PENDENTES?|LIBERADOS?|MONTADOS?|EM ABERTO|ABERTOS|A FATURAR|NAO FATURADOS?)|\bBLOQUEADOS?\b/.test(t)) && !/\b\d{7,}\b/.test(t) && !/CLIENTES? BLOQUEAD/.test(t)) { const e = await escG(); const soB = /BLOQUEAD|BLOQUEIO/.test(t) && !/STATUS|CARTEIRA|TODOS OS (STATUS|MOTIVOS)|OUTROS MOTIVOS|SITUACAO/.test(t); /* 22/11/2026 (Vitorio): carteira e bloqueados por nivel, sempre R$ + quantidade */ const pp = papel === 'ceo' ? 'diretoria' : papel; const gg = await G(); const opts = { papel: pp, modo: soB ? 'bloq' : 'total', tipo: /COMERCIA/.test(t) && !/FINANCEIR/.test(t) ? 'COMERC' : /FINANCEIR/.test(t) && !/COMERCIA/.test(t) ? 'FINANC' : null, abrir: pp === 'diretoria' && !!filCit }; let r = await gg.respCarteiraNivel(B, e, opts).catch(() => null); if (!r) r = await gg.respCarteiraNivel(B, e, opts).catch(() => null); return r || '⏳ Não consegui ler a Carteira Total do GEROT agora. Pergunte de novo em 1 minuto.'; }
     // quem pediu / pedidos por vendedor (Clube: pedido colocado) — 22/11/2026
     if (/QUEM (PEDIU|VENDEU|FEZ PEDIDO|TIROU PEDIDO|COLOCOU PEDIDO)|PEDIDOS? (DE HOJE |DE ONTEM |DO DIA )?POR VENDEDOR/.test(t)) { const e = await escG(); const r = await (await G()).respQuemPediu(B, e).catch(() => null); if (r) return r; }
     // justificativas de nao venda pelo Clube (Vitorio, 18/11: "pq ate dia 16?" e "aberto por vendedor x justificativa e justificativa x vendedor")
@@ -412,14 +414,19 @@ export async function rotearIntencao(B, c, t, info) {
     // devolucao por motivo (tela do GEROT; Vitorio 18/11: "vc nao abriu por motivo quando eu pedi!!!")
     if (/DEVOLU/.test(t) && /MOTIVO|NAO PEDIU/.test(t)) {
       // 18/11/2026: supervisor/grupo ou "por vendedor" (filial) = aberto por vendedor (Motivo > Filial > Supervisor > Vendedor do GEROT); sem a carga por vendedor, cai no motivo x filial
-      const e = await escG();
-      if ((e.rcas && e.rcas.length) || (/VENDEDOR/.test(t) && e.filiais.length === 1)) { const r = await (await G()).respDevolucaoMotivoVend(B, e).catch(() => null); if (r) return r; }
-      const r = await (await G()).respDevolucaoMotivo(B, e.filiais, e.nome).catch(() => null); if (r) return r;
+      const e = await escG(), gg = await G();
+      if ((e.rcas && e.rcas.length) || (/VENDEDOR/.test(t) && e.filiais.length === 1)) { let rv = await gg.respDevolucaoMotivoVend(B, e).catch(() => null); if (!rv) rv = await gg.respDevolucaoMotivoVend(B, e).catch(() => null); if (rv) return rv; }
+      let r = await gg.respDevolucaoMotivo(B, e.filiais, e.nome).catch(() => null);
+      if (!r) r = await gg.respDevolucaoMotivo(B, e.filiais, e.nome).catch(() => null);
+      return r || '⏳ Não consegui ler as devoluções por motivo no GEROT agora. Pergunte de novo em 1 minuto.';
     }
     // devolucao com o numero do GEROT (Vitorio, 18/11: "devolucoes tambem vc esta pegando o numero correto?"); codigo de vendedor citado soma as filiais
     if (/DEVOLU/.test(t) && !/MOTIVO|NAO PEDIU|\b(HOJE|HJ)\b/.test(t)) {
-      const e = await escG(); const mR = t.match(/\b(?:VENDEDOR|RCA|COD(?:IGO)?(?: DE VENDEDOR)?)\s*(?:COD\.?\s*)?(\d{1,5})\b/);
-      const r = await (await G()).respDevolucaoGerot(B, mR ? { filiais: e.filiais, rca: mR[1], nome: `vendedor ${mR[1]}${filCit ? ' (' + filCit + ')' : ''}` } : { ...e, supCod: papel === 'supervisor' ? e.supCod : null }).catch(() => null); if (r) return r;
+      const e = await escG(), gg = await G(); const mR = t.match(/\b(?:VENDEDOR|RCA|COD(?:IGO)?(?: DE VENDEDOR)?)\s*(?:COD\.?\s*)?(\d{1,5})\b/);
+      const alvoD = mR ? { filiais: e.filiais, rca: mR[1], nome: `vendedor ${mR[1]}${filCit ? ' (' + filCit + ')' : ''}` } : { ...e, supCod: papel === 'supervisor' ? e.supCod : null };
+      let r = await gg.respDevolucaoGerot(B, alvoD).catch(() => null);
+      if (!r) r = await gg.respDevolucaoGerot(B, alvoD).catch(() => null);
+      return r || '⏳ Não consegui ler as devoluções no GEROT agora. Pergunte de novo em 1 minuto.';
     }
     // faturado ate a data x mes passado ate a mesma data (Vitorio e Evandro, 18/11)
     // 18/11 (Vitorio: "cortes tambem tem por motivo"): cortes da gestao pelo GEROT, comercial x logistico, aberto por filial/supervisor/vendedor
@@ -524,25 +531,55 @@ async function respUmaIndustria(B, c, t, filCit, esc) {
   const fil = filsCit.length > 1 ? filsCit : filCit ? [filCit] : (esc && esc.filiais) || FILIAIS;
   const qs = fil.map(() => '?').join(','), qf = achou.map(() => '?').join(',');
   let R = []; try { R = (await B.env.DB.prepare(`SELECT filial, rca, supervisor, json_extract(dados, '$."Meta (R$)"') m, json_extract(dados, '$."Faturado líquido (R$)"') fa, json_extract(dados, '$."Carteira pendente (R$)"') ca, json_extract(dados, '$."Positivação (filial + CNPJ)"') p FROM gerot_vendas WHERE mes = ? AND filial IN (${qs}) AND fornecedor IN (${qf})`).bind(mes, ...fil, ...achou).all()).results || []; } catch (e) { return null; }
+  const cfgS = new Map(), grpRcas = new Set();
+  try {
+    const cc = JSON.parse(((await B.env.DB.prepare('SELECT conteudo_json FROM config_equipe_soberana LIMIT 1').first()) || {}).conteudo_json || '{}');
+    const alvoGrp = esc && esc.grupo ? sem(esc.grupo) : '';
+    for (const [k, Lc] of Object.entries(cc.filiais || {})) {
+      const sigK = k.split('_')[0];
+      for (const v of Lc || []) {
+        if (!v || v.rca == null) continue;
+        if (v.supervisor) cfgS.set(sigK + '|' + String(Number(v.rca)), String(v.supervisor));
+        if (alvoGrp && fil.includes(sigK) && sem(v.grupo || '') === alvoGrp) grpRcas.add(sigK + '|' + String(Number(v.rca)));
+      }
+    }
+  } catch (e) { /* sem Gestao */ }
+  if (esc && esc.grupo) R = R.filter((x) => grpRcas.has(x.filial + '|' + String(Number(x.rca))));
   if (esc && esc.supervisor) { const sa = sem(esc.supervisor); R = R.filter((x) => sem(x.supervisor || '').includes(sa.split(' ')[0])); }
   if (esc && esc.rca) R = R.filter((x) => String(x.rca) === String(esc.rca));
   // 21/11/2026: marca citada sem venda no escopo = dizer onde ela vende (antes caia em outra resposta ou mostrava zero)
   if (!R.length && porMarca.length) { let onde = []; try { onde = ((await B.env.DB.prepare(`SELECT filial FROM gerot_vendas WHERE mes = ? AND fornecedor IN (${qf}) GROUP BY filial HAVING SUM(json_extract(dados, '$."Faturado líquido (R$)"')) > 0`).bind(mes, ...achou).all()).results || []).map((x) => x.filial); } catch (e) { onde = []; } const nmF = titulo(String(achou[0]).replace(/^[A-Z]\s*-\s*/, '').replace(/#\d+/, '').toLowerCase()).trim(); return `🏭 *${nmF}* não tem venda nem meta em ${fil.length === 1 ? fil[0] : 'este escopo'} neste mês.${onde.length ? ` Vende em: *${onde.join(', ')}*. Pergunte, por exemplo, "como estamos de ${nmF.split(' ')[0]} em ${onde[0]}".` : ''}`; }
+  if (!R.length && esc && (esc.grupo || esc.supervisor)) { const nmF = titulo(String(achou[0]).replace(/^[A-Z]\s*-\s*/, '').replace(/\s*#\d+.*$/, '').toLowerCase()).trim(); return `🏭 *${nmF}* não tem venda nem meta em *${esc.nome || fil[0]}* neste mês.`; }
   if (!R.length) return null;
   const tot = R.reduce((a, x) => ({ m: a.m + (Number(x.m) || 0), fa: a.fa + (Number(x.fa) || 0), ca: a.ca + (Number(x.ca) || 0), p: a.p + (Number(x.p) || 0) }), { m: 0, fa: 0, ca: 0, p: 0 });
+  // Positivação real (clientes distintos com faturado > 0 na gerot_cliente_forn_mes), nunca soma de vendedores
+  let posRealInd = R.length === 1 ? Math.round(tot.p) : null;
+  if (R.length > 1) {
+    try {
+      const cods = [...new Set(achou.map((f) => (String(f).match(/#(\d+)/) || [])[1]).filter(Boolean))];
+      if (cods.length) {
+        const rcasEsc = esc && (esc.rca || esc.supervisor || esc.grupo) ? [...new Set(R.map((x) => Number(x.rca)).filter((n) => !Number.isNaN(n)))] : null;
+        const temCf = await B.env.DB.prepare('SELECT 1 ok FROM gerot_cliente_forn_mes WHERE mes = ? LIMIT 1').bind(mes).first();
+        if (temCf && (!rcasEsc || rcasEsc.length)) {
+          const rf = rcasEsc ? ` AND CAST(f.rca AS INTEGER) IN (${rcasEsc.join(',')})` : '';
+          const pr = await B.env.DB.prepare(`SELECT COUNT(*) n FROM (SELECT f.filial || '|' || COALESCE(m.cnpj, f.cliente) ck, SUM(COALESCE(json_extract(f.dados, '$."Faturado líquido (R$)"'), 0)) s FROM gerot_cliente_forn_mes f LEFT JOIN gerot_cliente_mes m ON m.mes = f.mes AND m.filial = f.filial AND m.rca = f.rca AND m.cliente = f.cliente WHERE f.mes = ? AND f.filial IN (${qs}) AND f.forn_cod IN (${cods.map(() => '?').join(',')})${rf} GROUP BY ck) WHERE s > 0`).bind(mes, ...fil, ...cods).first();
+          if (pr && pr.n != null) posRealInd = Number(pr.n) || 0;
+        }
+      }
+    } catch (e) { /* fallback para tot.p */ }
+  }
   const nome = titulo(String(achou[0]).replace(/^[A-Z]\s*-\s*/, '').replace(/\s*#\d+.*$/, '').toLowerCase());
   const pct = (a, b) => (b ? Math.round(a / b * 100) + '%' : '—');
   const out = [`🏭 *${nome} — ${filsCit.length > 1 ? filsCit.join(', ') : filCit || (esc && esc.nome) || 'Brasil'}* · ${mes.slice(5)}/${mes.slice(0, 4)}`,
     tot.m ? `💰 Faturado *${R$(tot.fa)}* + a faturar ${R$(tot.ca)} = *${R$(tot.fa + tot.ca)}* de ${R$(tot.m)} (*${pct(tot.fa + tot.ca, tot.m)}*)` : `💰 Faturado *${R$(tot.fa)}* + a faturar ${R$(tot.ca)} · _sem meta no GEROT_`,
-    `👥 Clientes que compraram: *${N(tot.p)}*`];
+    `👥 Clientes que compraram: *${N(posRealInd != null ? posRealInd : tot.p)}*${posRealInd == null && R.length > 1 ? ' _(soma dos vendedores)_' : ''}`];
   if ((!filCit || filsCit.length > 1) && !(esc && (esc.supervisor || esc.rca)) && fil.length > 1) { const pf = new Map(); for (const x of R) { const y = pf.get(x.filial) || { m: 0, v: 0 }; y.m += Number(x.m) || 0; y.v += (Number(x.fa) || 0) + (Number(x.ca) || 0); pf.set(x.filial, y); } out.push('', '*Por filial:*', ...[...pf.entries()].sort((a, b) => (a[1].v / (a[1].m || 1)) - (b[1].v / (b[1].m || 1))).map(([f, y]) => `• *${f}*: ${R$(y.v)}${y.m ? ` de ${R$(y.m)} (${pct(y.v, y.m)})` : ''}`)); }
   else {
     // 23/11/2026 (Vitorio: 'Heinz TPH' listava quem nao vende a industria, 'Venda (interno)', 'Gerente Tph', '(historico)' e supervisor de outra filial):
     // supervisor = o da Gestao de Equipe DA FILIAL; so aparece quem ATENDE a industria (meta > 0 ou venda relevante); interno/historico/gerente/negativo
     // e quem nao esta na Gestao vao numa linha so ('fora das equipes / ajustes') para o total fechar.
-    let cfgS = new Map(); try { const cc = JSON.parse(((await B.env.DB.prepare('SELECT conteudo_json FROM config_equipe_soberana LIMIT 1').first()) || {}).conteudo_json || '{}'); for (const [k, Lc] of Object.entries(cc.filiais || {})) for (const v of Lc || []) if (v && v.supervisor) cfgS.set(k.split('_')[0] + '|' + String(Number(v.rca)), String(v.supervisor)); } catch (e) { cfgS = new Map(); }
     const ps = new Map(), FORA = 'fora das equipes / ajustes';
-    for (const x of R) { const sg = cfgS.get(x.filial + '|' + String(Number(x.rca))); const k = sg && !/^(GERENTE|VAGO|SUPERVISOR d)/i.test(sg) ? titulo(nome2(sg)) : FORA; const y = ps.get(k) || { m: 0, v: 0 }; y.m += Number(x.m) || 0; y.v += (Number(x.fa) || 0) + (Number(x.ca) || 0); ps.set(k, y); }
+    for (const x of R) { const sg = cfgS.get(x.filial + '|' + String(Number(x.rca))); const k = sg && !/^(GERENTE|VAGO|SUPERVISOR \d)/i.test(sg) ? titulo(nome2(sg)) : FORA; const y = ps.get(k) || { m: 0, v: 0 }; y.m += Number(x.m) || 0; y.v += (Number(x.fa) || 0) + (Number(x.ca) || 0); ps.set(k, y); }
     const totV = Math.abs(tot.fa + tot.ca) || 1, fora = ps.get(FORA) || { m: 0, v: 0 };
     for (const [k, y] of [...ps]) if (k !== FORA && !(y.m > 0) && !(y.v > 0 && y.v >= totV * 0.01)) { fora.m += y.m; fora.v += y.v; ps.delete(k); }   /* nao atende a industria: soma no 'fora' */
     ps.delete(FORA);

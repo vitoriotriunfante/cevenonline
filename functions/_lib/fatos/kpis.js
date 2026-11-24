@@ -75,22 +75,26 @@ export async function positivacaoPorGrupos(db, filial, grupos, mes = hojeBRT().s
   } catch { return null; }
 }
 
-// linhas de vendedor do GEROT de uma filial (cache por db+mes+filial dentro da mesma requisição)
+// linhas de vendedor do GEROT de uma filial (cache por db+mes+filial com TTL de 30 s no isolate Cloudflare)
 const CACHE = new WeakMap();
+const TTL_VG = 30000;
 export async function vendedoresGerot(db, filial, mes = hojeBRT().slice(0, 7)) {
   let c = CACHE.get(db); if (!c) { c = new Map(); CACHE.set(db, c); }
-  const k = mes + '|' + filial;
-  if (!c.has(k)) c.set(k, db.prepare('SELECT rca, cod_sup, supervisor, vendedor, dados FROM gerot_vendedor_mes WHERE mes = ? AND filial = ?').bind(mes, filial).all()
-    .then((r) => (r.results || []).map((x) => ({ rca: rcaN(x.rca), cod_sup: String(x.cod_sup || ''), supervisor: x.supervisor, vendedor: x.vendedor, d: parse(x.dados) })))
-    .catch(() => null));
-  return c.get(k);
+  const k = mes + '|' + filial, agora = Date.now(), hit = c.get(k);
+  if (!hit || agora >= hit.exp) {
+    const p = db.prepare('SELECT rca, cod_sup, supervisor, vendedor, dados FROM gerot_vendedor_mes WHERE mes = ? AND filial = ?').bind(mes, filial).all()
+      .then((r) => (r.results || []).map((x) => ({ rca: rcaN(x.rca), cod_sup: String(x.cod_sup || ''), supervisor: x.supervisor, vendedor: x.vendedor, d: parse(x.dados) })))
+      .catch(() => null);
+    c.set(k, { exp: agora + TTL_VG, p });
+  }
+  return c.get(k).p;
 }
 
 // KPIs DO MÊS de um recorte.
 //   nivel: 'brasil' | 'filial' | 'vendedor' | 'equipe' (supervisor pela Gestão de Equipe) | 'grupo' (gerente em MCD/TPH)
 //   filiais: ['MCD'] (brasil: lista ou vazio = todas) · rcas: códigos dos vendedores (vendedor/equipe/grupo) · supCod: código do supervisor (só para a meta de positivação de referência)
 // Devolve { fonte, posicao, fat, bruto, dev, meta, cart, pedCart, fc, cap, ideal, ritmo (%), nec (R$/dia), pctFat, pctFc, pos, posC, metaPos, metaPosRotulo, dias } ou null sem GEROT.
-export async function kpisMes(db, { nivel, filiais = [], rcas = null, supCod = null, mes = hojeBRT().slice(0, 7) } = {}) {
+export async function kpisMes(db, { nivel, filiais = [], rcas = null, supCod = null, grupo = null, mes = hojeBRT().slice(0, 7) } = {}) {
   if (!db) return null;
   const du = diasUteis(), posicao = await posicaoGerot(db);
   if (nivel === 'brasil' || nivel === 'filial') {
@@ -117,9 +121,16 @@ export async function kpisMes(db, { nivel, filiais = [], rcas = null, supCod = n
     const r4 = await positivacaoRegra4(db, filial, [...alvo], mes); o.pos = r4.pos; o.posC = r4.posC;
     if (nivel === 'vendedor') { const ms = L.map((x) => num(x.d[CAMPO.metaPos])).filter((x) => x != null); o.metaPos = ms.length ? Math.max(...ms) : null; o.metaPosRotulo = 'meta de positivação do GEROT'; }
     else {
-      // meta de positivação do grupo/equipe: o GEROT não tem pronta (decisão 2 do dicionário, pendente). Equipe: a do supervisor no GEROT, com o nome dela.
+      // meta de positivação do grupo (manual na Gestao de Equipe) ou da equipe (supervisor no GEROT)
       o.metaPos = null; o.metaPosRotulo = null;
       if (nivel === 'equipe' && supCod) { try { const s = await db.prepare('SELECT dados FROM gerot_supervisor_mes WHERE mes = ? AND filial = ? AND cod_sup = ?').bind(mes, filial, String(supCod)).first(); const m = s ? num(parse(s.dados)[CAMPO.metaPos]) : null; if (m != null) { o.metaPos = m; o.metaPosRotulo = 'meta de positivação do supervisor no GEROT'; } } catch { /* sem linha */ } }
+      else if (nivel === 'grupo' && grupo) {
+        try {
+          const c = parse(((await db.prepare('SELECT conteudo_json FROM config_equipe_soberana LIMIT 1').first()) || {}).conteudo_json);
+          const mg = c && c.metas_pos_grupo ? num(c.metas_pos_grupo[String(filial).toUpperCase() + '|' + String(grupo).toUpperCase()]) : null;
+          if (mg != null && mg > 0) { o.metaPos = Math.round(mg); o.metaPosRotulo = 'meta de positivação do grupo (Gestão de Equipe)'; }
+        } catch { /* sem meta manual */ }
+      }
     }
   }
   return { fonte: 'GEROT', posicao, nivel, filial, n: L.length, ...completa(o, umaLinha ? L[0].d : null, umaLinha, du) };

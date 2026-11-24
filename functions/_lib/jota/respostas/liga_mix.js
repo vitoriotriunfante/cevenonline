@@ -42,21 +42,25 @@ export async function respLances(B, E, t) {
 }
 export async function respLiga(B, E, alvo, t = '') {
   const lg = await B.liga(); if (!lg) return 'Não consegui ler a Liga agora.';
-  if (alvo) { const lv = (lg.vendedores || []).find((x) => String(x.rca) === alvo.rca && x.filial === alvo.filial); if (lv) { const mv = (lv.pos_brasil_ant || lv.pos_brasil) - lv.pos_brasil; return `🏆 *${titulo(lv.nome)}* (${lv.filial}): ${lv.pos_brasil}º no Brasil (${mv > 0 ? '▲' + mv : mv < 0 ? '▼' + -mv : '='} desde o último jogo) · ${lv.pos_filial}º na filial · ${lv.pts_tabela} pts · ${lv.vitorias}V ${lv.empates}E ${lv.derrotas}D · forma ${(lv.forma || []).slice(-5).join('')}${(lv.forma || []).slice(-5).includes('J') ? ' _(V vitória · E empate · D derrota · J = jogo de hoje em andamento)_' : ''}`; } }
+  const gDt = lg.gerado_em ? new Date(lg.gerado_em) : null;
+  const dStr = gDt && !isNaN(gDt) ? new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).format(gDt).replace(',', '') : '';
+  const fStr = lg.pos_anterior_de ? `${lg.pos_anterior_de.slice(8, 10)}/${lg.pos_anterior_de.slice(5, 7)}` : '';
+  const rodLiga = `_Liga: lances com prova${fStr ? ' · fechado até ' + fStr : ''}${dStr ? ' · atualizado ' + dStr : ''}_`;
+  if (alvo) { const lv = (lg.vendedores || []).find((x) => String(x.rca) === alvo.rca && x.filial === alvo.filial); if (lv) { const mv = (lv.pos_brasil_ant || lv.pos_brasil) - lv.pos_brasil; return `🏆 *${titulo(lv.nome)}* (${lv.filial}): ${lv.pos_brasil}º no Brasil (${mv > 0 ? '▲' + mv : mv < 0 ? '▼' + -mv : '='} desde o último jogo) · ${lv.pos_filial}º na filial · ${lv.pts_tabela} pts · ${lv.vitorias}V ${lv.empates}E ${lv.derrotas}D · forma ${(lv.forma || []).slice(-5).join('')}${(lv.forma || []).slice(-5).includes('J') ? ' _(V vitória · E empate · D derrota · J = jogo de hoje em andamento)_' : ''}\n\n${rodLiga}`; } }
   if (E.nacional) {
     if (/SUPERVIS/.test(t)) {
       const supsBr = (lg.supervisores || []).filter((x) => !/^GERENTE/i.test(x.supervisor || '')).slice().sort((a, b) => (b.pts_tabela || 0) - (a.pts_tabela || 0) || (a.pos || 999) - (b.pos || 999));
-      return ['🏆 *Champions Triunfante — Ranking de Supervisores (Brasil)*', ...supsBr.slice(0, 20).map((x, i) => `${i + 1}º ${nome2(x.supervisor)} (${x.filial}) — *${x.pts_tabela} pts*`), ''].join('\n');
+      return ['🏆 *Champions Triunfante — Ranking de Supervisores (Brasil)*', ...supsBr.slice(0, 20).map((x, i) => `${i + 1}º ${nome2(x.supervisor)} (${x.filial}) — *${x.pts_tabela} pts*`), '', rodLiga].join('\n');
     }
     return ['🏆 *Champions Triunfante — Brasil*', '*Filiais:*', ...(lg.filiais || []).slice().sort((a, b) => a.pos - b.pos).map((f) => `${f.pos}º ${f.sigla} — ${f.pts_tabela} pts (${f.vitorias}V ${f.empates}E ${f.derrotas}D)`),
-      /* 'classificacao por vendedor' (Vitorio, 26/10/2026) -> top 20 */ `*Top ${/VENDEDOR/.test(t) ? 20 : 5} vendedores (varejo):*`, ...(lg.vendedores || []).filter((v) => v.canal !== 'AS').sort((a, b) => a.pos_brasil - b.pos_brasil).slice(0, /VENDEDOR/.test(t) ? 20 : 5).map((v) => `${v.pos_brasil}º ${vn(v)} ${v.filial} — ${v.pts_tabela} pts`), ''].join('\n');
+      /* 'classificacao por vendedor' (Vitorio, 26/10/2026) -> top 20 */ `*Top ${/VENDEDOR/.test(t) ? 20 : 5} vendedores (varejo):*`, ...(lg.vendedores || []).filter((v) => v.canal !== 'AS').sort((a, b) => a.pos_brasil - b.pos_brasil).slice(0, /VENDEDOR/.test(t) ? 20 : 5).map((v) => `${v.pos_brasil}º ${vn(v)} ${v.filial} — ${v.pts_tabela} pts`), '', rodLiga].join('\n');
   }
   const fil = E.filiais[0]; const lf = (lg.filiais || []).find((x) => x.sigla === fil);
   const sups = new Set(E.vend.map((v) => v.supervisor));
   return [`🏆 *Champions Triunfante — ${E.nome}*`, lf ? `Filial: *${lf.pos}º de 11*, ${lf.pts_tabela} pts (${lf.vitorias}V ${lf.empates}E ${lf.derrotas}D)` : 'Filial: sem dado',
     (E.supervisor ? '*Você entre os supervisores:*' : '*Supervisores:*'), ...(lg.supervisores || []).filter((x) => x.filial === fil && (!(E.grupo || E.supervisor || E.rca) || sups.has(x.supervisor))).sort((a, b) => a.pos - b.pos).slice(0, 10).map((x) => `${x.pos}º ${nome2(x.supervisor)} — ${x.pts_tabela} pts`),
     (E.supervisor ? '*Sua equipe:*' : '*Top vendedores da filial:*'), ...(lg.vendedores || []).filter((v) => v.filial === fil && (!(E.grupo || E.supervisor || E.rca) || E.vend.some((y) => y.rca === String(v.rca)))).sort((a, b) => a.pos_filial - b.pos_filial).slice(0, E.supervisor ? 40 : 5).map((v) => `${v.pos_filial}º ${vn(v)} — ${v.pts_tabela} pts (${v.pos_brasil}º Brasil)`),
-    ''].join('\n');
+    '', rodLiga].join('\n');
 }
 export async function respCompromisso(B, E) {
   // 22/11/2026: domingo nao tem compromisso nem RET (a resposta mandava 'cobrar' todo mundo)

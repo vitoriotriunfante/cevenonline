@@ -681,7 +681,7 @@ for (const arq of ['public/tvapp.html', 'public/matrizapp.html']) {
 secao('8e. Liga cravada: regras congeladas por versao, fechamento do dia (19h30) e conferencia diaria contra o CEVEN');
 {
   const cfgTxt = ler('config/pontuacao_brasileirao.json'); const cfg = JSON.parse(cfgTxt);
-  const LOCK_HASH = '0b14872e3185228c71c17a52c3a6ed742f7c7a70f8753683ced1819575735fc8'; // sha256 do regulamento na versao 2026-10-19.2 (19/10/2026): motivos de devolucao do Gol Contra e do Vermelho escritos com o texto exato do CEVEN. Antes, 2026-10-19.1: amarelo e vermelho de abandono so por falta de CHECK-IN (pedido de manha nao e mais cobrado). Antes, 2026-10-15.1: AS com devolucao 1 por cliente por dia, semana em andamento = J e semanas de trabalho a partir de nov/2026; desempate do Varejo escrito como o sistema calcula
+  const LOCK_HASH = '3a8992ecc87b6a9e1f81d4f1bc92db6b862ce9fbb302366365fdd2cd5211acd5'; // sha256 do regulamento na versao 2026-11-23.1 (23/11/2026): gol_meta1t diaria, super pedido pelo Winthor/GEROT, TOPEI SKU 9169 na marca propria e pedido <10h/<11h livra cartao. Antes, 2026-10-19.2 (19/10/2026): motivos de devolucao do Gol Contra e do Vermelho escritos com o texto exato do CEVEN. Antes, 2026-10-19.1: amarelo e vermelho de abandono so por falta de CHECK-IN (pedido de manha nao e mais cobrado). Antes, 2026-10-15.1: AS com devolucao 1 por cliente por dia, semana em andamento = J e semanas de trabalho a partir de nov/2026; desempate do Varejo escrito como o sistema calcula
   const { createHash } = await import('node:crypto');
   const hash = createHash('sha256').update(JSON.stringify(cfg)).digest('hex');
   const lib = ler('functions/_lib/liga_fechamento.js');

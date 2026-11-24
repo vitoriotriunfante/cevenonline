@@ -46,23 +46,52 @@ function diasUteis(hoje) {
 
 // ---------- textos (fixos) ----------
 async function textoAbertura(ctx) {
-  const { equipe, V, hoje } = ctx;
-  const semVis = V.filter((v) => (Number(v.visP) || (v.rotaHoje || []).length) > 0 && !(Number(v.visF) > 0));
+  const { db, fil, equipe, V, hoje } = ctx;
+  const rcas = V.map((v) => String(Number(v.rca))).filter(Boolean);
+  if (!rcas.length) return null;
+  const inRca = rcas.join(',');
+  // 23/11/2026 (auditoria das 43 sombras): checar clube_venda_dia.roteiros (>0, NUNCA cair em v.rotaHoje velho do CEVEN) e confirmar 0 check-in em clube_checkin + 0 pedidos antes de cobrar "sem visita"
+  const [vdRows, ckRows, pdRows] = await Promise.all([
+    db.prepare(`SELECT CAST(rca AS INTEGER) r, roteiros, visitas_rota, ped_total FROM clube_venda_dia WHERE dia = ? AND filial = ? AND CAST(rca AS INTEGER) IN (${inRca})`).bind(hoje, fil).all().then((x) => x.results || []).catch(() => []),
+    db.prepare(`SELECT DISTINCT CAST(rca AS INTEGER) r FROM clube_checkin WHERE dia = ? AND filial = ? AND tipo = 'CHECKIN' AND CAST(rca AS INTEGER) IN (${inRca})`).bind(hoje, fil).all().then((x) => x.results || []).catch(() => []),
+    db.prepare(`SELECT DISTINCT CAST(rca AS INTEGER) r FROM clube_pedido WHERE dia = ? AND filial = ? AND CAST(rca AS INTEGER) IN (${inRca})`).bind(hoje, fil).all().then((x) => x.results || []).catch(() => []),
+  ]);
+  const vdMap = new Map(vdRows.map((x) => [String(x.r), x]));
+  const ckSet = new Set(ckRows.map((x) => String(x.r)));
+  const pdSet = new Set(pdRows.map((x) => String(x.r)));
+  const semVis = V.filter((v) => {
+    const r = String(Number(v.rca)), vd = vdMap.get(r);
+    if (!vd || !(Number(vd.roteiros) > 0)) return false;
+    if (Number(vd.visitas_rota) > 0 || ckSet.has(r)) return false;
+    if (Number(vd.ped_total) > 0 || pdSet.has(r)) return false;
+    return true;
+  }).map((v) => ({ v, rot: Number((vdMap.get(String(Number(v.rca))) || {}).roteiros) || 0 }));
   const { tot, ate } = diasUteis(hoje), esp = tot ? ate / tot : 0;
   const pos = V.filter((v) => Number(v.metaPos) > 0).map((v) => { const meta = Math.ceil(Number(v.metaPos)), p = Number(v.pos) || 0; return { v, p, meta, r: p / meta }; })
     .filter((x) => x.r < esp * 0.8).sort((a, b) => (a.r - esp) - (b.r - esp)).slice(0, 3);
   if (!semVis.length && !pos.length) return null;
   const L = [`🚶 *${equipe}* · ${ctx.hl}`];
-  if (semVis.length) L.push('', `*Com rota e sem visita até agora (${semVis.length}):*`, ...semVis.slice(0, 8).map((v) => `• ${vn(v)} · rota ${N(Number(v.visP) || (v.rotaHoje || []).length)}`), ...(semVis.length > 8 ? [`• e mais ${semVis.length - 8}`] : []));
+  if (semVis.length) L.push('', `*Com rota e sem visita nem pedido até agora (${semVis.length}):*`, ...semVis.slice(0, 8).map((x) => `• ${vn(x.v)} · rota ${N(x.rot)}`), ...(semVis.length > 8 ? [`• e mais ${semVis.length - 8}`] : []));
   if (pos.length) L.push('', `*Positivação abaixo do ritmo* _(esperado hoje ${Math.round(esp * 100)}%)_:`, ...pos.map((x) => `• ${vn(x.v)}: ${N(x.p)} de ${N(x.meta)} (${Math.round(x.r * 100)}%) · faltam ${N(x.meta - x.p)}`));
-  L.push('', `👉 ${semVis.length ? `Ligar agora para *${vn(semVis[0])}*.` : `Cobrar abertura de clientes de *${vn(pos[0].v)}*.`}`);
+  L.push('', `👉 ${semVis.length ? `Ligar agora para *${vn(semVis[0].v)}*.` : `Cobrar abertura de clientes de *${vn(pos[0].v)}*.`}`);
   return L.join(NL);
+}
+function descLance(c) {
+  const head = String(c.obs || '').split('|')[0].trim();
+  if (head) return head.slice(0, 90);
+  if (c.motivo) return `justificativa ${titulo(String(c.motivo).toLowerCase())}${c.dias_sem_compra != null ? ` · ${c.dias_sem_compra}d` : ''}`.slice(0, 90);
+  const ch = String(c.chave || '');
+  if (ch.startsWith('pen|estoque|')) return 'pênalti: estoque suficiente (+30d)';
+  if (ch.startsWith('pen|fechado|')) return 'pênalti: cliente fechado (+45d)';
+  if (ch.startsWith('vis11|')) return 'cartão vermelho: 0 visitas/pedidos até 11h';
+  if (ch.startsWith('ver_dev|')) return 'cartão vermelho: devolução "cliente não pediu"';
+  return c.nivel === 'vermelho' ? 'cartão vermelho na Liga' : 'pênalti na Liga';
 }
 async function textoJustificativas(ctx, ate) {
   const { db, equipe, V, hoje, fil } = ctx; const rcas = V.map((v) => String(v.rca)); if (!rcas.length) return null;
   // 21/11/2026 (auditoria dos analistas): o 'dia' gravado e o da COLETA; vale a data/hora em que a justificativa foi feita (data_hora)
   let J = []; try { J = (await db.prepare(`SELECT rca, motivo, data_hora FROM clube_justificativa WHERE filial = ? AND rca IN (${rcas.map(() => '?').join(',')}) AND substr(data_hora, 1, 10) = ?`).bind(fil, ...rcas, hoje).all()).results || []; } catch (e) { return null; }
-  let C = []; try { C = (await db.prepare(`SELECT rca, vendedor, nivel, obs, cliente, hora_sp FROM tv_lances WHERE dia = ? AND filial = ? AND nivel IN ('penalti', 'vermelho') AND rca IN (${rcas.map(() => '?').join(',')}) ORDER BY hora_sp`).bind(hoje, fil, ...rcas).all()).results || []; } catch (e) { C = []; }
+  let C = []; try { C = (await db.prepare(`SELECT rca, vendedor, nivel, chave, obs, motivo, dias_sem_compra, cliente, hora_sp FROM tv_lances WHERE dia = ? AND filial = ? AND nivel IN ('penalti', 'vermelho') AND rca IN (${rcas.map(() => '?').join(',')}) ORDER BY hora_sp`).bind(hoje, fil, ...rcas).all()).results || []; } catch (e) { C = []; }
   if (!J.length && !C.length) return null;
   const rot = V.reduce((a, v) => a + (Number(v.visP) || 0), 0);
   const mot = new Map(), pv = new Map(); for (const j of J) { const m = titulo(String(j.motivo || 'sem motivo').toLowerCase()); mot.set(m, (mot.get(m) || 0) + 1); pv.set(String(j.rca), (pv.get(String(j.rca)) || 0) + 1); }
@@ -72,7 +101,7 @@ async function textoJustificativas(ctx, ate) {
     L.push(`*${N(J.length)}*${rot ? ` em ${N(rot)} visitas da rota (${Math.round(J.length / rot * 100)}%)` : ''}`, '', '*Motivos:*', ...[...mot].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([m, n]) => `• ${m}: ${N(n)}`));
     L.push('', '*Quem mais justificou:*', ...[...pv].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([r, n]) => `• ${nomeDe(r)}: ${N(n)}`));
   }
-  if (C.length) L.push('', `⚽ *Cartões e pênaltis na Liga hoje (${C.length}):*`, ...C.slice(0, 5).map((c) => `• ${String(c.hora_sp || '').slice(0, 5)} · ${nomeDe(c.rca)} · ${c.nivel === 'vermelho' ? '🟥' : '🥅'} ${String(c.obs || '').split('|')[0].trim().slice(0, 90)}`));
+  if (C.length) L.push('', `⚽ *Cartões e pênaltis na Liga hoje (${C.length}):*`, ...C.slice(0, 5).map((c) => `• ${String(c.hora_sp || '').slice(0, 5)} · ${nomeDe(c.rca)} · ${c.nivel === 'vermelho' ? '🟥' : '🥅'} ${descLance(c)}`));
   const top = [...pv].sort((a, b) => b[1] - a[1])[0];
   L.push('', `👉 ${top ? `Rever com *${nomeDe(top[0])}* os clientes justificados.` : `Falar com *${nomeDe(C[0].rca)}* sobre o lance.`}`);
   return L.join(NL);
@@ -126,7 +155,10 @@ export async function executarPiloto(origin, env, opts = {}) {
   const cl = await db.prepare('SELECT MAX(lido_em) l FROM clube_rodada WHERE dia = ?').bind(hoje).first().catch(() => null);
   const idade = cl && cl.l ? (Date.now() - Date.parse(cl.l)) / 60000 : 9999;
   if (idade > CLUBE_MAX_MIN && !opts.forcar) return { filial: fil, janela: jan.id, silencio: `Clube da Venda lido ha ${Math.round(idade)} min` };
-  const liberado = String(await flag(db, 'monitoria_liberada_ate') || '') > new Date().toISOString() && !opts.sombra;
+  const de = String(await flag(db, 'monitoria_liberada_de') || '');
+  const ate = String(await flag(db, 'monitoria_liberada_ate') || '');
+  const agoraIso = new Date().toISOString();
+  const liberado = ate > agoraIso && (!de || agoraIso >= de) && !opts.sombra;
   const modo = opts.teste ? 'TESTE' : liberado ? 'PILOTO' : 'SOMBRA';
   const B = criaBase(origin, env), hl = horaLocal(fil), out = [];
   for (const s of C) {

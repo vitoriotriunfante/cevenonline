@@ -153,27 +153,52 @@ export async function respGerotIndustria(env, texto, c, anteriorTexto = null) {
   if (recorte === 'filial') {
     const gs = agrupa(rows, (r) => r.filial, (r) => r.filial).sort((a, b) => b.fat - a.fat);
     L2.push('*Por filial:*'); gs.forEach((g, i) => L2.push(`${i + 1}. *${g.rot}*: ${R$(g.fat)}${pct(g)} · ${g.pos} positivações`));
-  } else if (recorte === 'supervisor') {
-    const gs = agrupa(rows, (r) => r.filial + '|' + r.cod_sup, (r) => `${r.cod_sup ? r.cod_sup + ' - ' : ''}${nome2(r.supervisor)}${filiais.length === 1 ? '' : ' (' + r.filial + ')'}`).sort((a, b) => b.fat - a.fat);
-    L2.push('*Por supervisor:*'); gs.forEach((g, i) => L2.push(`${i + 1}. *${g.rot}*: ${R$(g.fat)}${pct(g)} · ${g.pos} positivações`));
+  } else if (recorte === 'supervisor' || recorte === 'supervisor_vendedor') {
+    // Supervisor = Gestao de Equipe; so quem atende a industria; resto = fora das equipes / ajustes
+    const cfgS = new Map();
+    try { const cc = JSON.parse(((await db.prepare('SELECT conteudo_json FROM config_equipe_soberana LIMIT 1').first()) || {}).conteudo_json || '{}'); for (const [kf, Lc] of Object.entries(cc.filiais || {})) for (const v of Lc || []) if (v && v.rca != null && v.supervisor) cfgS.set(kf.split('_')[0] + '|' + String(Number(v.rca)), String(v.supervisor)); } catch (e) { /* fallback sem Gestao */ }
+    const totV = Math.abs(soma(rows, 'fat') + (temCart ? soma(rows, 'cart') : 0)) || 1;
+    const porS = new Map(), foraRows = [];
+    for (const r of rows) {
+      const sg = cfgS.get(r.filial + '|' + String(Number(r.rca)));
+      if (!sg || /^(GERENTE|VAGO|SUPERVISOR \d)/i.test(sg)) { foraRows.push(r); continue; }
+      const ks = r.filial + '|' + sem(sg);
+      if (!porS.has(ks)) porS.set(ks, { rot: nome2(sg) + (filiais.length === 1 ? '' : ' (' + r.filial + ')'), rs: [] });
+      porS.get(ks).rs.push(r);
+    }
+    const atv = [], foraGrp = [];
+    for (const o of porS.values()) {
+      const fat = soma(o.rs, 'fat'), meta = soma(o.rs, 'meta'), cart = temCart ? soma(o.rs, 'cart') : 0, pos = soma(o.rs, 'pos'), vend = fat + cart;
+      if (meta > 0 || (vend > 0 && vend >= totV * 0.01)) atv.push({ rot: o.rot, meta, fat, cart, pos, rs: o.rs });
+      else foraRows.push(...o.rs);
+    }
+    atv.sort((a, b) => b.fat - a.fat);
+    if (foraRows.length) {
+      const fm = soma(foraRows, 'meta'), ff = soma(foraRows, 'fat'), fc = temCart ? soma(foraRows, 'cart') : 0, fp = soma(foraRows, 'pos');
+      if (Math.abs(ff + fc) > 1 || fm > 0) foraGrp.push({ rot: 'fora das equipes / ajustes', meta: fm, fat: ff, cart: fc, pos: fp });
+    }
+    if (recorte === 'supervisor') {
+      L2.push('*Por supervisor (quem atende):*');
+      atv.forEach((g, i) => L2.push(`${i + 1}. *${g.rot}*: ${R$(g.fat)}${pct(g)} · ${g.pos} positivações`));
+      foraGrp.forEach((g) => L2.push(`• _${g.rot}_: ${R$(g.fat)}${pct(g)}`));
+    } else {
+      const todos = []; let n = 0;
+      for (const g of atv) {
+        L2.push(`*${g.rot}*: ${R$(g.fat)}${pct(g)} · ${g.pos} positivações`);
+        const vs = agrupa(g.rs, (r) => r.rca, (r) => `${r.rca} - ${nome2(r.vendedor)}`).sort((a, b) => b.fat - a.fat);
+        vs.filter((v) => v.fat > 0).forEach((v) => { n++; L2.push(`   ${n}. ${v.rot}: ${R$(v.fat)}${pct(v)} · ${v.pos} cli.`); });
+        vs.forEach((v) => todos.push({ ...v, rot: `${v.rot} (sup. ${g.rot})` }));
+        L2.push('');
+      }
+      foraGrp.forEach((g) => L2.push(`_${g.rot}_: ${R$(g.fat)}${pct(g)}`, ''));
+      blocoZeros(todos);
+    }
   } else if (recorte === 'vendedor') {
     const gs = agrupa(rows, (r) => r.filial + '|' + r.rca, (r) => `${r.rca} - ${nome2(r.vendedor)}${filiais.length === 1 ? '' : ' (' + r.filial + ')'}`).sort((a, b) => b.fat - a.fat);
     const comVenda = gs.filter((g) => g.fat > 0);
     L2.push(`*Por vendedor (${comVenda.length} com faturado):*`); comVenda.slice(0, 40).forEach((g, i) => L2.push(`${i + 1}. *${g.rot}*: ${R$(g.fat)}${pct(g)} · ${g.pos} cli.${g.cart ? ' · cart. ' + R$(g.cart) : ''}`));
     if (comVenda.length > 40) L2.push(`… e mais ${comVenda.length - 40}`);
     blocoZeros(gs);
-  } else if (recorte === 'supervisor_vendedor') {
-    const rotS = (r) => `${r.cod_sup ? r.cod_sup + ' - ' : ''}${nome2(r.supervisor)}${filiais.length === 1 ? '' : ' (' + r.filial + ')'}`;
-    const sups = agrupa(rows, rotS, rotS).sort((a, b) => b.fat - a.fat);
-    const todos = []; let n = 0;
-    for (const g of sups) {
-      L2.push(`*${g.rot}*: ${R$(g.fat)}${pct(g)} · ${g.pos} positivações`);
-      const vs = agrupa(rows.filter((r) => rotS(r) === g.rot), (r) => r.rca, (r) => `${r.rca} - ${nome2(r.vendedor)}`).sort((a, b) => b.fat - a.fat);
-      vs.filter((v) => v.fat > 0).forEach((v) => { n++; L2.push(`   ${n}. ${v.rot}: ${R$(v.fat)}${pct(v)} · ${v.pos} cli.`); });
-      vs.forEach((v) => todos.push({ ...v, rot: `${v.rot} (sup. ${nome2(g.rot.replace(/^\d+ - /, '').split(' (')[0])})` }));
-      L2.push('');
-    }
-    blocoZeros(todos);
   }
   L2.push('', fonte);
   return L2.join('\n');

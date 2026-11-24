@@ -10,7 +10,7 @@
 // Versão das regras da liga (config/pontuacao_brasileirao.json -> "versao_regras"). Um teste automático confere que as duas batem e que as regras não mudaram sem subir a versão.
 import { auditaLista } from './auditoria_lance.js';
 import R from '../../public/regras.js'; // regras unicas (public/regras.js)
-export const REGRAS_VERSAO = '2026-10-19.2';
+export const REGRAS_VERSAO = '2026-11-23.1';
 
 export function agoraSP() { const c = R.relogioSP(); return { dia: c.dia, h: c.h, m: c.m, min: c.min }; }
 

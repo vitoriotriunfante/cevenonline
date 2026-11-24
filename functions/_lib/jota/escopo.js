@@ -183,7 +183,7 @@ export async function kpisDoEscopo(B, E) {
       const rcas = [...new Set(V.filter((v) => v.filial === fil).map((v) => String(Number(v.rca))).concat((await rcasEquipeGestao(B, fil, nomeSup)).map((r) => String(Number(r)))))];
       return kpisMes(db, { nivel: 'equipe', filiais: [fil], rcas, supCod: (V[0] && V[0].supCod) || null });
     }
-    if (E.grupo && !E.nacional) { const SG = await supervisorGestao(B, E.filiais[0]), gg = sem(E.grupo); return kpisMes(db, { nivel: 'grupo', filiais: [E.filiais[0]], rcas: [...new Set(V.map((v) => String(Number(v.rca))).concat(SG ? [...SG.grp.entries()].filter(([, x]) => sem(x) === gg).map(([r]) => String(Number(r))) : []))] }); }
+    if (E.grupo && !E.nacional) { const SG = await supervisorGestao(B, E.filiais[0]), gg = sem(E.grupo); return kpisMes(db, { nivel: 'grupo', filiais: [E.filiais[0]], grupo: gg, rcas: [...new Set(V.map((v) => String(Number(v.rca))).concat(SG ? [...SG.grp.entries()].filter(([, x]) => sem(x) === gg).map(([r]) => String(Number(r))) : []))] }); }
     return kpisMes(db, { nivel: E.nacional ? 'brasil' : 'filial', filiais: E.nacional ? [] : E.filiais });
   })().catch(() => null);
   B._kpisEsc.set(k, p);
@@ -210,7 +210,7 @@ export const supReal = (k) => !/^(sem supervisor|GERENTE|VAGO)/i.test(String(k))
 export const pessoaReal = (v) => {
   if (!v) return false;
   const n = String(v.nome || '').trim();
-  if (!n || /^(VAGO|RCA\b|VENDA |GERENTE|SUPERVISOR|EMPRESA|INTERNO|ADMIN|CONTA )/i.test(n)) return false;
+  if (!n || /^(VAGO|RCA\s+\d+|VENDA |GERENTE|SUPERVISOR|EMPRESA|INTERNO|ADMIN|CONTA )/i.test(n)) return false;
   if (v.supervisor && sem(n) === sem(v.supervisor)) return false;
   return true;
 };

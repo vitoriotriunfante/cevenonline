@@ -100,6 +100,8 @@ export async function onRequestGet({ env, request }) {
     try {
       const C = await lerClubeFilial(env, filial, dia);
       if (C && C.rcas && C.rcas.size) {   // 16/11/2026: qualquer leitura de HOJE do Clube (com a hora); antes so a de ate 45 min
+        // 23/11/2026 (Gabarito D182-D185): garante que todo RCA presente no Clube de hoje exista em `rcas` (varredura_central_rca parou em 16/11)
+        for (const rca of C.rcas.keys()) if (!rcas[rca]) rcas[rca] = { rca, idade_s: 0 };
         clube_lido_em = C.lido_em;
         // ROTA COM O CHECK-IN DO CLUBE (12/11/2026; conferencia 11/11: 98,8% dos check-ins iguais ao CEVEN, hora:minuto): quando o roteiro de hoje e da madrugada
         // (+45 min) ou so o planejado do mes, o status de cada cliente vem do check-in/out do Clube (rede inteira, a cada 15 min). So o JOTA e as telas leem; a Liga nao.

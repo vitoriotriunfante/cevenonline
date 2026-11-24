@@ -5,7 +5,7 @@
 // =========================================================================
 import { sn } from '../escopo.js';
 import { N, P, R$, SUGESTAO, VAREJO, diasUteisRestantes, hojeSP, nome2, sem, titulo, vn } from '../base.js';
-import { agrupa, kpisDoEscopo, listaNomes, pctTxt, supChave, supNome, supReal } from '../escopo.js';
+import { agrupa, kpisDoEscopo, listaNomes, pctTxt, rcasEquipeGestao, rcasGrupoGestao, supChave, supNome, supReal } from '../escopo.js';
 import { diasUteisMes } from './gestao.js';
 import { diasUteis as diasUteisGerot } from '../../fatos/dias.js';
 // RITMO DO GEROT (17/11/2026, Vitorio: "ta errado sua tendencia"): captacao do mes / meta ideal de captacao de hoje, a regua do proprio GEROT.
@@ -405,8 +405,14 @@ export async function respHojeEquipe(B, E) {
     const jus = J.filter((j) => j.filial === v.filial && String(j.rca) === String(v.rca));
     return { v, c, dig, ped: c ? Number(c.ped_total) || 0 : 0, rot: c ? Number(c.roteiros) || 0 : 0, vis: c ? Number(c.visitas_rota) || 0 : 0, metaDia, pct: metaDia ? dig / metaDia : (dig > 0 ? 9 : null), jus };
   });
-  // 23/11/2026 (total = linhas): na filial inteira, o Clube de quem nao esta na lista (fora das equipes, televenda) entra no total e numa linha propria
-  const foraC = !(E.supervisor || E.grupo || E.rca) ? C.filter((x) => !L0.some((y) => y.v.filial === x.filial && String(Number(y.v.rca)) === String(Number(x.rca)))) : [];
+  // 23/11/2026 (total = linhas): na filial, grupo ou equipe, o Clube de quem nao esta na lista de varejo entra no total e numa linha propria
+  let alvoC = null;
+  if (E.grupo && !E.nacional && fil.length === 1) alvoC = new Set((await rcasGrupoGestao(B, fil[0], E.grupo)).map((r) => String(Number(r))));
+  else if (E.supervisor && !E.nacional && fil.length === 1) {
+    const nSup = (V[0] && V[0].supervisor) || E.supervisor.nome || E.supervisor;
+    alvoC = new Set((await rcasEquipeGestao(B, fil[0], nSup)).map((r) => String(Number(r))));
+  }
+  const foraC = E.rca ? [] : C.filter((x) => (!alvoC || alvoC.has(String(Number(x.rca)))) && !L0.some((y) => y.v.filial === x.filial && String(Number(y.v.rca)) === String(Number(x.rca))));
   const foraDig = foraC.reduce((a, x) => a + (Number(x.total_pedido) || 0), 0), foraPed = foraC.reduce((a, x) => a + (Number(x.ped_total) || 0), 0);
   const tDig = L0.reduce((a, x) => a + x.dig, 0) + foraDig, tMeta = V.some((v) => v.cap != null) && DUg.restantes > 0 ? Math.max(0, V.reduce((a, v) => a + (v.meta || 0), 0) - V.reduce((a, v) => a + (v.cap || 0), 0)) / DUg.restantes : 0 /* equipe: (meta - captacao) / dias, nunca a soma das necessidades */, tPed = L0.reduce((a, x) => a + x.ped, 0) + foraPed;
   const tRot = L0.reduce((a, x) => a + x.rot, 0), tVis = L0.reduce((a, x) => a + x.vis, 0);
