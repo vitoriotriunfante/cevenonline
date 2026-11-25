@@ -330,6 +330,11 @@ async function main() {
     // 21/11/2026 (Vitorio: 'inclua o horario da atualizacao quando citar o GEROT'): a barra lateral diz 'Ultima atualizacao: 21/11/26 16:34h' -> guarda a hora junto
     const ultAt = (txt.match(/Última atualização:\s*([\d/]+\s+\d{1,2}:\d{2})/) || [])[1] || '';
     const posicao = ((txt.match(/Atual\s*·\s*\d{2}\/\d{2}\/\d{4}/) || txt.match(/Última atualização:[^\n]+/) || [''])[0]) + (ultAt ? ' · atualizado ' + ultAt : '');
+    const loteId = new Date().toISOString();
+    const regCtrl = async (mesC, etapa, status, info = {}) => {
+      if (ENSAIO) return;
+      try { await api('POST', '', { controle: { lote_id: loteId, mes: mesC, etapa, status, filiais: info.filiais || 0, linhas: info.linhas || 0, gravadas: info.gravadas || 0, removidas: info.removidas || 0, posicao, detalhe: info.detalhe || '', iniciado_em: loteId } }); } catch {}
+    };
     log('posicao do GEROT:', posicao);
     for (const mes of meses) {
       try {
@@ -365,7 +370,9 @@ async function main() {
           for (let i = 0; i < mudou.length; i += 200) { await api('POST', '', { linhas: mudou.slice(i, i + 200) }); enviadas += Math.min(200, mudou.length - i); }
           await api('POST', '', { status: { mes, linhas: linhas.length, enviadas, posicao, colunas } });
           // 12/11/2026: lista completa das chaves desta extracao -> o D1 apaga a linha que sumiu do GEROT (vendedor que trocou de supervisor etc.)
-          if (linhas.length) { const lim = await api('POST', '', { vigentes: { mes, chaves: linhas.map((l) => `${l.filial}|${l.rca}|${l.fornecedor}|${l.cod_sup == null ? '' : l.cod_sup}`) } }).catch((e) => ({ erro: String(e.message || e) })); log('limpeza', mes, JSON.stringify(lim).slice(0, 160)); }
+          let lim = null;
+          if (linhas.length) { lim = await api('POST', '', { vigentes: { mes, chaves: linhas.map((l) => `${l.filial}|${l.rca}|${l.fornecedor}|${l.cod_sup == null ? '' : l.cod_sup}`) } }).catch((e) => ({ erro: String(e.message || e) })); log('limpeza', mes, JSON.stringify(lim).slice(0, 160)); }
+          await regCtrl(mes, 'vendas_forn', 'OK', { filiais: new Set(linhas.map((x) => x.filial)).size, linhas: linhas.length, gravadas: enviadas, removidas: Number(lim && lim.removidas) || 0 });
         }
         log(`${mes}: ${enviadas} linhas novas/alteradas gravadas no D1${ENSAIO ? ' (ensaio: nada gravado)' : ''}`);
         // PASSO 2 (13/11/2026): extracoes por VENDEDOR, SUPERVISOR e FILIAL (sem Fornecedor) para positivacao deduplicada oficial
@@ -381,6 +388,7 @@ async function main() {
               for (let i = 0; i < mudouV.length; i += 200) { await api('POST', '', { vendedores: mudouV.slice(i, i + 200) }); envV += Math.min(200, mudouV.length - i); }
               const limV = await api('POST', '', { vigentes_vend: { mes, chaves: lv.map((l) => `${l.filial}|${l.rca}|${l.cod_sup == null ? '' : l.cod_sup}`) } }).catch((e) => ({ erro: String(e.message || e) }));
               log(`${mes} vendedor: ${envV} gravadas no D1 · limpeza ${JSON.stringify(limV).slice(0, 120)}`);
+              await regCtrl(mes, 'vendedor', 'OK', { filiais: new Set(lv.map((x) => x.filial)).size, linhas: lv.length, gravadas: envV, removidas: Number(limV && limV.removidas) || 0 });
             }
           }
           const arqS = await baixaExcelNivel(page, mes, alvo, CAMPOS_SUP, `gerot_sup_${mes}.xlsx`);
@@ -392,6 +400,7 @@ async function main() {
               const mudouS = ls.filter((l) => hs[`${l.filial}|${l.cod_sup}`] !== l.hash);
               for (let i = 0; i < mudouS.length; i += 200) await api('POST', '', { supervisores: mudouS.slice(i, i + 200) });
               log(`${mes} supervisor: ${mudouS.length} gravadas no D1`);
+              await regCtrl(mes, 'supervisor', 'OK', { filiais: new Set(ls.map((x) => x.filial)).size, linhas: ls.length, gravadas: mudouS.length });
             }
           }
           const arqF = await baixaExcelNivel(page, mes, alvo, CAMPOS_FIL, `gerot_fil_${mes}.xlsx`);
@@ -403,9 +412,10 @@ async function main() {
               const mudouF = lf.filter((l) => hf[l.filial] !== l.hash);
               if (mudouF.length) await api('POST', '', { filiais: mudouF });
               log(`${mes} filial: ${mudouF.length} gravadas no D1`);
+              await regCtrl(mes, 'filial', 'OK', { filiais: lf.length, linhas: lf.length, gravadas: mudouF.length });
             }
           }
-        } catch (ev) { log(`FALHA agregados ${mes}:`, ev.message); }
+        } catch (ev) { falhou = true; log(`FALHA agregados ${mes}:`, ev.message); await regCtrl(mes, 'agregados', 'ERRO', { detalhe: ev.message }); }
         // PASSO 3 (Vitorio, 16/11/2026: "voce tem todos os clientes no GEROT... na aba da positivacao eu filtrei cliente e filial... cruzar tudo"):
         // CARTEIRA POR CLIENTE = Mes x Filial x Vendedor x Cliente com positivacao do mes, M-1, 3M, A-1, carteira e faturado.
         // E a fonte da curva negativa (comprou em M-1/3M e nao comprou no mes), sem depender do roteiro do CEVEN. Falha aqui nao derruba o resto.
@@ -420,9 +430,10 @@ async function main() {
               const mudouC = lc.linhas.filter((l) => (hc || {})[`${l.filial}|${l.rca}|${l.cliente}`] !== l.hash);
               for (let i = 0; i < mudouC.length; i += 200) await api('POST', '', { clientes: mudouC.slice(i, i + 200) });
               log(`${mes} cliente: ${mudouC.length} gravadas no D1`);
+              await regCtrl(mes, 'cliente', 'OK', { filiais: new Set(lc.linhas.map((x) => x.filial)).size, linhas: lc.linhas.length, gravadas: mudouC.length });
             }
           } else log(`${mes} cliente: Excel nao baixou`);
-        } catch (ec) { log(`FALHA clientes ${mes}:`, ec.message); }
+        } catch (ec) { log(`FALHA clientes ${mes}:`, ec.message); await regCtrl(mes, 'cliente', 'ERRO', { detalhe: ec.message }); }
         // PASSO 3c (21/11/2026): CLIENTE x INDUSTRIA (curva negativa por industria). Log publico: so contagens. Falha aqui nao derruba o resto.
         try {
           const arqCF = await baixaExcelNivel(page, mes, alvo, CAMPOS_CLIF, 'gerot_clif_' + mes + '.xlsx');
@@ -434,9 +445,10 @@ async function main() {
               const mudouCF = lf2.linhas.filter((l) => (hcf || {})[l.filial + '|' + l.rca + '|' + l.cliente + '|' + l.forn_cod] !== l.hash);
               for (let i = 0; i < mudouCF.length; i += 200) await api('POST', '', { clientes_forn: mudouCF.slice(i, i + 200) });
               log(mes + ' cliente x industria: ' + mudouCF.length + ' gravadas no D1');
+              await regCtrl(mes, 'cliente_forn', 'OK', { filiais: new Set(lf2.linhas.map((x) => x.filial)).size, linhas: lf2.linhas.length, gravadas: mudouCF.length });
             }
           } else log(mes + ' cliente x industria: Excel nao baixou');
-        } catch (eCF) { log('FALHA cliente x industria ' + mes + ':', eCF.message); }
+        } catch (eCF) { log('FALHA cliente x industria ' + mes + ':', eCF.message); await regCtrl(mes, 'cliente_forn', 'ERRO', { detalhe: eCF.message }); }
         // PASSO 3b (18/11/2026): FATURADO POR DIA E FILIAL. Log publico: so contagem.
         try {
           const arqD = await baixaExcelNivel(page, mes, alvo, CAMPOS_DIA, 'gerot_dia_' + mes + '.xlsx');
@@ -448,9 +460,10 @@ async function main() {
               const mudouD = ld.linhas.filter((l) => (hd || {})[l.filial + '|' + l.data] !== l.hash);
               for (let i = 0; i < mudouD.length; i += 200) await api('POST', '', { dias: mudouD.slice(i, i + 200) });
               log(mes + ' dia: ' + mudouD.length + ' gravadas no D1');
+              await regCtrl(mes, 'dia', 'OK', { filiais: new Set(ld.linhas.map((x) => x.filial)).size, linhas: ld.linhas.length, gravadas: mudouD.length });
             }
           } else log(mes + ' dia: Excel nao baixou');
-        } catch (eD) { log('FALHA dia ' + mes + ':', eD.message); }
+        } catch (eD) { log('FALHA dia ' + mes + ':', eD.message); await regCtrl(mes, 'dia', 'ERRO', { detalhe: eD.message }); }
         // PASSO 4 (17/11/2026): PEDIDOS do mes, um por linha (data, vendedor, cliente, pedido, NF, faturado, carteira). Log publico: so contagem e colunas.
         try {
           const arqP = await baixaExcelNivel(page, mes, alvo, CAMPOS_PED, 'gerot_ped_' + mes + '.xlsx');
@@ -462,13 +475,14 @@ async function main() {
               const mudouP = lp.linhas.filter((l) => (hp || {})[l.filial + '|' + l.pedido + '|' + l.nf] !== l.hash);
               for (let i = 0; i < mudouP.length; i += 200) await api('POST', '', { pedidos: mudouP.slice(i, i + 200) });
               log(mes + ' pedido: ' + mudouP.length + ' gravadas no D1');
+              await regCtrl(mes, 'pedido', 'OK', { filiais: new Set(lp.linhas.map((x) => x.filial)).size, linhas: lp.linhas.length, gravadas: mudouP.length });
             }
           } else log(mes + ' pedido: Excel nao baixou');
-        } catch (ep) { log('FALHA pedidos ' + mes + ':', ep.message); }
+        } catch (ep) { log('FALHA pedidos ' + mes + ':', ep.message); await regCtrl(mes, 'pedido', 'ERRO', { detalhe: ep.message }); }
         await page.keyboard.press('Escape').catch(() => {});
         await page.locator('button:has-text("×")').first().click({ timeout: 3000 }).catch(() => {});
         await page.waitForTimeout(1500);
-      } catch (e) { falhou = true; log('FALHA', mes, e.message); try { fs.writeFileSync(path.join(SAIDA, `dialogo_${mes}.html`), String(await page.evaluate(() => window.__dlgHtml || ''))); } catch {} await page.screenshot({ path: path.join(SAIDA, `erro_${mes}.png`), fullPage: true }).catch(() => {}); }
+      } catch (e) { falhou = true; log('FALHA', mes, e.message); await regCtrl(mes, 'vendas_forn', 'ERRO', { detalhe: e.message }); try { fs.writeFileSync(path.join(SAIDA, `dialogo_${mes}.html`), String(await page.evaluate(() => window.__dlgHtml || ''))); } catch {} await page.screenshot({ path: path.join(SAIDA, `erro_${mes}.png`), fullPage: true }).catch(() => {}); }
     }
     // RECORRENCIA (Vitorio, 10/11/2026: 'a meta de recorrencia tem no GEROT... e so colocar para ler'): nao existe no 'Extrair dados';
     // abre a tela COBERTURA > Recorrencia e guarda texto, tabelas e print (reconhecimento; nao grava no D1 e nao derruba a coleta)
@@ -509,7 +523,7 @@ async function main() {
           x.hash = crypto.createHash('md5').update(JSON.stringify(x)).digest('hex'); linhas.push(x);
         }
         log('recorrencia:', linhas.length, 'linhas lidas (', ['filial', 'supervisor', 'vendedor'].map((k) => k + ' ' + linhas.filter((y) => y.nivel === k).length).join(' · '), ')');
-        if (linhas.length && !ENSAIO) { for (let i = 0; i < linhas.length; i += 200) await api('POST', '', { recorrencia: linhas.slice(i, i + 200) }); log('recorrencia: enviada ao D1'); }
+        if (linhas.length && !ENSAIO) { for (let i = 0; i < linhas.length; i += 200) await api('POST', '', { recorrencia: linhas.slice(i, i + 200) }); log('recorrencia: enviada ao D1'); await regCtrl(mes || meses[0], 'recorrencia', 'OK', { filiais: new Set(linhas.map((y) => y.filial)).size, linhas: linhas.length, gravadas: linhas.length }); }
       } catch (e) { log('recorrencia: falha ao gravar', e.message); }
       fs.writeFileSync(path.join(SAIDA, 'recorrencia.json'), JSON.stringify(rec, null, 1));
       await page.screenshot({ path: path.join(SAIDA, 'recorrencia.png'), fullPage: true }).catch(() => {});

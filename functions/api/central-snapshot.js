@@ -96,10 +96,11 @@ export async function onRequestGet({ env, request }) {
     } catch { /* reforco nunca derruba o snapshot */ }
     // CLUBE DA VENDA (12/11/2026, Vitorio: 'bora pegar do clube visitas e vendas'): a ORIGEM do digitado e da visita, lida a cada 15 min. Sem a produtividade do CEVEN
     // de hoje, o 'dia' vem do Clube (dado de HOJE, com fonte e hora em produtividade.dia._fonte/_lido_em); o mes continua da ultima leitura do CEVEN. r.clube vai sempre junto.
-    let clube_lido_em = null;
+    let clube_lido_em = null, clube_falhou = false;
     try {
       const C = await lerClubeFilial(env, filial, dia);
-      if (C && C.rcas && C.rcas.size) {   // 16/11/2026: qualquer leitura de HOJE do Clube (com a hora); antes so a de ate 45 min
+      if (!C || C.erro) clube_falhou = true;
+      if (C && !C.erro && C.rcas && C.rcas.size) {   // 16/11/2026: qualquer leitura de HOJE do Clube (com a hora); antes so a de ate 45 min
         // 23/11/2026 (Gabarito D182-D185): garante que todo RCA presente no Clube de hoje exista em `rcas` (varredura_central_rca parou em 16/11)
         for (const rca of C.rcas.keys()) if (!rcas[rca]) rcas[rca] = { rca, idade_s: 0 };
         clube_lido_em = C.lido_em;
@@ -140,7 +141,7 @@ export async function onRequestGet({ env, request }) {
           if (!r.produtividade || cevenVelho) { r.produtividade = { dia: diaDoClube(c), mes: (r.produtividade && r.produtividade.mes) || r.produtividade_mes_reserva || {} }; (r.reserva = r.reserva || {}).dia_clube = { fonte: 'Clube da Venda', em: c.lido_em }; }
         }
       }
-    } catch { /* sem Clube: fica o que a base tem */ }
+    } catch { clube_falhou = true; /* sem Clube: fica o que a base tem */ }
     // META DA HIERARQUIA (27/10/2026, Thiago/MCD sup. 62: "a meta no CEVEN e de 4.332.386,48"; o JOTA dizia 5.287.235): o painel do vendedor (dashboard do RCA)
     // ainda mostra meta de quem foi zerado/transferido na hierarquia (MCD 416 Claudimir: R$ 954.849 no painel x R$ 0 na tela do supervisor/gerente). meta_hier = a
     // meta da cascata do gerente gravada na base (cascata_dia, mesmo numero da tela do supervisor). Quem le decide usar; null = vendedor fora da cascata.
@@ -193,8 +194,8 @@ export async function onRequestGet({ env, request }) {
       const X = (mf || []).filter((x) => !(rcas[String(x.rca)] && rcas[String(x.rca)].devolucoes != null));
       macro_fora = { dev_dia: X.reduce((a, x) => a + parse(x.notas_json || '[]').filter((n) => n.d === dia).reduce((s, n) => s + (Number(n.v) || 0), 0), 0), dev_mes: X.reduce((a, x) => a + (Number(x.dev_mes) || 0), 0) };
     } catch { /* tabela ainda sem dado */ }
-    const outJson = JSON.stringify({ filial, dia, gerado_em: new Date().toISOString(), total: Object.keys(rcas).length, rcas, macro_fora, clube_lido_em });
-    if (Object.keys(rcas).length > 0) memSnap.set(chaveMem, { exp: Date.now() + 20000, json: outJson });
+    const outJson = JSON.stringify({ filial, dia, gerado_em: new Date().toISOString(), total: Object.keys(rcas).length, rcas, macro_fora, clube_lido_em, clube_falhou });
+    if (Object.keys(rcas).length > 0 && !clube_falhou) memSnap.set(chaveMem, { exp: Date.now() + 20000, json: outJson });
     return new Response(outJson, { headers: cors });
   } catch (e) { return new Response(JSON.stringify({ erro: String(e.message || e).slice(0, 300) }), { status: 500, headers: cors }); }
 }

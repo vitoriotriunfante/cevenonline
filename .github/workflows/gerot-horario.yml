@@ -16,7 +16,7 @@ permissions:
   actions: write
 
 concurrency:
-  group: gerot-coleta
+  group: gerot-horario
   cancel-in-progress: false
 
 jobs:

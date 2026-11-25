@@ -28,6 +28,7 @@ export async function onRequest({ request, env }) {
   F.push({ id: 'ceven_sup', nome: 'CEVEN admin (compromisso e RET)', ult: await um('SELECT MAX(atualizado_em) FROM supervisores_dia WHERE data_ref = ?', dia), lim: 45, vale: h >= 7 && h <= 19 });
   F.push({ id: 'liga', nome: 'Lances da Liga', ult: await um("SELECT MAX(visto_em) FROM tv_lances WHERE dia = ? AND nivel <> 'marker'", dia), lim: 90, vale: util && h >= 10 && h <= 19 });
   F.push({ id: 'vigia', nome: 'Agendador (worker-cron)', ult: await um("SELECT valor FROM config_flags WHERE chave = 'vigia_ultima'"), lim: 40, vale: h >= 8 && h <= 20 });
+  F.push({ id: 'wa_inbound', nome: 'WhatsApp (entrada Evolution)', ult: await um("SELECT MAX(quando) FROM bot_msgs WHERE direcao = 'in'"), lim: 45, vale: util && h >= 8 && h <= 19 });
   const quadro = F.map((f) => ({ fonte: f.nome, ultima: f.ult, minutos: Number.isFinite(minDesde(f.ult)) ? Math.round(minDesde(f.ult)) : null, limite: f.lim, vale_agora: f.vale, parada: f.vale && minDesde(f.ult) > f.lim }));
   if (u.searchParams.get('teste') === '1' || soSaude) return J({ dia, hora: rel.hm, quadro });
   const avisos = [], marcar = [];

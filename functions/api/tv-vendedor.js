@@ -266,10 +266,11 @@ async function lerCentral(env, id, maxIdadeMs, filial, comReserva = false) {
         const R0 = (g && g.results) || [];
         if (R0.length) {
           const s = (k) => { let t = 0, ok = false; for (const r of R0) { const x = lê(r.dados)?.[k]; const v = x == null || x === '' ? NaN : Number(x); if (Number.isFinite(v)) { t += v; ok = true; } } return ok ? t : null; };
+          const mx = (k) => { let best = null; for (const r of R0) { const x = lê(r.dados)?.[k]; const v = x == null || x === '' ? NaN : Number(x); if (Number.isFinite(v) && (best == null || v > best)) best = v; } return best; };
           // carteira do vendedor: soma da Carteira Total (valor calibrado contra a tela do GEROT); (23/11/2026: a 'Carteira pendente' por vendedor do GEROT NAO vem vazia; soma dos vendedores = filial nas 11. Usa a do GEROT primeiro)
           let cart = null; try { const c = await env.DB.prepare('SELECT SUM(valor) v, COUNT(*) n FROM gerot_carteira WHERE filial = ? AND rca = ?').bind(sig, String(id)).first(); if (c && c.n) cart = Number(c.v) || 0; else cart = 0; } catch { /* sem carteira */ }
           const nm = String(R0[0].vendedor || '').replace(/^\s*\d+\s*-\s*/, '').trim() || null;
-          dashFinal = { nome: nm, financeiro: { meta: s('Meta (R$)'), faturado: s('Faturado líquido (R$)'), pendente: s('Carteira pendente (R$)') ?? cart, devolucao: s('Devolução (R$)') }, positivacao: { meta: s('Meta de positivação'), realizado: s('Positivação (filial + CNPJ)') } };
+          dashFinal = { nome: nm, financeiro: { meta: s('Meta (R$)'), faturado: s('Faturado líquido (R$)'), pendente: s('Carteira pendente (R$)') ?? cart, devolucao: s('Devolução (R$)') }, positivacao: { meta: mx('Meta de positivação') ?? mx('Meta clientes'), realizado: mx('Positivação (filial + CNPJ)') ?? mx('Positivação (filial)') } };
           reforco = { dashboard: { fonte: 'GEROT', em: R0.map((r) => r.em).sort().pop() } };
         }
       } catch { /* sem GEROT: segue para a reserva */ }

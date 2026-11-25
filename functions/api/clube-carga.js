@@ -97,8 +97,9 @@ export async function onRequestPost({ request, env }) {
     for (const r of sai) rs.push(db.prepare('DELETE FROM clube_roteiro WHERE dia = ? AND filial = ? AND rca = ? AND cliente = ?').bind(dia, r.filial, r.rca, r.cliente));
     for (let i = 0; i < rs.length; i += 80) await db.batch(rs.slice(i, i + 80));
     // marca da leitura (1 linha por dia): o coletor so rele depois de 3 h
+    const totR = await db.prepare('SELECT COUNT(DISTINCT filial) f, COUNT(*) n FROM clube_roteiro WHERE dia = ?').bind(dia).first().catch(() => null);
     await db.prepare('CREATE TABLE IF NOT EXISTS clube_roteiro_leitura (dia TEXT PRIMARY KEY, filiais INTEGER, linhas INTEGER, lido_em TEXT)').run();
-    await db.prepare('INSERT INTO clube_roteiro_leitura (dia, filiais, linhas, lido_em) VALUES (?,?,?,?) ON CONFLICT (dia) DO UPDATE SET filiais = excluded.filiais, linhas = excluded.linhas, lido_em = excluded.lido_em').bind(dia, F.length, novos.size, new Date().toISOString()).run();
+    await db.prepare('INSERT INTO clube_roteiro_leitura (dia, filiais, linhas, lido_em) VALUES (?,?,?,?) ON CONFLICT (dia) DO UPDATE SET filiais = excluded.filiais, linhas = excluded.linhas, lido_em = excluded.lido_em').bind(dia, Number(totR && totR.f) || F.length, Number(totR && totR.n) || novos.size, new Date().toISOString()).run();
     // conferencia: o vendedor da rota existe no Relatorio de Vendas do Clube na mesma filial?
     let conf = null; try { conf = (await db.prepare("SELECT COUNT(DISTINCT r.filial || '|' || r.rca) n, COUNT(DISTINCT CASE WHEN v.rca IS NOT NULL THEN r.filial || '|' || r.rca END) ok FROM clube_roteiro r LEFT JOIN clube_venda_dia v ON v.dia = r.dia AND v.filial = r.filial AND v.rca = r.rca WHERE r.dia = ?").bind(dia).first()); } catch (e) { /* sem conferencia */ }
     rot = { linhas: novos.size, sairam: sai.length, filiais: F.length, vendedores: conf && conf.n, batem_relatorio_vendas: conf && conf.ok };
@@ -116,7 +117,7 @@ export async function onRequestPost({ request, env }) {
   }
   // 17/11/2026: pedido_status (lido por ~15 respostas do JOTA) volta a ter dado: pedido do Clube + status do GEROT
   let sinc = null;
-  if (Array.isArray(body.pedidos) && body.pedidos.length) { try { const { sincronizaPedidoStatus } = await import('../_lib/pedido_status_fontes.js'); sinc = await sincronizaPedidoStatus(env, dia);   /* so o dia (17/11: 7 dias de uma vez sobrecarregou o D1 logo apos a carga) */ } catch (e) { sinc = { erro: String(e && e.message || e).slice(0, 160) }; } }
+  if (Array.isArray(body.pedidos) && body.pedidos.length && !body.sem_sync_status) { try { const { sincronizaPedidoStatus } = await import('../_lib/pedido_status_fontes.js'); sinc = await sincronizaPedidoStatus(env, dia);   /* so o dia (17/11: 7 dias de uma vez sobrecarregou o D1 logo apos a carga) */ } catch (e) { sinc = { erro: String(e && e.message || e).slice(0, 160) }; } }
   return resp({ ok: true, dia, gravados: stmts.length, pedido_status: sinc, roteiro: rot });
 }
 

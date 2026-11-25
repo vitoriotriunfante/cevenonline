@@ -894,7 +894,8 @@ export async function respostaInterna(B, c, texto, anteriores) {
         const u = { d: ym + '-' + String(new Date(Date.UTC(Number(ym.slice(0, 4)), Number(ym.slice(5)), 0)).getUTCDate()).padStart(2, '0') };
         if (u && u.d) {
         const J0 = (k) => `SUM(json_extract(dados, '$."${k}"'))`;
-        const { results: fm2 } = await B.env.DB.prepare(`SELECT filial f, rca r, ${J0('Faturado bruto (R$)')} b, ${J0('Devolução (R$)')} dv, ${J0('Carteira pendente (R$)')} p, ${J0('Meta (R$)')} m, ${J0('Positivação (filial + CNPJ)')} pr, ${J0('Meta de positivação')} pm FROM gerot_vendedor_mes WHERE mes = ? AND rca NOT LIKE '%|%' GROUP BY filial, rca`).bind(ym).all();
+        const JM = (k) => `MAX(json_extract(dados, '$."${k}"'))`;
+        const { results: fm2 } = await B.env.DB.prepare(`SELECT filial f, rca r, ${J0('Faturado bruto (R$)')} b, ${J0('Devolução (R$)')} dv, ${J0('Carteira pendente (R$)')} p, ${J0('Meta (R$)')} m, ${JM('Positivação (filial + CNPJ)')} pr, ${JM('Meta de positivação')} pm FROM gerot_vendedor_mes WHERE mes = ? AND rca NOT LIKE '%|%' GROUP BY filial, rca`).bind(ym).all();
           const L = (fm2 || []).filter((x) => esc.nacional || chaves.has(x.f + '|' + x.r)), s = (k) => L.reduce((a, x) => a + (Number(x[k]) || 0), 0);
           let liq = s('b') - s('dv'), meta = s('m'), pos = s('pr'), mp = s('pm'), brT = s('b'), dvT = s('dv');
           // 23/11/2026 (dicionario 3.9/3.26, conflito 7): equipe/grupo = clientes distintos com faturado > 0 no mes fechado (regra 4), nunca a soma dos vendedores

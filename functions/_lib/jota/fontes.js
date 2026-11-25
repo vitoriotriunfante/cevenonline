@@ -35,7 +35,9 @@ export function criaBase(origin, env) {
     if (ROTAS_CACHE.test(rota0)) {
       const ttl = rota0 === '/api/central-snapshot' ? TTL_SNAP : TTL_LEITURA;
       const c0 = CACHE_LEITURA.get(p); if (c0 && Date.now() - c0.em < ttl) return c0.v;
-      const v = await apiSemCache(p); if (v != null) { CACHE_LEITURA.set(p, { em: Date.now(), v }); if (CACHE_LEITURA.size > 60) CACHE_LEITURA.delete(CACHE_LEITURA.keys().next().value); }
+      const v = await apiSemCache(p);
+      const podeCachear = rota0 !== '/api/central-snapshot' || (v && !v.clube_falhou && !!v.clube_lido_em);
+      if (v != null && podeCachear) { CACHE_LEITURA.set(p, { em: Date.now(), v }); if (CACHE_LEITURA.size > 60) CACHE_LEITURA.delete(CACHE_LEITURA.keys().next().value); }
       return v;
     }
     return apiSemCache(p);
@@ -64,16 +66,29 @@ export function criaBase(origin, env) {
     // VIRADA DO DIA (26/10/2026, 01h): a base de hoje so enche com a primeira coleta; ate la vinha VAZIA e toda pergunta de equipe saia 'R$ 0'
     // com texto quebrado. Agora: base de hoje vazia -> usa o ULTIMO DIA COM DADO REAL (ate 4 dias atras) e marca cache.baseDe para o aviso.
     snap: (f) => memo('snap' + f, async () => {
-      const h = hojeSP(); let s = await api('/api/central-snapshot?filial=' + f + '&dia=' + h);
+      const h = hojeSP(), rota = '/api/central-snapshot?filial=' + f + '&dia=' + h;
+      let s = await api(rota);
       // FALHA NAO E 'BASE VAZIA' (12/11/2026, Brasil: a TBL demorou, voltou null e caiu nos numeros de 11/11 — 'hoje R$ 454 mil' com o Clube em R$ 96 mil):
       // resposta que nao veio = tenta de novo HOJE (2x); so cai para um dia anterior se o dia de hoje respondeu e veio VAZIO de verdade
-      for (let t = 0; t < 2 && !s; t++) s = await api('/api/central-snapshot?filial=' + f + '&dia=' + h);
+      for (let t = 0; t < 2 && (!s || s.clube_falhou); t++) {
+        await new Promise((ok) => setTimeout(ok, 350));
+        const r = await apiSemCache(rota + '&fresco=1');
+        if (r) { s = r; if (!s.clube_falhou && s.clube_lido_em) { CACHE_LEITURA.set(rota, { em: Date.now(), v: s }); if (CACHE_LEITURA.size > 60) CACHE_LEITURA.delete(CACHE_LEITURA.keys().next().value); } }
+      }
       if (s && s.rcas && Object.keys(s.rcas).length) return s;
       if (!s) return s;
       for (let k = 1; k <= 4; k++) { const d = new Date(Date.parse(h + 'T12:00:00Z') - k * 864e5).toISOString().slice(0, 10); const o = await api('/api/central-snapshot?filial=' + f + '&dia=' + d);
         if (o && o.rcas && Object.keys(o.rcas).length) { cache.baseDe = d; return o; } }
       return s;
     }),
+    snapFresco: async (f) => {
+      const h = hojeSP(), p = '/api/central-snapshot?filial=' + f + '&dia=' + h;
+      delete cache['snap' + f];
+      const s = await apiSemCache(p + '&fresco=1');
+      if (s && !s.clube_falhou && s.clube_lido_em) { CACHE_LEITURA.set(p, { em: Date.now(), v: s }); if (CACHE_LEITURA.size > 60) CACHE_LEITURA.delete(CACHE_LEITURA.keys().next().value); }
+      if (s) cache['snap' + f] = Promise.resolve(s);
+      return s;
+    },
     baseDe: () => cache.baseDe || null,
     lances: () => memo('lances', () => api('/api/brasileirao-lances?dia=' + hojeSP())),
     sups: (f) => memo('sup' + f, () => api('/api/tv-supervisores?filial=' + f)),

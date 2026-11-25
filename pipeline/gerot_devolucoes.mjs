@@ -63,6 +63,7 @@ try {
   log(`devolucao por motivo: ${nM} motivos · ${nF} linhas motivo x filial · colunas ${JSON.stringify(T.th.slice(0, 8))}`);
   if (nM) for (let i = 0; i < out.length; i += 200) {
     const r = await fetch(API, { method: 'POST', headers: { 'X-Evo-Key': KEY, 'Content-Type': 'application/json', 'User-Agent': 'ceven-gerot' }, body: JSON.stringify({ devmotivo: out.slice(i, i + 200), devmotivo_mes: mes, devmotivo_primeiro: i === 0 }), signal: AbortSignal.timeout(60000) });
+    if (!r.ok) throw new Error('POST devmotivo HTTP ' + r.status);
     log('gravado', r.status);
   }
   // 2a FASE (18/11/2026, DEV_VEND=1): Motivo -> Filial -> Supervisor -> Vendedor (mapa 3). Abre cada filial e cada supervisor embaixo dos motivos e grava
@@ -105,10 +106,19 @@ try {
       }
     }
     log(`devolucao por motivo x vendedor: ${abertos.size} niveis abertos em ${Math.round((Date.now() - t0) / 1000)} s · ${out2.length} linhas motivo x vendedor · ${new Set(out2.map((x) => x.filial + x.rca)).size} vendedores`);
+    let gravV = 0;
     for (let i = 0; i < out2.length; i += 300) {
       const r = await fetch(API, { method: 'POST', headers: { 'X-Evo-Key': KEY, 'Content-Type': 'application/json', 'User-Agent': 'ceven-gerot' }, body: JSON.stringify({ devmotivo_vend: out2.slice(i, i + 300) }), signal: AbortSignal.timeout(60000) });
+      if (!r.ok) throw new Error('POST devmotivo_vend HTTP ' + r.status);
+      gravV += Math.min(300, out2.length - i);
       log('gravado vendedor', r.status);
     }
+    const loteId = new Date().toISOString();
+    await fetch(API, { method: 'POST', headers: { 'X-Evo-Key': KEY, 'Content-Type': 'application/json', 'User-Agent': 'ceven-gerot' }, body: JSON.stringify({ controle: { lote_id: loteId, mes, etapa: 'devolucao_motivo', status: 'OK', filiais: nF, linhas: out.length + out2.length, gravadas: out.length + gravV, iniciado_em: loteId } }), signal: AbortSignal.timeout(30000) }).catch(() => {});
+  }
+  if (process.env.DEV_VEND !== '1' && nM) {
+    const loteId = new Date().toISOString();
+    await fetch(API, { method: 'POST', headers: { 'X-Evo-Key': KEY, 'Content-Type': 'application/json', 'User-Agent': 'ceven-gerot' }, body: JSON.stringify({ controle: { lote_id: loteId, mes, etapa: 'devolucao_motivo', status: 'OK', filiais: nF, linhas: out.length, gravadas: out.length, iniciado_em: loteId } }), signal: AbortSignal.timeout(30000) }).catch(() => {});
   }
 } catch (e) { falhou = true; log('FALHA devolucoes:', String(e && e.message || e).slice(0, 200)); }
 await browser.close();

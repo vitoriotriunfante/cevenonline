@@ -252,6 +252,7 @@ export async function respMatinal(B, E) {
   ]);
   const nomeArv = new Map();
   for (const a of arvRes.results || []) if (a.vend_nome && !/^\d+$/.test(String(a.vend_nome).trim())) nomeArv.set(`${a.filial}|${a.rca}`, a.vend_nome);
+  for (const ev of E.vend || []) if (ev && ev.nome && !/^\d+$/.test(String(ev.nome).trim())) nomeArv.set(`${ev.filial}|${ev.rca}`, nomeArv.get(`${ev.filial}|${ev.rca}`) || ev.nome);
   const rotaMap = new Map();
   for (const r of rotaRes.results || []) {
     rotaMap.set(`${r.filial}|${r.rca}`, Number(r.n) || 0);
@@ -292,6 +293,22 @@ export async function respMatinal(B, E) {
       const sx = sem(x.sup);
       return sx.includes(sAlvo) || sAlvo.includes(sx) || (toks.length && toks.every((w) => sx.includes(w))) || (pu(x.sup) && pu(x.sup) === pu(sAlvo));
     });
+  }
+  if (rows.length > 1) {
+    const dedup = new Map();
+    for (const x of rows) {
+      const kd = `${x.filial}|${/^\d+$/.test(String(x.rca)) ? String(Number(x.rca)) : String(x.rca)}`;
+      const ant = dedup.get(kd);
+      if (!ant) { dedup.set(kd, { ...x }); continue; }
+      ant.meta += x.meta; ant.vend += x.vend;
+      ant.pct = ant.meta > 0 ? (ant.vend / ant.meta) * 100 : 0;
+      ant.pos = Math.max(ant.pos, x.pos); ant.metaPos = Math.max(ant.metaPos, x.metaPos);
+      ant.precisaDia = Math.max(0, ant.meta - ant.vend) / falt;
+      ant.tend = dec ? (ant.vend / dec) * tot : ant.vend;
+      ant.tendPct = ant.meta > 0 ? (ant.tend / ant.meta) * 100 : 0;
+      if (!ant.nome && x.nome) ant.nome = x.nome;
+    }
+    rows = [...dedup.values()];
   }
   if (!rows.length) return `☀️ *Matinal — ${E.nome}*: sem dados no GEROT para este escopo agora.`;
   // 17/11/2026 (auditoria ampla): sem venda no mes e sem rota hoje (ferias/afastado?) = linha propria, nao prioridade

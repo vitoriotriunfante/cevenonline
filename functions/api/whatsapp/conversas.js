@@ -5,9 +5,11 @@
 // é o do celular antigo (conversas PESSOAIS, fev–jul/2026) e as mensagens novas não estão sendo guardadas. Por privacidade, a leitura de mensagens
 // foi REMOVIDA: este endpoint não devolve nenhuma mensagem. Protegido pela chave do webhook do JOTA. Não envia nada.
 // =========================================================================
+import { chaveAdminOk } from '../../_lib/chave_admin_jota.js';
+
 export async function onRequestGet({ request, env }) {
   const u = new URL(request.url);
-  if (!env.BOT_WEBHOOK_KEY || u.searchParams.get('k') !== env.BOT_WEBHOOK_KEY) return new Response('nao autorizado', { status: 401 });
+  if (!((env.BOT_WEBHOOK_KEY && u.searchParams.get('k') === env.BOT_WEBHOOK_KEY) || (await chaveAdminOk(env, request)))) return new Response('nao autorizado', { status: 401 });
   if (!env.EVO_URL || !env.EVO_KEY) return new Response('EVO nao configurado', { status: 503 });
   const base = String(env.EVO_URL).replace(/\/$/, ''), inst = env.EVO_INSTANCE || 'ceven-noc';
   const g = (rota) => fetch(`${base}${rota}`, { headers: { apikey: env.EVO_KEY }, signal: AbortSignal.timeout(20000) }).then(async (r) => ({ status: r.status, j: await r.json().catch(() => null) }));

@@ -33,8 +33,8 @@ const dataISO = (v) => { if (v == null || v === '') return null; if (typeof v ==
 const semAc = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/^(CLT|PJ)\s*-?\s+/, '').replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
 let EQ = new Map();   // filial -> [{ rca, n }]
 async function carregaEquipe() {
-  try { const m = await (await fetch((process.env.SITE_CFTV || 'https://ceven-cftv-matrix.pages.dev') + '/api/tv-mostra', { signal: AbortSignal.timeout(30000) })).json();
-    for (const [f, lista] of Object.entries(m.filiais || {})) for (const v of lista || []) if (v && v.rca != null) { const fil = String(f).toUpperCase().slice(0, 3); if (!EQ.has(fil)) EQ.set(fil, []); EQ.get(fil).push({ rca: String(v.rca), n: semAc(v.nome) }); }
+  try { const m = await (await fetch((process.env.SITE_CFTV || 'https://ceven-cftv-matrix.pages.dev') + '/api/tv-mostra?completo=1', { signal: AbortSignal.timeout(30000) })).json();
+    for (const [f, lista] of Object.entries(m.filiais || {})) for (const v of (lista || []).slice().sort((a, b) => (b?.mostra === false ? 0 : 1) - (a?.mostra === false ? 0 : 1))) if (v && v.rca != null) { const fil = String(f).toUpperCase().slice(0, 3); if (!EQ.has(fil)) EQ.set(fil, []); EQ.get(fil).push({ rca: String(v.rca), n: semAc(v.nome) }); }
   } catch (e) { log('sem a Gestao de Equipe: vendedor so pelo codigo escrito na planilha'); }
 }
 const bate = (a, b) => { if (!a || !b) return false; if (a === b) return true; const wa = a.split(' '), wb = b.split(' '); const [p, q] = wa.length <= wb.length ? [wa, wb] : [wb, wa]; return p.length >= 2 && p.every((w) => q.includes(w)); };
@@ -155,8 +155,11 @@ try {
     // remove o que saiu da carteira, so com o arquivo inteiro (mais de 1000 pedidos e nenhuma filial sumida de uma vez)
     const atuais = new Set(L.map((x) => x.filial + '|' + x.pedido)), antigos = Object.keys(hashes || {});
     const sai = antigos.filter((k) => !atuais.has(k)), filAntes = new Set(antigos.map((k) => k.slice(0, 3))), filAgora = new Set(L.map((x) => x.filial));
-    if (L.length > 1000 && [...filAntes].every((f) => filAgora.has(f))) { for (let i = 0; i < sai.length; i += 400) await api('POST', '', { carteira_remover: sai.slice(i, i + 400) }); log(`carteira: ${muda.length} gravados · ${sai.length} sairam da carteira`); }
+    let rem = 0;
+    if (L.length > 1000 && [...filAntes].every((f) => filAgora.has(f))) { for (let i = 0; i < sai.length; i += 400) await api('POST', '', { carteira_remover: sai.slice(i, i + 400) }); rem = sai.length; log(`carteira: ${muda.length} gravados · ${sai.length} sairam da carteira`); }
     else log(`carteira: ${muda.length} gravados · remocao pulada (arquivo parcial?)`);
+    const loteId = new Date().toISOString();
+    await api('POST', '', { controle: { lote_id: loteId, mes: new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 7), etapa: 'carteira', status: L.some((x) => x.valor != null) ? 'OK' : 'PARCIAL', filiais: filAgora.size, linhas: L.length, gravadas: muda.length, removidas: rem, detalhe: L.some((x) => x.valor != null) ? '' : 'calibracao_valor_nula', iniciado_em: loteId } }).catch(() => {});
   }
 } catch (e) { falhou = true; log('FALHA carteira:', String(e && e.message || e).slice(0, 200)); }
 await browser.close();

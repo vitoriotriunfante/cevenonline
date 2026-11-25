@@ -191,10 +191,24 @@ export async function respHoje(B, E, t) {
     const G = [...agrupa(V, (v) => v.filial)].sort((a, b) => b[1].dig - a[1].dig);
     const tot = { ...(agrupa(V, () => 'x').get('x') || { dig: 0, ped: 0, visF: 0, visP: 0, comVenda: 0, zerados: 0 }) };
     if (!soVarejo) { tot.dig = E.macro.dig; tot.ped = E.macro.pedidos; for (const g of G) { const m = E.porFilial[g[0]].macro; g[1].dig = m.dig; g[1].ped = m.pedidos; } G.sort((a, b) => b[1].dig - a[1].dig); }
+    const semClube = (E.filiais || []).filter((f) => E.porFilial && E.porFilial[f] && (E.porFilial[f].clubeFalhou || (!E.porFilial[f].clubeLidoEm && B && B._clube)));
+    if (semClube.length && B && B.env && B.env.DB) {
+      try {
+        const { lerClubeBrasil } = await import('../../clube.js');
+        const cb = await lerClubeBrasil(B.env, hojeSP());
+        if (cb && cb.size && !soVarejo) {
+          for (const g of G) if (semClube.includes(g[0]) && cb.has(g[0])) { const r = cb.get(g[0]); g[1].dig = Number(r.dig) || g[1].dig; g[1].ped = Number(r.ped) || g[1].ped; }
+          tot.dig = G.reduce((a, [, x]) => a + (x.dig || 0), 0);
+          tot.ped = G.reduce((a, [, x]) => a + (x.ped || 0), 0);
+          G.sort((a, b) => b[1].dig - a[1].dig);
+        }
+      } catch { /* fallback nao derruba */ }
+    }
+    const avisoClube = semClube.length ? `⚠️ Rota/zerados sem leitura completa em: ${semClube.join(', ')} (peça novamente em 10s)` : null;
     if (/TICKET/.test(t)) return [`🧾 *Ticket médio de hoje — Brasil${rot}*: *${tot.ped ? R$(tot.dig / tot.ped) : 'sem dado'}* (${R$(tot.dig)} ÷ ${N(tot.ped)} pedidos)`, ...G.map(([f, x]) => `• ${f}: ${x.ped ? R$(x.dig / x.ped) : 'sem dado'}`)].join('\n');
     return [`📝 *Hoje no Brasil${rot}* (${hora})`, `Digitado: *${R$(tot.dig)}* em *${N(tot.ped)}* pedidos${tot.ped ? ' · ticket ' + R$(tot.dig / tot.ped) : ''}`, ...(linhaGerot ? [linhaGerot] : []), ...(tot.visP ? [`Visitas da rota: ${N(tot.visF)} de ${N(tot.visP)} (com venda na rota: ${N(tot.comVenda)}) · zerados: ${tot.zerados}`] : []), '', '*Por filial:*',   /* dia sem rota nao fala de visita nem zerado (Vitorio, 31/10/2026: "hoje e venda") */
       ...G.map(([f, x]) => `• *${f}* ${R$(x.dig)} · ${x.ped} ped.` + (tot.visP ? ` · visitas ${x.visF}/${x.visP} · ${x.zerados} zerado(s)` : '')),
-      soVarejo ? '' : '_Totais com todos os canais; peça "hoje rota" para só o varejo._', SUGESTAO + (tot.visP ? `ver os zerados da filial com mais vendedores sem pedido: ${(G.slice().sort((a, b) => b[1].zerados - a[1].zerados)[0] || [''])[0]}.` : `acionar a filial com menos venda digitada hoje: ${(G.slice().sort((a, b) => a[1].dig - b[1].dig)[0] || [''])[0]}.`)].filter((x) => x !== null).join('\n');
+      soVarejo ? '' : '_Totais com todos os canais; peça "hoje rota" para só o varejo._', avisoClube, SUGESTAO + (tot.visP ? `ver os zerados da filial com mais vendedores sem pedido: ${(G.slice().sort((a, b) => b[1].zerados - a[1].zerados)[0] || [''])[0]}.` : `acionar a filial com menos venda digitada hoje: ${(G.slice().sort((a, b) => a[1].dig - b[1].dig)[0] || [''])[0]}.`)].filter((x) => x !== null).join('\n');
   }
   const Vtotais = V.concat(E.ocultos || []);
   const tot = { ...(agrupa(Vtotais, () => 'x').get('x') || { dig: 0, ped: 0, visF: 0, visP: 0, comVenda: 0, zerados: 0 }) };
@@ -237,7 +251,7 @@ export async function respVendedor(B, E, v, opt = {}) {   /* opt.tudo = "ver mai
   let gPos = null, gPosEm = null, DC = null;
   if (B.env && B.env.DB) {
     try {
-      const g = await B.env.DB.prepare("SELECT json_extract(dados, '$.\"Positivação (filial + CNPJ)\"') p, json_extract(dados, '$.\"Meta de positivação\"') m, em FROM gerot_vendedor_mes WHERE mes = ? AND filial = ? AND rca = ? ORDER BY (json_extract(dados, '$.\"Meta de positivação\"') IS NULL), em DESC LIMIT 1").bind(hojeSP().slice(0, 7), String(v.filial), String(v.rca)).first();
+      const g = await B.env.DB.prepare("SELECT MAX(coalesce(json_extract(dados, '$.\"Positivação (filial + CNPJ)\"'), json_extract(dados, '$.\"Positivação (filial)\"'))) p, MAX(coalesce(json_extract(dados, '$.\"Meta de positivação\"'), json_extract(dados, '$.\"Meta clientes\"'))) m, MAX(em) em FROM gerot_vendedor_mes WHERE mes = ? AND filial = ? AND rca = ?").bind(hojeSP().slice(0, 7), String(v.filial), String(v.rca)).first();
       if (g && g.p != null) { gPos = { p: Number(g.p) || 0, m: g.m != null ? Number(g.m) : null }; }
       const st = await B.env.DB.prepare('SELECT posicao FROM gerot_coleta_status ORDER BY id DESC LIMIT 1').first(); gPosEm = st && st.posicao ? String(st.posicao).replace(/^Atual\s*·\s*/i, '') : null;
     } catch (e) { /* sem GEROT: fica o painel */ }

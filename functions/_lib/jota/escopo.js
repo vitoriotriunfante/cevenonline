@@ -70,7 +70,13 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
       for (const g of gerotVend.values()) if (g.n > 1) { g.nec = du.restantes > 0 ? Math.max(0, g.meta - g.cap) / du.restantes : null; g.ritmo = g.ideal ? g.cap / g.ideal * 100 : null; }
     }
   }
-  for (const [rca, r] of Object.entries((snap && snap.rcas) || {})) {
+  const rcasFonte = { ...((snap && snap.rcas) || {}) };
+  const vistos = new Set(Object.keys(rcasFonte).map((x) => (/^\d+$/.test(x) ? String(Number(x)) : x)));
+  for (const rca of [...eq.keys(), ...gerotVend.keys()]) {
+    const kr = /^\d+$/.test(String(rca)) ? String(Number(rca)) : String(rca);
+    if (!rcasFonte[rca] && !vistos.has(kr)) { rcasFonte[String(rca)] = {}; vistos.add(kr); }
+  }
+  for (const [rca, r] of Object.entries(rcasFonte)) {
     let e = eq.get(rca);
     if (!r.dashboard && r.dashboard_reserva && r.reserva && r.reserva.dashboard) { const em = String(r.reserva.dashboard.em || ''); if (!B._reserva || em < B._reserva) B._reserva = em; (B._reservaFontes = B._reservaFontes || new Set()).add(/^GEROT/.test(String(r.reserva.dashboard.fonte || '')) ? 'GEROT' : 'CEVEN'); }   // etiqueta unica no bot.js
     /* 12/11/2026: sem leitura de hoje, a ultima leitura real do mes (dashboard_reserva, com etiqueta em v.reforco) */ const d = r.dashboard || r.dashboard_reserva || {}, fi = d.financeiro || {}, po = d.positivacao || {}, pm = (r.produtividade && r.produtividade.mes) || r.produtividade_mes_reserva || {};
@@ -154,7 +160,7 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
     }
   }
   vend.sort((a, b) => (b.pct ?? -1) - (a.pct ?? -1));
-  return { vend, ocultos, outros, macro };
+  return { vend, ocultos, outros, macro, clubeFalhou: !!(snap && snap.clube_falhou), clubeLidoEm: (snap && snap.clube_lido_em) || null };
 }
 
 // RCAs da equipe de um supervisor NA GESTÃO DE EQUIPE (inclui quem não está na leitura do CEVEN)
@@ -194,9 +200,30 @@ export async function kpisDoEscopo(B, E) {
 export async function carregaEscopo(B, esc) {
   const k = B ? JSON.stringify([esc.filiais || [], esc.grupo || '', (esc.supervisor && (esc.supervisor.nome || esc.supervisor)) || '', esc.rca || '']) : '';
   if (B && B._escopoCache && B._escopoCache.has(k)) return B._escopoCache.get(k);
-  let partes = await Promise.all(esc.filiais.map((f) => vendedoresDaFilial(B, f, esc.grupo, esc.supervisor, esc.rca)));
+  const carregaEmLotes = async (lista, tam = 4) => {
+    const out = [];
+    for (let i = 0; i < lista.length; i += tam) {
+      const lote = await Promise.all(lista.slice(i, i + tam).map((f) => vendedoresDaFilial(B, f, esc.grupo, esc.supervisor, esc.rca)));
+      out.push(...lote);
+    }
+    return out;
+  };
+  let partes = await carregaEmLotes(esc.filiais, 4);
+  if (esc.filiais.length > 1 && partes.some((p) => p.clubeLidoEm)) {
+    const falt = partes.map((p, i) => ((p.clubeFalhou || !p.clubeLidoEm) ? i : -1)).filter((i) => i >= 0);
+    if (falt.length) {
+      await new Promise((ok) => setTimeout(ok, 400));
+      for (let i = 0; i < falt.length; i += 2) {
+        await Promise.all(falt.slice(i, i + 2).map(async (idx) => {
+          const fil = esc.filiais[idx];
+          if (B && B.snapFresco) await B.snapFresco(fil).catch(() => null);
+          partes[idx] = await vendedoresDaFilial(B, fil, esc.grupo, esc.supervisor, esc.rca);
+        }));
+      }
+    }
+  }
   // 18/11/2026: vendedor sumiu (leitura falhou com o D1 ocupado) -> tenta de novo uma vez antes de dizer 'nao achei os seus dados'
-  if (esc.rca && !partes.some((p) => (p.vend || []).length || (p.ocultos || []).length)) { await new Promise((ok) => setTimeout(ok, 700)); partes = await Promise.all(esc.filiais.map((f) => vendedoresDaFilial(B, f, esc.grupo, esc.supervisor, esc.rca))); }
+  if (esc.rca && !partes.some((p) => (p.vend || []).length || (p.ocultos || []).length)) { await new Promise((ok) => setTimeout(ok, 700)); partes = await carregaEmLotes(esc.filiais, 4); }
   const vend = partes.flatMap((p) => p.vend), ocultos = partes.flatMap((p) => p.ocultos || []), outros = partes.flatMap((p) => p.outros || []);
   const macro = partes.reduce((t, p) => ({ pedidos: t.pedidos + p.macro.pedidos, dig: t.dig + p.macro.dig, devHoje: t.devHoje + p.macro.devHoje }), { pedidos: 0, dig: 0, devHoje: 0 });
   const res = { ...esc, vend, ocultos, outros, macro, porFilial: Object.fromEntries(esc.filiais.map((f, i) => [f, partes[i]])) };

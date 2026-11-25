@@ -232,6 +232,7 @@ export async function executarPiloto(origin, env, opts = {}) {
   const liberado = ate > agoraIso && (!de || agoraIso >= de) && !opts.sombra;
   const modo = opts.teste ? 'TESTE' : liberado ? 'PILOTO' : 'SOMBRA';
   const B = criaBase(origin, env), hl = horaLocal(fil), horaBrt = horaBRT(), out = [];
+  let enviados = 0;
   for (const s of C) {
     const regra = `PILOTO:${jan.id}`;
     try {
@@ -260,7 +261,13 @@ export async function executarPiloto(origin, env, opts = {}) {
         await db.prepare('SELECT COUNT(*) n FROM wa_cota WHERE dia = ?').bind(hoje).first();
         const cota = await cotaEnvio(env, s.celular, { manual: true });
         if (!cota.ok) status = 'BLOQUEADO_COTA';
-        else { const cfg = env.EVO_URL && env.EVO_KEY ? R.evoCfg(env) : null; const rt = cfg ? await R.enviarTexto(cfg, s.celular, texto) : { ok: false }; status = rt && rt.ok ? 'ENVIADO' : 'ERRO'; }
+        else {
+          if (enviados > 0) await new Promise((r) => setTimeout(r, 3500 + (enviados % 3) * 1500));
+          const cfg = env.EVO_URL && env.EVO_KEY ? R.evoCfg(env) : null;
+          const rt = cfg ? await R.enviarTexto(cfg, s.celular, texto) : { ok: false };
+          status = rt && rt.ok ? 'ENVIADO' : 'ERRO';
+          if (status === 'ENVIADO') enviados++;
+        }
         await db.prepare('UPDATE monitoria_envios SET status = ? WHERE regra_id = ? AND data = ? AND celular = ? AND modo = ?').bind(status, regra, hoje, s.celular, modo).run();
         if (status === 'ENVIADO') await db.prepare("INSERT INTO bot_msgs (celular, nome, direcao, texto, tipo) VALUES (?, ?, 'out', ?, 'monitoria_piloto')").bind(s.celular, s.nome, texto.slice(0, 2500)).run().catch(() => {});
       }

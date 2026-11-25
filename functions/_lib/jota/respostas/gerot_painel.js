@@ -8,6 +8,7 @@
 // RITMO = o do GEROT: captacao do mes / meta ideal de captacao de hoje. Nao e projecao do Jota: e a regua do GEROT. Nada estimado.
 // ==========================================================================================
 import { N, R$, hojeSP } from '../base.js';
+import { diasUteis } from '../../fatos/index.js';
 
 const K = {
   fat: 'Faturado líquido (R$)', cart: 'Carteira pendente (R$)', fc: 'Faturado + Carteira (R$)', meta: 'Meta (R$)',
@@ -33,6 +34,7 @@ export async function lerGerotMes(B, filiais = null) {
   const F = R.map((r) => { let d = {}; try { d = JSON.parse(r.dados || '{}'); } catch (e) { d = {}; } const o = { filial: r.filial }; for (const [k, lab] of Object.entries(K)) o[k] = num(d, lab); o.bench = (() => { const kb = Object.keys(d).find((x) => /^Positivação Bench/i.test(x)); return kb ? { rot: kb.replace(/^Positivação Bench\s*/i, ''), v: Number(d[kb]) } : null; })(); return o; });
   const T = { filial: 'Brasil' };
   for (const k of Object.keys(K)) { const vs = F.map((x) => x[k]).filter((x) => x != null); T[k] = vs.length ? vs.reduce((a, b) => a + b, 0) : null; }
+  if (F.length > 1 && T.meta != null && T.cap != null) { const du = diasUteis(); T.nec = du.restantes > 0 ? Math.max(0, T.meta - T.cap) / du.restantes : 0; }
   const bs = F.map((x) => x.bench).filter(Boolean); T.bench = bs.length ? { rot: bs[0].rot, v: bs.reduce((a, b) => a + b.v, 0) } : null;
   if (T.fc == null && T.fat != null) T.fc = (T.fat || 0) + (T.cart || 0);
   for (const x of F) if (x.fc == null && x.fat != null) x.fc = (x.fat || 0) + (x.cart || 0);

@@ -133,12 +133,18 @@ for (const [f, x] of Object.entries(porFil)) log(f, x.vend + ' vend', 'R$ ' + Ma
 const saida = arg('saida') || `clube_${dia}.json`; fs.writeFileSync(saida, JSON.stringify(res)); log('gravado', saida);
 if (process.argv.includes('--api') && process.env.EVO_KEY) {
   const baseUrl = process.env.CEVEN_SITE_URL || 'https://ceven-cftv-matrix.pages.dev';
-  const rApi = await fetch(`${baseUrl}/api/clube-carga`, {
+  const postClube = (payload) => fetch(`${baseUrl}/api/clube-carga`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-Evo-Key': process.env.EVO_KEY },
-    body: JSON.stringify({ dia: res.dia, lido_em: res.lido_em, vendedores, pedidos, checkins, justificativas, rodada: { vendedores: vendedores.length, checkins: CK ? checkins.length : null, justificativas: JU ? justificativas.length : null, nao_sinc: naoSinc, falhas: falhas.join(', '), duracao_s: res.duracao_s } })
+    body: JSON.stringify({ dia: res.dia, lido_em: res.lido_em, ...payload }),
+    signal: AbortSignal.timeout(60000)
   }).then((x) => x.json()).catch((e) => ({ erro: String(e) }));
-  log('API /api/clube-carga', JSON.stringify(rApi));
+  const rBase = await postClube({ vendedores, rodada: { vendedores: vendedores.length, checkins: CK ? checkins.length : null, justificativas: JU ? justificativas.length : null, nao_sinc: naoSinc, falhas: falhas.join(', '), duracao_s: res.duracao_s } });
+  let rPed = null;
+  for (let i = 0; i < pedidos.length; i += 400) rPed = await postClube({ pedidos: pedidos.slice(i, i + 400), sem_sync_status: i + 400 < pedidos.length });
+  for (let i = 0; i < checkins.length; i += 800) await postClube({ checkins: checkins.slice(i, i + 800) });
+  for (let i = 0; i < justificativas.length; i += 800) await postClube({ justificativas: justificativas.slice(i, i + 800) });
+  log('API /api/clube-carga', JSON.stringify({ base: rBase, pedido_status: rPed && rPed.pedido_status }));
   // Fecha o dia anterior pela API quando ainda nao houve leitura apos a meia-noite BRT (garante pedidos colocados entre a ultima rodada da noite e 23:59 BRT)
   if (!process.argv.includes('--sem-ontem') && !(process.argv[2] && /^\d{8}$/.test(process.argv[2]))) {
     const dOnt = new Date(Date.now() - 3 * 3600e3 - 86400e3);

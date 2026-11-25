@@ -111,8 +111,8 @@ export function figurinhaPara(resp, tipo) {
   if (/🧺|\+MIX —|\bMais Mix\b/i.test(r)) return '15_olha_o_mais_mix';
   if (/Rota de hoje|faltam \*\d/i.test(r)) return '18_proximo_cliente';
   if (/quanto falta|Ritmo da meta|Abaixo do ritmo/i.test(r)) return '12_bora_destravar';
-  if (/Cartão Vermelho|cartao vermelho|sem venda/i.test(r)) return '22_cartao_vermelho';
-  if (/Cartão Amarelo|cartao amarelo|impedimento/i.test(r)) return '23_cartao_amarelo';
+  if (/(?:Cart[aã]o\s+Vermelho|Vermelho)\*?\s*\([1-9]|\bvermelho:\s*[1-9]|tomou (?:um )?cart[aã]o vermelho/i.test(r)) return '22_cartao_vermelho';
+  if (/(?:Cart[aã]o\s+Amarelo|Amarelo|Impedimento)\*?\s*\([1-9]|\b(?:amarelo|impedimento):\s*[1-9]|tomou (?:um )?cart[aã]o amarelo/i.test(r)) return '23_cartao_amarelo';
   if (/#?aceleratriunfante|foguete|acelera/i.test(r)) return '21_acelera_triunfante';
   if (/Chutando pro gol|golaço/i.test(r)) return '24_chutando_pro_gol';
   if (/Figurinhas Oficiais do Jota/i.test(r)) return '21_acelera_triunfante';

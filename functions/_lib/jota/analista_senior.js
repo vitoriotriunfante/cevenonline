@@ -86,7 +86,7 @@ async function montarComplemento360(env, escIA) {
     let d = {};
     try { d = JSON.parse(r.dados || '{}'); } catch { continue; }
     const meta = Number(d['Meta (R$)']) || 0, fat = Number(d['Faturado líquido (R$)']) || 0, cart = Number(d['Carteira pendente (R$)']) || 0;
-    const pos = Number(d['Positivação (filial + CNPJ)']) || 0, metaPos = Number(d['Meta de positivação'] ?? d['Meta clientes']) || 0;
+    const pos = Number(d['Positivação (filial + CNPJ)'] ?? d['Positivação (filial)']) || 0, metaPos = Number(d['Meta de positivação'] ?? d['Meta clientes']) || 0;
     const dev = Number(d['Devolução (R$)']) || 0, corte = Number(d['Cortes total (R$)'] ?? d['Corte total (R$)']) || 0;
     const desc = Number(d['Desconto (R$)']) || 0, bonif = Number(d['Bonificação a tabela (R$)']) || 0;
     gMeta += meta; gFat += fat; gCart += cart; gPos += pos; gMetaPos += metaPos;
@@ -105,7 +105,7 @@ async function montarComplemento360(env, escIA) {
     const meta = Number(d['Meta (R$)']) || 0, fat = Number(d['Faturado líquido (R$)']) || 0, cart = Number(d['Carteira pendente (R$)']) || 0;
     if (soSup) {
       gMeta += meta; gFat += fat; gCart += cart;
-      gPos += Number(d['Positivação (filial + CNPJ)']) || 0;
+      gPos += Number(d['Positivação (filial + CNPJ)'] ?? d['Positivação (filial)']) || 0;
       gMetaPos += Number(d['Meta de positivação'] ?? d['Meta clientes']) || 0;
       gDev += Number(d['Devolução (R$)']) || 0;
       gCorte += Number(d['Cortes total (R$)'] ?? d['Corte total (R$)']) || 0;

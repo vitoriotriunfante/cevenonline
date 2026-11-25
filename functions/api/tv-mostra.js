@@ -25,6 +25,25 @@ async function aplicaUniverso(env, corpo, completo) {
     // vaga (TCG 466) que o cadastro de representante do CEVEN nao tem. Codigo com canal_ceven.existe = 0 (conferido todo dia) sai do universo: nenhuma tela, total, WhatsApp ou Liga o ve.
     let inexistentes = new Set();
     try { const { results: ne } = await env.DB.prepare('SELECT filial, rca FROM canal_ceven WHERE existe = 0').all(); inexistentes = new Set((ne || []).map((x) => String(x.filial).toUpperCase() + '|' + String(x.rca))); } catch { /* coluna ainda nao existe */ }
+    const ativoGerot = new Set(), supCodGerot = new Map();
+    try {
+      const mesBrt = new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 7);
+      let gv = (await env.DB.prepare('SELECT filial, rca, cod_sup, dados FROM gerot_vendedor_mes WHERE mes = ?').bind(mesBrt).all()).results || [];
+      if (!gv.length) {
+        const ultM = await env.DB.prepare('SELECT MAX(mes) AS m FROM gerot_vendedor_mes').first();
+        if (ultM && ultM.m) gv = (await env.DB.prepare('SELECT filial, rca, cod_sup, dados FROM gerot_vendedor_mes WHERE mes = ?').bind(ultM.m).all()).results || [];
+      }
+      for (const x of gv) {
+        let d = {}; try { d = JSON.parse(x.dados || '{}'); } catch {}
+        const tot = Math.abs(Number(d['Meta (R$)']) || 0) + Math.abs(Number(d['Faturado líquido (R$)']) || 0) + Math.abs(Number(d['Carteira pendente (R$)']) || 0) + Math.abs(Number(d['Positivação (filial + CNPJ)']) || 0);
+        if (tot > 0) {
+          const rN = /^\d+$/.test(String(x.rca || '').trim()) ? String(Number(x.rca)) : String(x.rca || '').trim();
+          const key = String(x.filial).toUpperCase() + '|' + rN;
+          ativoGerot.add(key);
+          if (x.cod_sup) supCodGerot.set(key, String(x.cod_sup));
+        }
+      }
+    } catch { /* sem GEROT: segue so com arvore */ }
     const supCod = new Map(results.map((a) => [String(a.filial).toUpperCase() + '|' + String(a.rca), a.sup_id]));   /* codigo do supervisor (Vitorio, 26/10/2026: 'sempre o codigo na frente') */
     const ok = new Set(results.map((a) => String(a.filial).toUpperCase() + '|' + String(a.rca)).filter((k) => !inexistentes.has(k)));
     const novo = { ...corpo, filiais: {} };
@@ -37,10 +56,10 @@ async function aplicaUniverso(env, corpo, completo) {
       const sig = k.split('_')[0].toUpperCase();
       novo.filiais[k] = [];
       for (const v of Array.isArray(lista) ? lista : []) {
-        const na = ok.has(sig + '|' + String(v.rca));
+        const _keyG = sig + '|' + (/^\d+$/.test(String(v.rca)) ? String(Number(v.rca)) : String(v.rca)), _naArv = ok.has(_keyG), _noGerot = ativoGerot.has(_keyG), na = _naArv || _noGerot;
         if (!na) fora++;
         if (!na && !completo) continue;
-        novo.filiais[k].push({ ...v, na_arvore: na, sup_cod: supCod.get(sig + '|' + String(v.rca)) || '' });
+        novo.filiais[k].push({ ...v, na_arvore: _naArv, ativo_gerot: _noGerot, sup_cod: supCod.get(_keyG) || supCodGerot.get(_keyG) || '' });
         if (v.mostra === false) nao++; else sim++;
       }
     }

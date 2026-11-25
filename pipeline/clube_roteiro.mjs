@@ -70,7 +70,10 @@ for (const fil of FILIAIS) {
 await browser.close();
 log(`rota de ${diaIso}: ${linhas.length} visitas · ${lidas.length} filiais${falhas.length ? ' · falhas ' + falhas.join(', ') : ''}`);
 if (process.argv.includes('--api') && process.env.EVO_KEY && lidas.length) {
-  const r = await fetch(`${SITE}/api/clube-carga`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Evo-Key': process.env.EVO_KEY }, body: JSON.stringify({ dia: diaIso, roteiro: linhas, roteiro_filiais: lidas }), signal: AbortSignal.timeout(120000) }).then((x) => x.json()).catch((e) => ({ erro: String(e) }));
-  log('API /api/clube-carga', JSON.stringify(r).slice(0, 400));
+  for (const fil of lidas) {
+    const rotFil = linhas.filter((x) => x.filial === fil);
+    const r = await fetch(`${SITE}/api/clube-carga`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Evo-Key': process.env.EVO_KEY }, body: JSON.stringify({ dia: diaIso, roteiro: rotFil, roteiro_filiais: [fil] }), signal: AbortSignal.timeout(120000) }).then((x) => x.json()).catch((e) => ({ erro: String(e) }));
+    log('API /api/clube-carga', fil, JSON.stringify(r).slice(0, 260));
+  }
 }
 process.exit(lidas.length ? 0 : 1);

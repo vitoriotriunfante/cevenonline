@@ -21,7 +21,7 @@ export const CAMPO = {
 const SOMA = ['fat', 'bruto', 'dev', 'meta', 'cart', 'pedCart', 'cap', 'ideal', 'margem', 'capM1'];
 const num = (x) => (x == null || x === '' || Number.isNaN(Number(x)) ? null : Number(x));
 const parse = (s) => { try { return JSON.parse(s || '{}'); } catch { return {}; } };
-const rcaN = (r) => String(Number(r));
+const rcaN = (r) => (/^\d+$/.test(String(r ?? '').trim()) ? String(Number(r)) : String(r ?? '').trim());
 
 // posição da carga do GEROT ("23/11/26 08:34"), para o rodapé
 export async function posicaoGerot(db) {
@@ -84,7 +84,7 @@ export async function vendedoresGerot(db, filial, mes = hojeBRT().slice(0, 7)) {
   if (!hit || agora >= hit.exp) {
     const p = db.prepare('SELECT rca, cod_sup, supervisor, vendedor, dados FROM gerot_vendedor_mes WHERE mes = ? AND filial = ?').bind(mes, filial).all()
       .then((r) => (r.results || []).map((x) => ({ rca: rcaN(x.rca), cod_sup: String(x.cod_sup || ''), supervisor: x.supervisor, vendedor: x.vendedor, d: parse(x.dados) })))
-      .catch(() => null);
+      .catch(() => { c.delete(k); return null; });
     c.set(k, { exp: agora + TTL_VG, p });
   }
   return c.get(k).p;

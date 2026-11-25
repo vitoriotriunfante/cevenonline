@@ -3,6 +3,7 @@
 // Painel da Matinal 100% resiliente ao CEVEN (le direto do D1: GEROT + roteiro_dia + pedido_status + prospects_mapa)
 // =========================================================================
 import { ehFeriado, diaSemLance } from '../_lib/feriados.js';
+import { diasUteis as diasUteisFatos } from '../_lib/fatos/index.js';
 import { nomeForn } from '../_lib/jota/respostas/metas_industria.js';
 
 const j = (obj, st = 200) => new Response(JSON.stringify(obj), {
@@ -23,22 +24,6 @@ function ultimoDiaUtil(hoje) {
     if (!diaSemLance(iso)) return iso;
   }
   return hoje;
-}
-
-function diasUteis(hoje) {
-  const [y, m, d] = hoje.split('-').map(Number);
-  const fim = new Date(Date.UTC(y, m, 0)).getUTCDate();
-  let tot = 0, pass = 0;
-  for (let i = 1; i <= fim; i++) {
-    const w = new Date(Date.UTC(y, m - 1, i)).getUTCDay();
-    const iso = `${y}-${String(m).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-    if (w > 0 && w < 6 && !ehFeriado(iso)) {
-      tot++;
-      if (i < d) pass++;
-    }
-  }
-  const dec = Math.min(tot, pass + 1);
-  return { tot, dec, falt: Math.max(0, tot - dec) };
 }
 
 function parseDados(raw) {
@@ -75,7 +60,8 @@ export async function onRequestGet({ request, env }) {
     if (dOk) ultUtil = dOk;
   } catch (e) { /* sem Clube: regra antiga */ }
   const mes = hoje.slice(0, 7);
-  const dias = diasUteis(hoje);
+  const du = diasUteisFatos();
+  const dias = { tot: du.total, dec: du.decorridos, falt: du.restantes };
 
   try {
     const [stGerot, filRows, supRows, vendRows, rotaRows, pedRows, prospRows, ontRows, indRows] = await Promise.all([
