@@ -107,14 +107,26 @@ async function api(method, query = '', body = null) {
 }
 
 async function enviaEmLotes(chave, itens, tam = 200, extrasPrimeiro = {}) {
-  let env = 0;
-  for (let i = 0; i < itens.length; i += tam) {
-    const payload = { ...(i === 0 ? extrasPrimeiro : {}), [chave]: itens.slice(i, i + tam) };
-    await api('POST', '', payload);
-    env += Math.min(tam, itens.length - i);
+  if (!itens.length) return 0;
+  const lotes = [];
+  for (let i = 0; i < itens.length; i += tam) lotes.push(itens.slice(i, i + tam));
+  const temLimpeza = Object.keys(extrasPrimeiro).length > 0;
+  let inicio = 0;
+  if (temLimpeza) {
+    await api('POST', '', { ...extrasPrimeiro, [chave]: lotes[0] });
+    inicio = 1;
   }
-  return env;
+  const conc = 3;
+  for (let i = inicio; i < lotes.length; i += conc) {
+    await Promise.all(lotes.slice(i, i + conc).map((lote) => api('POST', '', { [chave]: lote })));
+  }
+  return itens.length;
 }
+const todasChaves = (...maps) => {
+  const s = new Set();
+  for (const m of maps) if (m) for (const k of m.keys()) s.add(k);
+  return s;
+};
 
 function criarHelpersDim(cubo) {
   const dim = cubo.dim || {};
@@ -1080,11 +1092,12 @@ async function processarMes(mes, { cubo, motor, meta }, tiers, posicao, loteId) 
   const mudouF = filRows.filter((x) => hf[x.filial] !== x.hash);
   if (mudouF.length) await api('POST', '', { filiais: mudouF });
 
-  // 2) Supervisores
+  // 2) Supervisores (uniao de mes + M-1/3M/A-1/Bench para preservar historico como no Excel)
   const supNomes = new Map();
   (dim.supervisor && dim.supervisor.cod || []).forEach((c, i) => supNomes.set(String(c), String(dim.supervisor.nome[i] || c)));
   const supRows = [];
-  for (const [k, r] of eSup.map) {
+  for (const k of todasChaves(eSup.map, m1Sup, a1Sup, m3Sup, bSup)) {
+    const r = eSup.map.get(k) || {};
     const [filial, cod_sup] = k.split(SEP);
     const d1 = capDiaSup.get(k) || {}, rm1 = m1Sup.get(k) || {}, ra1 = a1Sup.get(k) || {}, rb = bSup.get(k) || {};
     const dados = montaDadosComum(r, {
@@ -1105,7 +1118,8 @@ async function processarMes(mes, { cubo, motor, meta }, tiers, posicao, loteId) 
   const vendNomes = new Map();
   (dim.vendedor && dim.vendedor.cod || []).forEach((c, i) => vendNomes.set(String(c), String(dim.vendedor.nome[i] || c)));
   const vendRows = [];
-  for (const [k, r] of eVen.map) {
+  for (const k of todasChaves(eVen.map, m1Ven, a1Ven, m3Ven, bVen)) {
+    const r = eVen.map.get(k) || {};
     const [filial, cod_sup, rca] = k.split(SEP);
     const d1 = capDiaVen.get(k) || {}, rm1 = m1Ven.get(k) || {}, ra1 = a1Ven.get(k) || {}, rb = bVen.get(k) || {};
     const dados = montaDadosComum(r, {
@@ -1129,7 +1143,8 @@ async function processarMes(mes, { cubo, motor, meta }, tiers, posicao, loteId) 
     fornMetaByChave.set(info.chave, info);
   });
   const vndRows = [];
-  for (const [k, r] of eVnd.map) {
+  for (const k of todasChaves(eVnd.map, m1Vnd, a1Vnd, m3Vnd, bVnd)) {
+    const r = eVnd.map.get(k) || {};
     const [filial, cod_sup, rca, fornecedor] = k.split(SEP);
     const fInfo = fornMetaByChave.get(fornecedor) || { nome: fornecedor, cnpjRaw: '', codW: '' };
     const d1 = capDiaVnd.get(k) || {}, rm1 = m1Vnd.get(k) || {}, ra1 = a1Vnd.get(k) || {}, rb = bVnd.get(k) || {};
@@ -1169,7 +1184,7 @@ async function processarMes(mes, { cubo, motor, meta }, tiers, posicao, loteId) 
   const { hashes: hd } = await api('GET', `?mes=${mes}&dia=1`);
   await enviaEmLotes('dias', diaRows.filter((x) => hd[`${x.filial}|${x.data}`] !== x.hash), 200);
 
-  // 6) Clientes (Mes x Filial x RCA x Cliente)
+  // 6) Clientes (Mes x Filial x RCA x Cliente — inclui quem comprou em M-1 p/ Curva Negativa sem explodir linhas)
   const eCli = indexarExtrair(motor.extrair({ mes, ate }, ['fi', 've', 'cl']), ['fi', 've', 'cl'], H);
   const m1Cli = safeExt(refs.m1, ['fi', 've', 'cl']);
   const a1Cli = safeExt(refs.a1, ['fi', 've', 'cl']);
@@ -1178,7 +1193,8 @@ async function processarMes(mes, { cubo, motor, meta }, tiers, posicao, loteId) 
   (dim.cliente && dim.cliente.cod || []).forEach((c, i) => cliInfoMap.set(String(c), H.cliInfo(i)));
   const cliRows = [];
   const cartPorCli = new Map();
-  for (const [k, r] of eCli.map) {
+  for (const k of todasChaves(eCli.map, m1Cli)) {
+    const r = eCli.map.get(k) || {};
     const [filial, rca, cnpj] = k.split(SEP);
     const cInfo = cliInfoMap.get(cnpj) || { cnpj, cliente: cnpj, nome: cnpj };
     const rm1 = m1Cli.get(k) || {}, ra1 = a1Cli.get(k) || {};
@@ -1206,11 +1222,12 @@ async function processarMes(mes, { cubo, motor, meta }, tiers, posicao, loteId) 
   const a1CliF = safeExt(refs.a1, ['fi', 've', 'cl', 'fo']);
   const m3CliF = extrairM3Map(motor, refs, ['fi', 've', 'cl', 'fo'], H);
   const cfRows = [];
-  for (const [k, r] of eCliF.map) {
+  for (const k of todasChaves(eCliF.map, m1CliF)) {
+    const r = eCliF.map.get(k) || {};
     const [filial, rca, cnpj, fornChave] = k.split(SEP);
     const fat = R2(((r.bruto || 0) - (r.devolucao || 0)) / 100) || 0;
     const cart = r.carteira != null ? R2(r.carteira / 100) : 0;
-    const rm1 = m1CliF.get(k) || {}, ra1 = a1CliF.get(k) || {};
+    const rm1 = m1CliF.get(k) || {}, ra1 = a1CliF.get(k) || {}, p3m = m3CliF.get(k) ?? null;
     if (fat === 0 && cart === 0 && !(r.positivacao > 0) && !(rm1.positivacao > 0)) continue;
     const cInfo = cliInfoMap.get(cnpj) || { cnpj, cliente: cnpj };
     const fInfo = fornMetaByChave.get(fornChave) || { codW: fornChave, nome: fornChave };
@@ -1218,7 +1235,7 @@ async function processarMes(mes, { cubo, motor, meta }, tiers, posicao, loteId) 
       'Faturado líquido (R$)': fat,
       'Devolução (R$)': R2((r.devolucao || 0) / 100) || 0,
       'Positivação A-1': ra1.positivacao ?? null,
-      'Positivação 3M (média)': m3CliF.get(k) ?? null,
+      'Positivação 3M (média)': p3m,
       'Positivação M-1': rm1.positivacao ?? 0,
       'Positivação (filial + CNPJ)': r.positivacao || 0,
       'Positivação + Carteira': r.positivacaoCarteira ?? (r.positivacao || 0),
@@ -1532,18 +1549,14 @@ async function processarMes(mes, { cubo, motor, meta }, tiers, posicao, loteId) 
       try {
         const fefo = extrairFefo(cubo, H);
         if (fefo.length) {
-          for (let i = 0; i < fefo.length; i += 300) {
-            await api('POST', '', { fefo_limpar: i === 0, fefo: fefo.slice(i, i + 300) });
-          }
+          await enviaEmLotes('fefo', fefo, 300, { fefo_limpar: true });
           await api('POST', '', { controle: { lote_id: loteId, mes, etapa: 'fefo', status: 'OK', linhas: fefo.length, gravadas: fefo.length, posicao } });
         }
       } catch (e) { log('AVISO fefo:', e.message); }
       try {
         const ew = extrairEstWinthor(cubo, H);
         if (ew.length) {
-          for (let i = 0; i < ew.length; i += 300) {
-            await api('POST', '', { est_winthor_limpar: i === 0, est_winthor: ew.slice(i, i + 300) });
-          }
+          await enviaEmLotes('est_winthor', ew, 300, { est_winthor_limpar: true });
           await api('POST', '', { controle: { lote_id: loteId, mes, etapa: 'est_winthor', status: 'OK', linhas: ew.length, gravadas: ew.length, posicao } });
         }
       } catch (e) { log('AVISO est_winthor:', e.message); }
