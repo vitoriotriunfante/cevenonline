@@ -34,6 +34,14 @@ async function posFooter(db, mes) {
   return '_Fonte: GEROT (D1 oficial)_';
 }
 
+function inLit(col, arr) {
+  const limpos = [...new Set(arr.map((x) => String(x || '').trim()).filter(Boolean))];
+  const nums = limpos.filter((x) => /^\d+$/.test(x));
+  if (nums.length && nums.length === limpos.length) return { sql: `${col} IN (${nums.map((x) => `'${x}'`).join(',')})`, bind: [] };
+  const cut = limpos.slice(0, 80);
+  return { sql: `${col} IN (${qs(cut)})`, bind: cut };
+}
+
 function escopoWhere(E, c, opts = {}) {
   const filCol = opts.filCol || 'filial';
   const rcaCol = opts.rcaCol || 'rca';
@@ -56,11 +64,13 @@ function escopoWhere(E, c, opts = {}) {
     const rcas = [...new Set((E.vend || []).map((v) => String(v.rca)).filter(Boolean))];
     const sups = [...new Set((E.vend || []).map((v) => String(v.sup_cod || v.supCod || '')).filter(Boolean))];
     if (opts.temRca && rcas.length) {
-      w.push(`${rcaCol} IN (${qs(rcas)})`);
-      bind.push(...rcas);
+      const lit = inLit(rcaCol, rcas);
+      w.push(lit.sql);
+      bind.push(...lit.bind);
     } else if (opts.temSup && sups.length) {
-      w.push(`${supCol} IN (${qs(sups)})`);
-      bind.push(...sups);
+      const lit = inLit(supCol, sups);
+      w.push(lit.sql);
+      bind.push(...lit.bind);
     }
   }
   return { sql: w.length ? w.join(' AND ') : '1=1', bind, fils };
@@ -214,11 +224,13 @@ export async function respDreMargem(B, E, c, t) {
     } else if (E.supervisor) {
       const sups = [...new Set((E.vend || []).map((v) => String(v.sup_cod || v.supCod || '')).filter(Boolean))];
       if (sups.length) {
-        totRow = await db.prepare(`SELECT * FROM gerot_dre_mes WHERE mes = ? AND filial = ? AND nivel = 'supervisor' AND cod IN (${qs(sups)}) LIMIT 1`).bind(mes, esc.fils[0], ...sups).first();
+        const litS = inLit('cod', sups);
+        totRow = await db.prepare(`SELECT * FROM gerot_dre_mes WHERE mes = ? AND filial = ? AND nivel = 'supervisor' AND ${litS.sql} LIMIT 1`).bind(mes, esc.fils[0], ...litS.bind).first();
       }
       const rcas = [...new Set((E.vend || []).map((v) => String(v.rca)).filter(Boolean))];
       if (rcas.length) {
-        subRows = (await db.prepare(`SELECT cod, nome, receita_liq, mc_rs, mc_pct FROM gerot_dre_mes WHERE mes = ? AND filial = ? AND nivel = 'vendedor' AND cod IN (${qs(rcas)}) ORDER BY mc_rs DESC`).bind(mes, esc.fils[0], ...rcas).all()).results || [];
+        const litR = inLit('cod', rcas);
+        subRows = (await db.prepare(`SELECT cod, nome, receita_liq, mc_rs, mc_pct FROM gerot_dre_mes WHERE mes = ? AND filial = ? AND nivel = 'vendedor' AND ${litR.sql} ORDER BY mc_rs DESC`).bind(mes, esc.fils[0], ...litR.bind).all()).results || [];
       }
     }
   } catch { totRow = null; }
@@ -231,7 +243,7 @@ export async function respDreMargem(B, E, c, t) {
     `• CMV: ${R$(totRow.cmv)} · Bonif.: ${R$(totRow.bonif_custo)} · Comissões: ${R$(totRow.comissao)}`,
     `• *Margem de Contribuição: ${R$(totRow.mc_rs)} (${pct1(totRow.mc_pct)})*`,
     totRow.desconto_rs != null ? `• Descontos totais: ${R$(totRow.desconto_rs)} (${pct1(totRow.desc_pct)}) · Política ${R$(totRow.desc_politica)} / Comercial ${R$(totRow.desc_comercial)}` : '',
-    ...(subRows.length ? ['', `*${E.nacional ? 'Por filial' : E.supervisor ? 'Por vendedor' : 'Por supervisor'}:*`, ...subRows.slice(0, 6).map((s, i) => `${i + 1}. *${titulo(s.nome).slice(0, 26)}*: ${R$(s.mc_rs)} (*${pct1(s.mc_pct)}*)`)] : []),
+    ...(subRows.length ? ['', `*${E.nacional ? 'Por filial' : E.supervisor ? 'Por vendedor' : 'Por supervisor'}:*`, ...subRows.slice(0, 6).map((s, i) => `${i + 1}. *${E.nacional ? String(s.cod || s.nome || '').toUpperCase() : titulo(s.nome).slice(0, 26)}*: ${R$(s.mc_rs)} (*${pct1(s.mc_pct)}*)`)] : []),
     '',
     SUGESTAO + 'peça *"curva negativa de margem"* para ver os pedidos faturados no prejuízo.',
     await posFooter(db, mes)
@@ -286,7 +298,25 @@ export async function respRfv(B, E, c, t) {
 
   let resumo = [], clis = [];
   try {
-    resumo = (await db.prepare(`SELECT segmento, SUM(clientes) clis, SUM(valor_120d) v120 FROM gerot_rfv_resumo WHERE mes = ? AND ${esc.sql} GROUP BY segmento ORDER BY v120 DESC`).bind(mes, ...esc.bind).all()).results || [];
+    if (E.nacional) {
+      resumo = (await db.prepare("SELECT segmento, clientes clis, valor_120d v120 FROM gerot_rfv_resumo WHERE mes = ? AND filial = 'BRASIL' AND sup_cod = '' AND rca = '' ORDER BY v120 DESC").bind(mes).all()).results || [];
+    } else if (ehVendedor(c, E)) {
+      resumo = (await db.prepare('SELECT segmento, SUM(clientes) clis, SUM(valor_120d) v120 FROM gerot_rfv_resumo WHERE mes = ? AND filial = ? AND rca = ? GROUP BY segmento ORDER BY v120 DESC').bind(mes, c.filial, String(c.rca)).all()).results || [];
+    } else if (E.supervisor || E.grupo) {
+      const rcas = [...new Set((E.vend || []).map((v) => String(v.rca)).filter(Boolean))];
+      const sups = [...new Set((E.vend || []).map((v) => String(v.sup_cod || v.supCod || '')).filter(Boolean))];
+      if (rcas.length) {
+        const litR = inLit('rca', rcas);
+        resumo = (await db.prepare(`SELECT segmento, SUM(clientes) clis, SUM(valor_120d) v120 FROM gerot_rfv_resumo WHERE mes = ? AND filial IN (${qs(esc.fils)}) AND ${litR.sql} GROUP BY segmento ORDER BY v120 DESC`).bind(mes, ...esc.fils, ...litR.bind).all()).results || [];
+      } else if (sups.length) {
+        const litS = inLit('sup_cod', sups);
+        resumo = (await db.prepare(`SELECT segmento, SUM(clientes) clis, SUM(valor_120d) v120 FROM gerot_rfv_resumo WHERE mes = ? AND filial IN (${qs(esc.fils)}) AND ${litS.sql} AND rca = '' GROUP BY segmento ORDER BY v120 DESC`).bind(mes, ...esc.fils, ...litS.bind).all()).results || [];
+      } else {
+        resumo = (await db.prepare(`SELECT segmento, SUM(clientes) clis, SUM(valor_120d) v120 FROM gerot_rfv_resumo WHERE mes = ? AND filial IN (${qs(esc.fils)}) AND sup_cod = '' AND rca = '' GROUP BY segmento ORDER BY v120 DESC`).bind(mes, ...esc.fils).all()).results || [];
+      }
+    } else {
+      resumo = (await db.prepare(`SELECT segmento, SUM(clientes) clis, SUM(valor_120d) v120 FROM gerot_rfv_resumo WHERE mes = ? AND filial IN (${qs(esc.fils)}) AND sup_cod = '' AND rca = '' GROUP BY segmento ORDER BY v120 DESC`).bind(mes, ...esc.fils).all()).results || [];
+    }
     const escC = escopoWhere(E, c, { temRca: true, temSup: true });
     clis = (await db.prepare(`SELECT filial, cliente, nome, segmento, dias_sem_compra, valor_120d, rca FROM gerot_rfv_clientes WHERE mes = ? AND ${escC.sql} ORDER BY CASE WHEN segmento LIKE 'Em risco%' THEN 0 ELSE 1 END, valor_120d DESC LIMIT 25`).bind(mes, ...escC.bind).all()).results || [];
   } catch { resumo = []; }

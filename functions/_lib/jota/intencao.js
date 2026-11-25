@@ -187,7 +187,7 @@ export async function rotearIntencao(B, c, t, info) {
   }
   // A4 · CURVA NEGATIVA DE UMA INDUSTRIA (bateria real 21/11: Gessandro 'curva negativa de Bonobon do setor 336', 'curva negativa da industria Leao'):
   //   GEROT Cliente x Industria: comprou a industria no mes passado e ainda nao comprou neste (sem faturado e sem carteira dela)
-  if (/CURVA NEGATIVA|NAO COMPRARAM|NAO COMPROU|SEM COMPRA|FALTA(M)? POSITIVAR|QUEM FALTA|PARARAM DE COMPRAR/.test(t) && !/\b\d{7,}\b/.test(t) && B.env && B.env.DB) {
+  if (/CURVA NEGATIVA|NAO COMPRARAM|NAO COMPROU|SEM COMPRA|FALTA(M)? POSITIVAR|QUEM FALTA|PARARAM DE COMPRAR/.test(t) && !/MARGE[MN]/.test(t) && !/\b\d{7,}\b/.test(t) && B.env && B.env.DB) {
     try {
       const ind = await industriasCitadas(B, t);
       if (ind.length) {
@@ -388,7 +388,7 @@ export async function rotearIntencao(B, c, t, info) {
       return { filiais: [c.filial], nome: Ev && Ev.nome || 'Equipe', rcas: un(V.map((v) => v.rca).concat(V[0] ? await rcasEquipeGestao(B, c.filial, V[0].supervisor) : [])), supCod: (V.find((v) => v.supCod) || {}).supCod || null };
     };
     // margem: so diretoria e gerente (Evandro, 18/11: "disponibilizar apenas para diretoria e gerentes")
-    if (/\bMARGE[MN]/.test(t) && (papel === 'diretoria' || papel === 'ceo' || papel === 'gerente')) { const e = await escG(); const r = await (await G()).respMargemGerot(B, e.filiais, e.nome, e.rcas).catch(() => null); if (r) return r; }
+    if (/\bMARGE[MN]/.test(t) && !/CURVA NEGATIVA|MARGE[MN] NEGATIVA|HISTOGRAMA|\bDRE\b/.test(t) && (papel === 'diretoria' || papel === 'ceo' || papel === 'gerente')) { const e = await escG(); const r = await (await G()).respMargemGerot(B, e.filiais, e.nome, e.rcas).catch(() => null); if (r) return r; }
     // percentual de atingimento por filial (Micheleto, 17/11: virava texto generico da IA)
     if ((papel === 'diretoria' || papel === 'ceo') && /ATINGIMENTO|PERCENTUAL (DA META|DE META|DE ATINGIMENTO)|% DA META/.test(t) && !filCit) { const { respBrasilGerot } = await import('./respostas/gerot_painel.js'); const r = await respBrasilGerot(B, null).catch(() => null); if (r) return r; }
     // carteira por status / motivo (Micheleto, 18/11: "bloqueio financeiro, bloqueio comercial e todos os outros motivos")
