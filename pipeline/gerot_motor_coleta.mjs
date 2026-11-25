@@ -1078,6 +1078,7 @@ async function processarMes(mes, { cubo, motor, meta }, tiers, posicao, loteId) 
   // 1) Filiais
   const filRows = [];
   for (const [sig, r] of eFil.map) {
+    if (!/^[A-Z]{3}$/.test(sig)) continue;
     const d1 = capDiaFil.get(sig) || {}, rm1 = m1Fil.get(sig) || {}, ra1 = a1Fil.get(sig) || {}, rb = bFil.get(sig) || {};
     const dados = montaDadosComum(r, {
       posM1: rm1.positivacao ?? null, capM1: rm1.captacao != null ? R2(rm1.captacao / 100) : null,
@@ -1099,6 +1100,7 @@ async function processarMes(mes, { cubo, motor, meta }, tiers, posicao, loteId) 
   for (const k of todasChaves(eSup.map, m1Sup, a1Sup, m3Sup, bSup)) {
     const r = eSup.map.get(k) || {};
     const [filial, cod_sup] = k.split(SEP);
+    if (!/^[A-Z]{3}$/.test(filial || '') || !String(cod_sup || '').trim()) continue;
     const d1 = capDiaSup.get(k) || {}, rm1 = m1Sup.get(k) || {}, ra1 = a1Sup.get(k) || {}, rb = bSup.get(k) || {};
     const dados = montaDadosComum(r, {
       posM1: rm1.positivacao ?? null, capM1: rm1.captacao != null ? R2(rm1.captacao / 100) : null,
@@ -1121,6 +1123,7 @@ async function processarMes(mes, { cubo, motor, meta }, tiers, posicao, loteId) 
   for (const k of todasChaves(eVen.map, m1Ven, a1Ven, m3Ven, bVen)) {
     const r = eVen.map.get(k) || {};
     const [filial, cod_sup, rca] = k.split(SEP);
+    if (!/^[A-Z]{3}$/.test(filial || '') || !String(rca || '').trim()) continue;
     const d1 = capDiaVen.get(k) || {}, rm1 = m1Ven.get(k) || {}, ra1 = a1Ven.get(k) || {}, rb = bVen.get(k) || {};
     const dados = montaDadosComum(r, {
       posM1: rm1.positivacao ?? null, capM1: rm1.captacao != null ? R2(rm1.captacao / 100) : null,
@@ -1146,6 +1149,7 @@ async function processarMes(mes, { cubo, motor, meta }, tiers, posicao, loteId) 
   for (const k of todasChaves(eVnd.map, m1Vnd, a1Vnd, m3Vnd, bVnd)) {
     const r = eVnd.map.get(k) || {};
     const [filial, cod_sup, rca, fornecedor] = k.split(SEP);
+    if (!/^[A-Z]{3}$/.test(filial || '') || !String(rca || '').trim() || !String(fornecedor || '').trim()) continue;
     const fInfo = fornMetaByChave.get(fornecedor) || { nome: fornecedor, cnpjRaw: '', codW: '' };
     const d1 = capDiaVnd.get(k) || {}, rm1 = m1Vnd.get(k) || {}, ra1 = a1Vnd.get(k) || {}, rb = bVnd.get(k) || {};
     const dados = montaDadosComum(r, {
@@ -1197,6 +1201,7 @@ async function processarMes(mes, { cubo, motor, meta }, tiers, posicao, loteId) 
     const r = eCli.map.get(k) || {};
     const [filial, rca, cnpj] = k.split(SEP);
     const cInfo = cliInfoMap.get(cnpj) || { cnpj, cliente: cnpj, nome: cnpj };
+    if (!/^[A-Z]{3}$/.test(filial || '') || !String(rca || '').trim() || !String(cInfo.cliente || '').trim()) continue;
     const rm1 = m1Cli.get(k) || {}, ra1 = a1Cli.get(k) || {};
     const cVal = r.carteira != null ? R2(r.carteira / 100) : 0;
     if (cVal > 0) cartPorCli.set(`${filial}|${cnpj}`, R2((cartPorCli.get(`${filial}|${cnpj}`) || 0) + cVal));
@@ -1231,6 +1236,7 @@ async function processarMes(mes, { cubo, motor, meta }, tiers, posicao, loteId) 
     if (fat === 0 && cart === 0 && !(r.positivacao > 0) && !(rm1.positivacao > 0)) continue;
     const cInfo = cliInfoMap.get(cnpj) || { cnpj, cliente: cnpj };
     const fInfo = fornMetaByChave.get(fornChave) || { codW: fornChave, nome: fornChave };
+    if (!/^[A-Z]{3}$/.test(filial || '') || !String(rca || '').trim() || !String(cInfo.cliente || '').trim() || !String(fInfo.codW || '').trim()) continue;
     const dados = {
       'Faturado líquido (R$)': fat,
       'Devolução (R$)': R2((r.devolucao || 0) / 100) || 0,
