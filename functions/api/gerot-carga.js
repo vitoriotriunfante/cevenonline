@@ -14,11 +14,13 @@
 import { chaveEvoValida } from '../_lib/chave_evo.js';
 // 18/11/2026: colunas da Liga (mp, nforn, skus) criadas uma vez por instancia
 let colunasLiga = false;
+let tabelasGarantidas = false;
 const J = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' };
 const r = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: J });
 const MES = /^\d{4}-\d{2}$/;
 
 async function tabelas(db) {
+  if (tabelasGarantidas) return;
   await db.batch([
     db.prepare('CREATE TABLE IF NOT EXISTS gerot_vendas (mes TEXT NOT NULL, filial TEXT NOT NULL, rca TEXT NOT NULL, fornecedor TEXT NOT NULL, cod_sup TEXT NOT NULL DEFAULT "", supervisor TEXT, vendedor TEXT, dados TEXT NOT NULL, hash TEXT, em TEXT, PRIMARY KEY (mes, filial, rca, fornecedor, cod_sup))'),
     db.prepare('CREATE INDEX IF NOT EXISTS idx_gerot_vendas_forn ON gerot_vendas (mes, fornecedor, filial)'),
@@ -51,6 +53,7 @@ async function tabelas(db) {
     db.prepare('CREATE TABLE IF NOT EXISTS liga_as_foto_dia (dia TEXT NOT NULL, filial TEXT NOT NULL, rca TEXT NOT NULL, meta REAL, faturado REAL, pendente REAL, em TEXT, PRIMARY KEY (dia, filial, rca))'),
     db.prepare('CREATE TABLE IF NOT EXISTS gerot_carga_controle (lote_id TEXT NOT NULL, mes TEXT NOT NULL, etapa TEXT NOT NULL, status TEXT NOT NULL, filiais INTEGER NOT NULL DEFAULT 0, linhas INTEGER NOT NULL DEFAULT 0, gravadas INTEGER NOT NULL DEFAULT 0, removidas INTEGER NOT NULL DEFAULT 0, posicao TEXT, detalhe TEXT, iniciado_em TEXT NOT NULL, atualizado_em TEXT NOT NULL, PRIMARY KEY (lote_id, mes, etapa))')
   ]);
+  tabelasGarantidas = true;
 }
 
 export async function onRequestGet({ request, env }) {
@@ -94,6 +97,10 @@ export async function onRequestGet({ request, env }) {
   if (u.searchParams.get('filial') === '1') {
     const { results } = await env.DB.prepare('SELECT filial, hash FROM gerot_filial_mes WHERE mes = ?').bind(mes).all();
     return r({ hashes: Object.fromEntries((results || []).map((x) => [x.filial, x.hash])) });
+  }
+  if (u.searchParams.get('dim') === '1') {
+    const { results } = await env.DB.prepare('SELECT dim, filial, chave, hash FROM gerot_dim_agregado WHERE mes = ?').bind(mes).all();
+    return r({ hashes: Object.fromEntries((results || []).map((x) => [`${x.dim}|${x.filial}|${x.chave}`, x.hash])) });
   }
   const { results } = await env.DB.prepare('SELECT filial, rca, fornecedor, cod_sup, hash FROM gerot_vendas WHERE mes = ?').bind(mes).all();
   return r({ hashes: Object.fromEntries((results || []).map((x) => [`${x.filial}|${x.rca}|${x.fornecedor}|${x.cod_sup}`, x.hash])) });
@@ -247,10 +254,21 @@ export async function onRequestPost({ request, env }) {
     const k = (x) => `${x.filial}|${x.rca}|${x.cod_sup == null ? '' : x.cod_sup}`;
     const porFil = new Map(); for (const c of quer) { const fl = c.split('|')[0]; porFil.set(fl, (porFil.get(fl) || 0) + 1); }
     const exFil = new Map(); for (const x of ex || []) exFil.set(x.filial, (exFil.get(x.filial) || 0) + 1);
-    const limpa = new Set([...porFil].filter(([, n]) => n >= 10).map(([fl]) => fl));
+    const limpa = new Set([...porFil].filter(([fl, n]) => n >= Math.max(10, Math.floor((exFil.get(fl) || 0) * 0.8))).map(([fl]) => fl));
     const sai = (ex || []).filter((x) => limpa.has(x.filial) && !quer.has(k(x)));
     for (let i = 0; i < sai.length; i += 80) await env.DB.batch(sai.slice(i, i + 80).map((x) => env.DB.prepare('DELETE FROM gerot_vendedor_mes WHERE mes = ? AND filial = ? AND rca = ? AND cod_sup = ?').bind(mes, x.filial, x.rca, x.cod_sup == null ? '' : x.cod_sup)));
     return r({ ok: true, mes, apagadas_vend: sai.length, vigentes_vend: quer.size, filiais_limpas: [...limpa], filiais_intactas: [...exFil.keys()].filter((fl) => !limpa.has(fl)) });
+  }
+  if (b.vigentes_sup && MES.test(String(b.vigentes_sup.mes || '')) && Array.isArray(b.vigentes_sup.chaves)) {
+    const mesS = String(b.vigentes_sup.mes), querS = new Set(b.vigentes_sup.chaves.map(String));
+    const { results: exS } = await env.DB.prepare('SELECT filial, cod_sup FROM gerot_supervisor_mes WHERE mes = ?').bind(mesS).all();
+    const kS = (x) => `${x.filial}|${x.cod_sup}`;
+    const porFilS = new Map(); for (const c of querS) { const fl = c.split('|')[0]; porFilS.set(fl, (porFilS.get(fl) || 0) + 1); }
+    const exFilS = new Map(); for (const x of exS || []) exFilS.set(x.filial, (exFilS.get(x.filial) || 0) + 1);
+    const limpaS = new Set([...porFilS].filter(([fl, n]) => n >= Math.max(2, Math.floor((exFilS.get(fl) || 0) * 0.8))).map(([fl]) => fl));
+    const saiS = (exS || []).filter((x) => limpaS.has(x.filial) && !querS.has(kS(x)));
+    for (let i = 0; i < saiS.length; i += 80) await env.DB.batch(saiS.slice(i, i + 80).map((x) => env.DB.prepare('DELETE FROM gerot_supervisor_mes WHERE mes = ? AND filial = ? AND cod_sup = ?').bind(mesS, x.filial, x.cod_sup)));
+    return r({ ok: true, mes: mesS, apagadas_sup: saiS.length, vigentes_sup: querS.size, filiais_limpas: [...limpaS], filiais_intactas: [...exFilS.keys()].filter((fl) => !limpaS.has(fl)) });
   }
   const SUP = Array.isArray(b.supervisores) ? b.supervisores : [];
   if (SUP.length > 200) return r({ erro: 'no maximo 200 supervisores por chamada' }, 400);
@@ -300,7 +318,170 @@ export async function onRequestPost({ request, env }) {
     const c = b.controle;
     await env.DB.prepare('INSERT OR REPLACE INTO gerot_carga_controle (lote_id, mes, etapa, status, filiais, linhas, gravadas, removidas, posicao, detalhe, iniciado_em, atualizado_em) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)')
       .bind(String(c.lote_id || agora).slice(0, 40), String(c.mes), String(c.etapa || 'geral').slice(0, 40), String(c.status || 'OK').slice(0, 20), Number(c.filiais) || 0, Number(c.linhas) || 0, Number(c.gravadas) || 0, Number(c.removidas) || 0, String(c.posicao || '').slice(0, 120), String(c.detalhe || '').slice(0, 200), String(c.iniciado_em || agora).slice(0, 40), agora).run();
-    if (!L.length && !V.length && !SUP.length && !FIL.length && !RC.length && !b.status) return r({ ok: true, controle: true });
+    if (!L.length && !V.length && !SUP.length && !FIL.length && !RC.length && !b.status && !b.portao_contabil) return r({ ok: true, controle: true });
+  }
+  if (b.portao_contabil && MES.test(String(b.portao_contabil.mes || ''))) {
+    const pc = b.portao_contabil, mes = String(pc.mes), loteId = String(pc.lote_id || agora).slice(0, 40), linhasN = Number(pc.linhas) || 0;
+    const diaSP = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
+    const [rFil, rVend, rForn, rPrev] = await Promise.all([
+      env.DB.prepare('SELECT filial, json_extract(dados, \'$."Faturado líquido (R$)"\') fat FROM gerot_filial_mes WHERE mes = ?').bind(mes).all(),
+      env.DB.prepare('SELECT filial, SUM(COALESCE(json_extract(dados, \'$."Faturado líquido (R$)"\'), 0)) fat, SUM(CASE WHEN COALESCE(json_extract(dados, \'$."Faturado líquido (R$)"\'), 0) > 0 AND json_extract(dados, \'$."Meta (R$)"\') IS NULL THEN 1 ELSE 0 END) meta_null FROM gerot_vendedor_mes WHERE mes = ? GROUP BY filial').bind(mes).all(),
+      env.DB.prepare('SELECT filial, SUM(COALESCE(json_extract(dados, \'$."Faturado líquido (R$)"\'), 0)) fat FROM gerot_vendas WHERE mes = ? GROUP BY filial').bind(mes).all(),
+      env.DB.prepare('SELECT linhas FROM gerot_coleta_status WHERE mes = ? ORDER BY id DESC LIMIT 1').bind(mes).first().catch(() => null)
+    ]);
+    const mV = new Map((rVend.results || []).map((x) => [x.filial, x]));
+    const mF = new Map((rForn.results || []).map((x) => [x.filial, x]));
+    const motivos = [], diffs = [];
+    const fils = rFil.results || [];
+    if (!fils.length) motivos.push('sem gerot_filial_mes');
+    for (const f of fils) {
+      const fFat = Number(f.fat) || 0, v = mV.get(f.filial) || { fat: 0, meta_null: 0 }, fr = mF.get(f.filial) || { fat: 0 };
+      const dV = Math.abs(fFat - (Number(v.fat) || 0)), dF = Math.abs(fFat - (Number(fr.fat) || 0));
+      if (dV > 5 || dF > 5) diffs.push(`${f.filial}:dv=${dV.toFixed(2)},df=${dF.toFixed(2)}`);
+    }
+    if (diffs.length) motivos.push('divergencia_filial:' + diffs.join(';'));
+    if (diaSP.slice(8, 10) > '05' && rPrev && Number(rPrev.linhas) > 100 && linhasN > 0 && linhasN < Number(rPrev.linhas) * 0.85) {
+      motivos.push(`linhas ${linhasN} < 85% anterior ${rPrev.linhas}`);
+    }
+    const aprovado = motivos.length === 0;
+    if (aprovado || pc.forcar) {
+      if (mes === diaSP.slice(0, 7)) {
+        await env.DB.prepare(
+          `INSERT OR REPLACE INTO liga_as_foto_dia (dia, filial, rca, meta, faturado, pendente, em)
+           SELECT ?, filial, CAST(CAST(rca AS INTEGER) AS TEXT),
+                  SUM(COALESCE(json_extract(dados, '$."Meta (R$)"'), 0)),
+                  SUM(COALESCE(json_extract(dados, '$."Faturado líquido (R$)"'), 0)),
+                  SUM(COALESCE(json_extract(dados, '$."Carteira pendente (R$)"'), 0)),
+                  ?
+             FROM gerot_vendedor_mes
+            WHERE mes = ? AND rca NOT LIKE '%|%' AND CAST(rca AS INTEGER) > 0
+            GROUP BY filial, CAST(CAST(rca AS INTEGER) AS TEXT)`
+        ).bind(diaSP, agora, mes).run().catch(() => {});
+      }
+      await env.DB.prepare('INSERT INTO gerot_coleta_status (mes, linhas, enviadas, posicao, colunas, em) VALUES (?,?,?,?,?,?)')
+        .bind(mes, linhasN, Number(pc.enviadas) || 0, String(pc.posicao || ''), JSON.stringify(pc.colunas || []).slice(0, 4000), agora).run();
+      await env.DB.prepare("INSERT OR REPLACE INTO config_flags (chave, valor) VALUES ('gerot_versao_ativa', ?)")
+        .bind(JSON.stringify({ carga_id: loteId, mes, posicao: String(pc.posicao || ''), gerado_em: agora })).run();
+      await env.DB.prepare('INSERT OR REPLACE INTO gerot_carga_controle (lote_id, mes, etapa, status, filiais, linhas, gravadas, removidas, posicao, detalhe, iniciado_em, atualizado_em) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)')
+        .bind(loteId, mes, 'portao_contabil', aprovado ? 'OK' : 'FORCADO', fils.length, linhasN, Number(pc.enviadas) || 0, 0, String(pc.posicao || '').slice(0, 120), motivos.join(' | ').slice(0, 200), String(pc.iniciado_em || agora).slice(0, 40), agora).run();
+      return r({ ok: true, aprovado, forcou: !aprovado && !!pc.forcar, carga_id: loteId, filiais: fils.length, motivos });
+    }
+    await env.DB.prepare('INSERT OR REPLACE INTO gerot_carga_controle (lote_id, mes, etapa, status, filiais, linhas, gravadas, removidas, posicao, detalhe, iniciado_em, atualizado_em) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)')
+      .bind(loteId, mes, 'portao_contabil', 'BLOQUEADO_PORTAO', fils.length, linhasN, 0, 0, String(pc.posicao || '').slice(0, 120), motivos.join(' | ').slice(0, 200), String(pc.iniciado_em || agora).slice(0, 40), agora).run();
+    return r({ ok: false, bloqueado: true, motivos });
+  }
+  const emLotes = async (lista, fn) => { for (let i = 0; i < lista.length; i += 80) await env.DB.batch(lista.slice(i, i + 80).map(fn)); };
+  const nz = (v) => (v == null || !Number.isFinite(Number(v)) ? null : Number(v));
+  const tz = (v, n = 120) => (v == null || v === '' ? null : String(v).slice(0, n));
+  if (Array.isArray(b.dim_agregado)) {
+    const ok = b.dim_agregado.filter((x) => MES.test(String(x.mes || '')) && x.dim && x.chave != null).slice(0, 300);
+    await emLotes(ok, (x) => env.DB.prepare('INSERT INTO gerot_dim_agregado (mes, dim, filial, chave, nome, dados, hash, em) VALUES (?,?,?,?,?,?,?,?) ON CONFLICT (mes, dim, filial, chave) DO UPDATE SET nome = excluded.nome, dados = excluded.dados, hash = excluded.hash, em = excluded.em WHERE gerot_dim_agregado.hash IS NOT excluded.hash')
+      .bind(String(x.mes), String(x.dim).slice(0, 30), String(x.filial || '').slice(0, 3), String(x.chave).slice(0, 120), tz(x.nome), JSON.stringify(x.dados || {}), String(x.hash || ''), agora));
+    return r({ ok: true, dim_agregado: ok.length });
+  }
+  if (Array.isArray(b.cliven_resumo)) {
+    if (MES.test(String(b.cliven_limpar_mes || ''))) await env.DB.prepare('DELETE FROM gerot_cliven_resumo WHERE mes = ?').bind(String(b.cliven_limpar_mes)).run();
+    const ok = b.cliven_resumo.filter((x) => MES.test(String(x.mes || '')) && /^[A-Z]{3}$/.test(String(x.filial || '')) && x.rca != null).slice(0, 300);
+    await emLotes(ok, (x) => env.DB.prepare('INSERT OR REPLACE INTO gerot_cliven_resumo (mes, filial, cod_sup, rca, vendedor, supervisor, gerente, perfil, clientes_carteira, clientes_ativos, clientes_bloq, positivados, aproveitamento_pct, fat_mes, m1, media_3m, em) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
+      .bind(String(x.mes), String(x.filial), String(x.cod_sup || ''), String(x.rca), tz(x.vendedor), tz(x.supervisor), tz(x.gerente), tz(x.perfil, 40), nz(x.clientes_carteira), nz(x.clientes_ativos), nz(x.clientes_bloq), nz(x.positivados), nz(x.aproveitamento_pct), nz(x.fat_mes), nz(x.m1), nz(x.media_3m), agora));
+    return r({ ok: true, cliven_resumo: ok.length });
+  }
+  if (Array.isArray(b.fefo)) {
+    if (b.fefo_limpar) await env.DB.prepare('DELETE FROM gerot_fefo').run();
+    const ok = b.fefo.filter((x) => /^[A-Z]{3}$/.test(String(x.filial || '')) && x.sku != null).slice(0, 300);
+    await emLotes(ok, (x) => env.DB.prepare('INSERT OR REPLACE INTO gerot_fefo (filial, sku, lote, produto, fornecedor, depto, secao, marca, faixa, validade, dias_vencer, pct_vida, saldo, valor, venda_90d, cobertura_dias, risco, quarentena, acao_sugerida, prox_faixa_30, prox_faixa_60, prox_faixa_90, carga, em) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
+      .bind(String(x.filial), String(x.sku), String(x.lote || ''), tz(x.produto), tz(x.fornecedor), tz(x.depto, 60), tz(x.secao, 60), tz(x.marca, 60), tz(x.faixa, 30), tz(x.validade, 15), nz(x.dias_vencer), nz(x.pct_vida), nz(x.saldo), nz(x.valor), nz(x.venda_90d), nz(x.cobertura_dias), x.risco ? 1 : 0, x.quarentena ? 1 : 0, tz(x.acao_sugerida, 160), tz(x.prox_faixa_30, 30), tz(x.prox_faixa_60, 30), tz(x.prox_faixa_90, 30), tz(x.carga, 30), agora));
+    return r({ ok: true, fefo: ok.length });
+  }
+  if (Array.isArray(b.est_winthor)) {
+    if (b.est_winthor_limpar) await env.DB.prepare('DELETE FROM gerot_est_winthor').run();
+    const ok = b.est_winthor.filter((x) => /^[A-Z]{3}$/.test(String(x.filial || '')) && x.sku != null).slice(0, 300);
+    await emLotes(ok, (x) => env.DB.prepare('INSERT OR REPLACE INTO gerot_est_winthor (filial, sku, produto, fornecedor, depto, secao, dias_estoque, valor, caixas, peso_kg, disponivel, estoque, reservado, bloqueado, parado_90d, ruptura, curva_abc, carga, em) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
+      .bind(String(x.filial), String(x.sku), tz(x.produto), tz(x.fornecedor), tz(x.depto, 60), tz(x.secao, 60), nz(x.dias_estoque), nz(x.valor), nz(x.caixas), nz(x.peso_kg), nz(x.disponivel), nz(x.estoque), nz(x.reservado), nz(x.bloqueado), x.parado_90d ? 1 : 0, x.ruptura ? 1 : 0, tz(x.curva_abc, 10), tz(x.carga, 30), agora));
+    return r({ ok: true, est_winthor: ok.length });
+  }
+  if (Array.isArray(b.dre_mes)) {
+    if (MES.test(String(b.dre_limpar_mes || ''))) await env.DB.prepare('DELETE FROM gerot_dre_mes WHERE mes = ?').bind(String(b.dre_limpar_mes)).run();
+    const ok = b.dre_mes.filter((x) => MES.test(String(x.mes || '')) && x.filial != null && x.nivel && x.cod != null).slice(0, 300);
+    await emLotes(ok, (x) => env.DB.prepare('INSERT OR REPLACE INTO gerot_dre_mes (mes, filial, nivel, cod, nome, caixas, peso_kg, fat_bruto, devolucao, receita_liq, cmv, comissao, bonif_custo, impostos, custos_var, mc_rs, mc_pct, desconto_rs, desc_pct, preco_tabela, desc_politica, desc_campanha, desc_pol_encerrada, desc_comercial, acima_tabela, em) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
+      .bind(String(x.mes), String(x.filial).slice(0, 10), String(x.nivel).slice(0, 20), String(x.cod).slice(0, 60), tz(x.nome), nz(x.caixas), nz(x.peso_kg), nz(x.fat_bruto), nz(x.devolucao), nz(x.receita_liq), nz(x.cmv), nz(x.comissao), nz(x.bonif_custo), nz(x.impostos), nz(x.custos_var), nz(x.mc_rs), nz(x.mc_pct), nz(x.desconto_rs), nz(x.desc_pct), nz(x.preco_tabela), nz(x.desc_politica), nz(x.desc_campanha), nz(x.desc_pol_encerrada), nz(x.desc_comercial), nz(x.acima_tabela), agora));
+    return r({ ok: true, dre_mes: ok.length });
+  }
+  if (Array.isArray(b.curva_neg_margem)) {
+    if (MES.test(String(b.curva_neg_limpar_mes || ''))) await env.DB.prepare('DELETE FROM gerot_curva_neg_margem WHERE mes = ?').bind(String(b.curva_neg_limpar_mes)).run();
+    const ok = b.curva_neg_margem.filter((x) => MES.test(String(x.mes || '')) && /^[A-Z]{3}$/.test(String(x.filial || '')) && x.pedido != null).slice(0, 300);
+    await emLotes(ok, (x) => env.DB.prepare('INSERT OR REPLACE INTO gerot_curva_neg_margem (mes, filial, pedido, nf, data, rca, vendedor, sup_cod, cliente, cnpj, itens, fat_bruto, desconto_pct, custo, margem_rs, margem_pct, margem_perdida, em) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
+      .bind(String(x.mes), String(x.filial), String(x.pedido), String(x.nf || ''), tz(x.data, 10), tz(x.rca, 20), tz(x.vendedor), tz(x.sup_cod, 20), tz(x.cliente), tz(x.cnpj, 20), nz(x.itens), nz(x.fat_bruto), nz(x.desconto_pct), nz(x.custo), nz(x.margem_rs), nz(x.margem_pct), nz(x.margem_perdida), agora));
+    return r({ ok: true, curva_neg_margem: ok.length });
+  }
+  if (Array.isArray(b.histograma_margem)) {
+    if (MES.test(String(b.hist_limpar_mes || ''))) await env.DB.prepare('DELETE FROM gerot_histograma_margem WHERE mes = ?').bind(String(b.hist_limpar_mes)).run();
+    const ok = b.histograma_margem.filter((x) => MES.test(String(x.mes || '')) && x.filial != null && x.tipo && x.faixa).slice(0, 300);
+    await emLotes(ok, (x) => env.DB.prepare('INSERT OR REPLACE INTO gerot_histograma_margem (mes, filial, tipo, faixa, itens, fat_bruto, margem_rs, margem_pct, em) VALUES (?,?,?,?,?,?,?,?,?)')
+      .bind(String(x.mes), String(x.filial).slice(0, 10), String(x.tipo).slice(0, 30), String(x.faixa).slice(0, 40), nz(x.itens), nz(x.fat_bruto), nz(x.margem_rs), nz(x.margem_pct), agora));
+    return r({ ok: true, histograma_margem: ok.length });
+  }
+  if (Array.isArray(b.rfv_resumo)) {
+    if (MES.test(String(b.rfv_res_limpar_mes || ''))) await env.DB.prepare('DELETE FROM gerot_rfv_resumo WHERE mes = ?').bind(String(b.rfv_res_limpar_mes)).run();
+    const ok = b.rfv_resumo.filter((x) => MES.test(String(x.mes || '')) && x.filial != null && x.segmento).slice(0, 300);
+    await emLotes(ok, (x) => env.DB.prepare('INSERT OR REPLACE INTO gerot_rfv_resumo (mes, filial, sup_cod, rca, segmento, clientes, valor_120d, em) VALUES (?,?,?,?,?,?,?,?)')
+      .bind(String(x.mes), String(x.filial).slice(0, 10), String(x.sup_cod || ''), String(x.rca || ''), String(x.segmento).slice(0, 40), nz(x.clientes), nz(x.valor_120d), agora));
+    return r({ ok: true, rfv_resumo: ok.length });
+  }
+  if (Array.isArray(b.rfv_clientes)) {
+    if (MES.test(String(b.rfv_cli_limpar_mes || ''))) await env.DB.prepare('DELETE FROM gerot_rfv_clientes WHERE mes = ?').bind(String(b.rfv_cli_limpar_mes)).run();
+    const ok = b.rfv_clientes.filter((x) => MES.test(String(x.mes || '')) && /^[A-Z]{3}$/.test(String(x.filial || '')) && x.rca != null && x.cliente != null).slice(0, 300);
+    await emLotes(ok, (x) => env.DB.prepare('INSERT OR REPLACE INTO gerot_rfv_clientes (mes, filial, rca, sup_cod, cliente, cnpj, nome, segmento, r_score, f_score, v_score, dias_sem_compra, valor_120d, ultima_compra, em) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
+      .bind(String(x.mes), String(x.filial), String(x.rca), tz(x.sup_cod, 20), String(x.cliente), tz(x.cnpj, 20), tz(x.nome), tz(x.segmento, 40), nz(x.r_score), nz(x.f_score), nz(x.v_score), nz(x.dias_sem_compra), nz(x.valor_120d), tz(x.ultima_compra, 15), agora));
+    return r({ ok: true, rfv_clientes: ok.length });
+  }
+  if (Array.isArray(b.pmi_mes)) {
+    if (MES.test(String(b.pmi_limpar_mes || ''))) await env.DB.prepare('DELETE FROM gerot_pmi_mes WHERE mes = ?').bind(String(b.pmi_limpar_mes)).run();
+    const ok = b.pmi_mes.filter((x) => MES.test(String(x.mes || '')) && x.filial != null && x.nivel && x.cod != null).slice(0, 300);
+    await emLotes(ok, (x) => env.DB.prepare('INSERT OR REPLACE INTO gerot_pmi_mes (mes, filial, nivel, cod, nome, ja_compra, pmi_historico, pmi_mix, reativar, recuperar, aumentar_mix, desenvolver_share, abrir_novos, potencial_total, clientes_ativos, em) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
+      .bind(String(x.mes), String(x.filial).slice(0, 10), String(x.nivel).slice(0, 20), String(x.cod).slice(0, 60), tz(x.nome), nz(x.ja_compra), nz(x.pmi_historico), nz(x.pmi_mix), nz(x.reativar), nz(x.recuperar), nz(x.aumentar_mix), nz(x.desenvolver_share), nz(x.abrir_novos), nz(x.potencial_total), nz(x.clientes_ativos), agora));
+    return r({ ok: true, pmi_mes: ok.length });
+  }
+  if (Array.isArray(b.cadastro_clientes)) {
+    if (MES.test(String(b.cad_limpar_mes || ''))) await env.DB.prepare('DELETE FROM gerot_cadastro_clientes WHERE mes = ?').bind(String(b.cad_limpar_mes)).run();
+    const ok = b.cadastro_clientes.filter((x) => MES.test(String(x.mes || '')) && x.filial != null).slice(0, 300);
+    await emLotes(ok, (x) => env.DB.prepare('INSERT OR REPLACE INTO gerot_cadastro_clientes (mes, filial, sup_cod, rca, cadastrados, cadastrados_dia, ja_compraram, pct_primeira_compra, bloqueados, excluidos, saldo, em) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)')
+      .bind(String(x.mes), String(x.filial).slice(0, 10), String(x.sup_cod || ''), String(x.rca || ''), nz(x.cadastrados), nz(x.cadastrados_dia), nz(x.ja_compraram), nz(x.pct_primeira_compra), nz(x.bloqueados), nz(x.excluidos), nz(x.saldo), agora));
+    return r({ ok: true, cadastro_clientes: ok.length });
+  }
+  if (Array.isArray(b.recorrencia_faixas)) {
+    if (MES.test(String(b.rec_fx_limpar_mes || ''))) await env.DB.prepare('DELETE FROM gerot_recorrencia_faixas WHERE mes = ?').bind(String(b.rec_fx_limpar_mes)).run();
+    const ok = b.recorrencia_faixas.filter((x) => MES.test(String(x.mes || '')) && x.filial != null && x.faixa).slice(0, 300);
+    await emLotes(ok, (x) => env.DB.prepare('INSERT OR REPLACE INTO gerot_recorrencia_faixas (mes, filial, sup_cod, rca, faixa, clientes, valor_3m, em) VALUES (?,?,?,?,?,?,?,?)')
+      .bind(String(x.mes), String(x.filial).slice(0, 10), String(x.sup_cod || ''), String(x.rca || ''), String(x.faixa).slice(0, 30), nz(x.clientes), nz(x.valor_3m), agora));
+    return r({ ok: true, recorrencia_faixas: ok.length });
+  }
+  if (Array.isArray(b.recorrencia_clientes)) {
+    if (MES.test(String(b.rec_cli_limpar_mes || ''))) await env.DB.prepare('DELETE FROM gerot_recorrencia_clientes WHERE mes = ?').bind(String(b.rec_cli_limpar_mes)).run();
+    const ok = b.recorrencia_clientes.filter((x) => MES.test(String(x.mes || '')) && /^[A-Z]{3}$/.test(String(x.filial || '')) && x.rca != null && x.cliente != null).slice(0, 300);
+    await emLotes(ok, (x) => env.DB.prepare('INSERT OR REPLACE INTO gerot_recorrencia_clientes (mes, filial, rca, cliente, cnpj, nome, dias_sem_compra, ultima_compra, fat_mes, captado, carteira, faixa, em) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)')
+      .bind(String(x.mes), String(x.filial), String(x.rca), String(x.cliente), tz(x.cnpj, 20), tz(x.nome), nz(x.dias_sem_compra), tz(x.ultima_compra, 15), nz(x.fat_mes), nz(x.captado), nz(x.carteira), tz(x.faixa, 30), agora));
+    return r({ ok: true, recorrencia_clientes: ok.length });
+  }
+  if (Array.isArray(b.campo_mes)) {
+    if (MES.test(String(b.campo_limpar_mes || ''))) await env.DB.prepare('DELETE FROM gerot_campo_mes WHERE mes = ?').bind(String(b.campo_limpar_mes)).run();
+    const ok = b.campo_mes.filter((x) => MES.test(String(x.mes || '')) && x.filial != null && x.nivel && x.cod != null).slice(0, 300);
+    await emLotes(ok, (x) => env.DB.prepare('INSERT OR REPLACE INTO gerot_campo_mes (mes, filial, nivel, cod, nome, sup_cod, eficiencia_pct, eficacia_pct, hora_checkin, hora_checkout, min_visita, min_rota, hora_ped1, pct_ped18, venda_captada, pedidos_captados, venda_sem_visita, pct_sem_visita, cobertura_pdv_pct, carteira_visitada_pct, gerado_em, em) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
+      .bind(String(x.mes), String(x.filial).slice(0, 10), String(x.nivel).slice(0, 20), String(x.cod).slice(0, 60), tz(x.nome), String(x.sup_cod || ''), nz(x.eficiencia_pct), nz(x.eficacia_pct), tz(x.hora_checkin, 10), tz(x.hora_checkout, 10), nz(x.min_visita), nz(x.min_rota), tz(x.hora_ped1, 10), nz(x.pct_ped18), nz(x.venda_captada), nz(x.pedidos_captados), nz(x.venda_sem_visita), nz(x.pct_sem_visita), nz(x.cobertura_pdv_pct), nz(x.carteira_visitada_pct), tz(x.gerado_em, 30), agora));
+    return r({ ok: true, campo_mes: ok.length });
+  }
+  if (Array.isArray(b.jbp_sku)) {
+    if (MES.test(String(b.jbp_limpar_mes || ''))) await env.DB.prepare('DELETE FROM gerot_jbp_sku WHERE mes = ?').bind(String(b.jbp_limpar_mes)).run();
+    const ok = b.jbp_sku.filter((x) => MES.test(String(x.mes || '')) && /^[A-Z]{3}$/.test(String(x.filial || '')) && x.sku != null).slice(0, 300);
+    await emLotes(ok, (x) => env.DB.prepare('INSERT OR REPLACE INTO gerot_jbp_sku (mes, filial, fornecedor, forn_cod, sku, produto, fat_liq, meta, fat_m1, delta_m1, fat_3m, fat_a1, fat_ytd, fat_lytd, pos, bench, em) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
+      .bind(String(x.mes), String(x.filial), tz(x.fornecedor), tz(x.forn_cod, 40), String(x.sku), tz(x.produto), nz(x.fat_liq), nz(x.meta), nz(x.fat_m1), nz(x.delta_m1), nz(x.fat_3m), nz(x.fat_a1), nz(x.fat_ytd), nz(x.fat_lytd), nz(x.pos), nz(x.bench), agora));
+    return r({ ok: true, jbp_sku: ok.length });
+  }
+  if (Array.isArray(b.briefing_cache)) {
+    const ok = b.briefing_cache.filter((x) => x.chave && MES.test(String(x.mes || '')) && x.payload_json).slice(0, 40);
+    await emLotes(ok, (x) => env.DB.prepare('INSERT OR REPLACE INTO fatos_briefing_cache (chave, mes, carga_id, nivel, filial, payload_json, tokens_est, gerado_em) VALUES (?,?,?,?,?,?,?,?)')
+      .bind(String(x.chave).slice(0, 40), String(x.mes), String(x.carga_id || agora).slice(0, 40), String(x.nivel || 'filial').slice(0, 20), tz(x.filial, 10), typeof x.payload_json === 'string' ? x.payload_json : JSON.stringify(x.payload_json), nz(x.tokens_est), String(x.gerado_em || agora)));
+    return r({ ok: true, briefing_cache: ok.length });
   }
   return r({ ok: true, linhas: L.length, vendedores: V.length, supervisores: SUP.length, filiais: FIL.length, recorrencia: RC.length });
 }

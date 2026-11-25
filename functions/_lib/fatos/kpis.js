@@ -54,9 +54,18 @@ function completa(o, d, nivelPronto, du) {
 export async function positivacaoRegra4(db, filial, rcas, mes = hojeBRT().slice(0, 7)) {
   if (rcas && !rcas.length) return { pos: 0, posC: 0 };
   const lista = rcas ? rcas.map((r) => Number(r)).filter((r) => !Number.isNaN(r)) : null;
-  const filtro = lista ? ` AND CAST(rca AS INTEGER) IN (${lista.join(',') || -1})` : '';
+  let filtro = '', binds = [mes, filial];
+  if (lista) {
+    const chaves = [...new Set(lista.flatMap((n) => {
+      const s = String(n);
+      return [s, s.padStart(2, '0'), s.padStart(3, '0'), s.padStart(4, '0')];
+    }))];
+    if (!chaves.length) return { pos: 0, posC: 0 };
+    filtro = ` AND rca IN (${chaves.map(() => '?').join(',')})`;
+    binds = [mes, filial, ...chaves];
+  }
   try {
-    const r = await db.prepare(`SELECT sum(CASE WHEN f > 0 THEN 1 ELSE 0 END) pos, sum(CASE WHEN f > 0 OR c > 0 THEN 1 ELSE 0 END) posc FROM (SELECT coalesce(cnpj, cliente) k, sum(json_extract(dados, '$."Faturado líquido (R$)"')) f, sum(json_extract(dados, '$."Carteira pendente (R$)"')) c FROM gerot_cliente_mes WHERE mes = ? AND filial = ?${filtro} GROUP BY k)`).bind(mes, filial).first();
+    const r = await db.prepare(`SELECT sum(CASE WHEN f > 0 THEN 1 ELSE 0 END) pos, sum(CASE WHEN f > 0 OR c > 0 THEN 1 ELSE 0 END) posc FROM (SELECT coalesce(cnpj, cliente) k, sum(json_extract(dados, '$."Faturado líquido (R$)"')) f, sum(json_extract(dados, '$."Carteira pendente (R$)"')) c FROM gerot_cliente_mes WHERE mes = ? AND filial = ?${filtro} GROUP BY k)`).bind(...binds).first();
     return { pos: Number(r && r.pos) || 0, posC: Number(r && r.posc) || 0 };
   } catch { return { pos: null, posC: null }; }
 }
@@ -82,10 +91,18 @@ export async function vendedoresGerot(db, filial, mes = hojeBRT().slice(0, 7)) {
   let c = CACHE.get(db); if (!c) { c = new Map(); CACHE.set(db, c); }
   const k = mes + '|' + filial, agora = Date.now(), hit = c.get(k);
   if (!hit || agora >= hit.exp) {
-    const p = db.prepare('SELECT rca, cod_sup, supervisor, vendedor, dados FROM gerot_vendedor_mes WHERE mes = ? AND filial = ?').bind(mes, filial).all()
-      .then((r) => (r.results || []).map((x) => ({ rca: rcaN(x.rca), cod_sup: String(x.cod_sup || ''), supervisor: x.supervisor, vendedor: x.vendedor, d: parse(x.dados) })))
-      .catch(() => { c.delete(k); return null; });
-    c.set(k, { exp: agora + TTL_VG, p });
+    const busca = async () => {
+      for (const espera of [0, 250]) {
+        if (espera) await new Promise((ok) => setTimeout(ok, espera));
+        try {
+          const r = await db.prepare('SELECT rca, cod_sup, supervisor, vendedor, dados FROM gerot_vendedor_mes WHERE mes = ? AND filial = ?').bind(mes, filial).all();
+          return (r.results || []).map((x) => ({ rca: rcaN(x.rca), cod_sup: String(x.cod_sup || ''), supervisor: x.supervisor, vendedor: x.vendedor, d: parse(x.dados) }));
+        } catch { /* tenta novamente */ }
+      }
+      c.delete(k);
+      return null;
+    };
+    c.set(k, { exp: agora + TTL_VG, p: busca() });
   }
   return c.get(k).p;
 }

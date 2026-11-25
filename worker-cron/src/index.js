@@ -97,13 +97,13 @@ export default {
     if (event.cron === '2-59/15 * * * *') {
       const agora = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
       const dia = agora.getDay(), h = agora.getHours(), mi = agora.getMinutes();
-      // GEROT (21/11/2026, Vitorio: 'le ele de 20 em 20 minutos'): SONDA de 15 em 15 min, seg-sab 06h-21h45 BRT (gerot-horario.yml, ~1 min, so le
-      // 'Ultima atualizacao'). Mudou desde a ultima coleta -> a propria sonda dispara gerot-coleta.yml. Medido 17-21/11: o GEROT atualiza nas horas PARES (~hh:33).
-      if (dia >= 1 && dia <= 6 && h >= 6 && h <= 21) {
+      // GEROT (Sprint 1.2): SONDA HTTP leve (<10s, zero Playwright) de 15 em 15 min na janela operacional 00h e 06h-21h45 BRT (seg-sab).
+      // Mudou desde a ultima coleta -> a propria sonda dispara gerot-coleta.yml. GEROT atualiza nas horas pares (~hh:33-hh:36).
+      if (dia >= 1 && dia <= 6 && (h === 0 || (h >= 6 && h <= 21))) {
         try { const r = await dispararWorkflow(env, 'gerot-horario.yml', {}); console.log(`[GEROT] sonda status=${r.status} ${r.body}`); } catch (e) { console.log('[GEROT][ERRO] ' + (e && e.message ? e.message : e)); }
       }
-      // reserva: coleta fixa 07h17 e 21h17 mesmo se a sonda falhar (comeco do dia e ultima carga para a madrugada)
-      if (dia >= 1 && dia <= 6 && [7, 21].includes(h) && mi >= 15 && mi < 30) {
+      // reserva fixa de seguranca nos horarios-chave (00h47, 06h47, 14h47, 20h47 BRT) caso a sonda falhe
+      if (dia >= 1 && dia <= 6 && [0, 6, 14, 20].includes(h) && mi >= 45) {
         try { const r = await dispararWorkflow(env, 'gerot-coleta.yml', {}); console.log(`[GEROT] gerot-coleta.yml status=${r.status} ${r.body}`); } catch (e) { console.log('[GEROT][ERRO] ' + (e && e.message ? e.message : e)); }
       }
       // AUDITORIA DO JOTA (21/11/2026, plano bloco B): o schedule do GitHub atrasava 7 h (06h30 rodava 13h54). 06h32 e 13h02 BRT, seg-sab.

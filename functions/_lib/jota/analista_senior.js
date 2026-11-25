@@ -39,7 +39,7 @@ async function montarComplemento360(env, escIA) {
   const soRca = escIA?.rca ? String(escIA.rca) : null;
   const soSup = !soRca && escIA?.supervisor ? String(escIA.supervisor) : null;
 
-  const [filGerotRows, supGerotRows, indRows, bloqRows, cartHojeRows, gerotStRow, aprendizados] = await Promise.all([
+  const [filGerotRows, supGerotRows, indRows, bloqRows, cartHojeRows, gerotStRow, aprendizados, briefingRows] = await Promise.all([
     soRca || soSup
       ? Promise.resolve({ results: [] })
       : (temFil
@@ -71,7 +71,13 @@ async function montarComplemento360(env, escIA) {
         : db.prepare('SELECT filial, rca, sup_cod AS cod_sup, "" supervisor, fornecedores FROM gerot_carteira WHERE entrada = ?').bind(hoje)
     ).all().catch(() => ({ results: [] })),
     db.prepare('SELECT posicao, em FROM gerot_coleta_status WHERE mes = ? ORDER BY id DESC LIMIT 1').bind(mes).first().catch(() => null),
-    carregarContextoAprendido(db, 6)
+    carregarContextoAprendido(db, 6),
+    (soRca || soSup)
+      ? Promise.resolve({ results: [] })
+      : (temFil
+        ? db.prepare(`SELECT chave, payload_json, gerado_em FROM fatos_briefing_cache WHERE mes = ? AND chave IN (${qs})`).bind(mes, ...filiais)
+        : db.prepare("SELECT chave, payload_json, gerado_em FROM fatos_briefing_cache WHERE mes = ? AND chave = 'BRASIL'").bind(mes)
+      ).all().catch(() => ({ results: [] }))
   ]);
 
   const supMatches = (supNomeRow) => {
@@ -228,7 +234,12 @@ async function montarComplemento360(env, escIA) {
     ? `=== APRENDIZADOS RECENTES DO CAMPO (CURADOR JOTA) ===\n${aprendizados}`
     : '';
 
-  return [gerotResumoTxt, indZeroTxt, indTxt, bloqTxt, aprTxt].filter(Boolean).join('\n\n');
+  const briefList = (briefingRows && briefingRows.results) || [];
+  const briefTxt = briefList.length
+    ? ('=== BRIEFING ESTRATÉGICO GEROT (CACHE PRÉ-AGREGADO) ===\n' + briefList.map((b) => `${b.chave}: ${String(b.payload_json || '').slice(0, 1200)}`).join('\n')).slice(0, 2500)
+    : '';
+
+  return [gerotResumoTxt, briefTxt, indZeroTxt, indTxt, bloqTxt, aprTxt].filter(Boolean).join('\n\n');
 }
 
 async function chamarGemini(apiKey, model, promptCompleto, thinkingBudget = 1024) {

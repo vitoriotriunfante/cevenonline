@@ -394,7 +394,8 @@ export async function respostaInterna(B, c, texto, anteriores) {
       const clienteDaLista = Boolean(idListaUlt || idListaCtx);
       const ehMatinalOuLance = /\b(MATINAL|RESUMO MATINAL|PAINEL MATINAL|MINHA MATINAL)\b|\b(CARD|CARDS) (DA EQUIPE|DO TIME|DA FILIAL|DO SUPERVISOR|DA SUPERVISORA|DE VENDAS|DO BRASIL|MATINAL|INDUSTRIA\w*)|\b(MEU|MANDA|ENVIA|GERA|VER|MOSTRA) (O )?CARD\b|^\W*CARD\W*$/.test(t) || /\b(PENALTI|PENALTIS|PENALIDADE|IMPEDIMENTO|CARTAO|CARTOES|VERMELHO|AMARELO|GOL CONTRA|HAT ?TRICK|DEFESA|LANCE|LANCES)\b/.test(t);
       const ehContCliente = Boolean(B._ctxUltCli && (FICHA_ITENS.test(t) || FICHA_OFERTA.test(t) || FICHA_PEDIDOS.test(t) || /\bHISTORIC\w*\b/.test(t)));
-      const passa = /\b\d{7,11}\b/.test(t) /* 16/11/2026: numero de pedido nunca e opcao de menu */ || /\b(JANEIRO|FEVEREIRO|MARCO|ABRIL|MAIO|JUNHO|JULHO|AGOSTO|SETEMBRO|OUTUBRO|NOVEMBRO|DEZEMBRO)\b/.test(t) /* 22/11/2026: 'meta de setembro' virava o menu 'fechamento do mes passado' (outubro) */ || clienteDaLista || ehMatinalOuLance || ehContCliente || /^\W*(SIM|OK|SALVEI|SALVO|CONFIRMADO)\W*$/.test(t) || /CLIENTE\s*#?\s*\d{3,}|#\d{3,}|\b\d{11,14}\b/.test(t) || /^\W*(JOTA\W+)?(TEM|TEMOS|VENDE|VENDEMOS)\s+\S/.test(t) || /^\W*CAMPANHA\s+[A-Z]{3,}/.test(t) || /CODIGO DO CLIENTE/i.test(ult) && /\d{3,}/.test(t);
+      const ehEstrategico = /\b(FEFO|ESTOQUE WINTHOR|PCEST|RUPTURA|ESTOQUE PARADO|DRE|MARGEM DE CONTRIBUICAO|HISTOGRAMA|CURVA NEGATIVA DE MARGEM|MARGEM NEGATIVA|RFV|PMI|CLIVEN|CADASTRO DE CLIENTES|VISAO CAMPO|JBP|TMF)\b/.test(t);
+      const passa = ehEstrategico || /\b\d{7,11}\b/.test(t) /* 16/11/2026: numero de pedido nunca e opcao de menu */ || /\b(JANEIRO|FEVEREIRO|MARCO|ABRIL|MAIO|JUNHO|JULHO|AGOSTO|SETEMBRO|OUTUBRO|NOVEMBRO|DEZEMBRO)\b/.test(t) /* 22/11/2026: 'meta de setembro' virava o menu 'fechamento do mes passado' (outubro) */ || clienteDaLista || ehMatinalOuLance || ehContCliente || /^\W*(SIM|OK|SALVEI|SALVO|CONFIRMADO)\W*$/.test(t) || /CLIENTE\s*#?\s*\d{3,}|#\d{3,}|\b\d{11,14}\b/.test(t) || /^\W*(JOTA\W+)?(TEM|TEMOS|VENDE|VENDEMOS)\s+\S/.test(t) || /^\W*CAMPANHA\s+[A-Z]{3,}/.test(t) || /CODIGO DO CLIENTE/i.test(ult) && /\d{3,}/.test(t);
       // 10/11/2026 (Vitorio): opcoes do tema numeradas 1, 2, 3 (nao 1.1); o marcador 〔k〕 guarda o tema para o proximo numero e para o "ver mais"
       const rodape = (k) => (SUB_VENDEDOR[k] ? ['', `📌 *Quer detalhar?* Digite o número 〔${k}〕`, ...SUB_VENDEDOR[k].map(([rot], i) => `*${i + 1}* ${rot}`), '*0* Voltar ao menu'] : ['', `*0* Voltar ao menu 〔${k}〕`]).join('\n');
       const abre = async (k, s) => {
@@ -1426,6 +1427,18 @@ _Devolução do mês no GEROT (${E.nome}): *${R$(tot)}*. Os motivos acima cobrem
       `Posso te mostrar qualquer vendedor da sua equipe! Peça *"vendedores"* para ver a sua lista completa ou me diga o nome/código de alguém do seu time.`
     ].join('\n');
   }
+  // ROTEAMENTO GEROT ESTRATEGICO (Sprint 1.3 — antes das regras difusas e antes da curva negativa de clientes)
+  if (/CURVA NEGATIVA DE MARGEM|PEDIDOS? COM MARGEM NEGATIVA|MARGEM NEGATIVA/.test(t)) { const { respCurvaNegMargem } = await import('./respostas/gerot_estrategico.js'); return respCurvaNegMargem(B, E, c, t); }
+  if (/\bFEFO\b|VALIDADE DO ESTOQUE|VENCIMENTO DE ESTOQUE|LOTE(S)? VENC|QUARENTENA WMS/.test(t)) { const { respFefo } = await import('./respostas/gerot_estrategico.js'); return respFefo(B, E, c, t); }
+  if (/ESTOQUE WINTHOR|\bPCEST\b|RUPTURA DE ESTOQUE|\bRUPTURA\b|ESTOQUE PARADO|CURVA ABC DE ESTOQUE/.test(t)) { const { respEstWinthor } = await import('./respostas/gerot_estrategico.js'); return respEstWinthor(B, E, c, t); }
+  if (/\bDRE\b|MARGEM DE CONTRIBUICAO|HISTOGRAMA DE (MARGEM|DESCONTO)|\bHISTOGRAMA\b/.test(t)) { const { respDreMargem } = await import('./respostas/gerot_estrategico.js'); return respDreMargem(B, E, c, t); }
+  if (/\bRFV\b|SEGMENTACAO DE CLIENTES|CLIENTES CAMPEOES|EM RISCO ALTO VALOR/.test(t)) { const { respRfv } = await import('./respostas/gerot_estrategico.js'); return respRfv(B, E, c, t); }
+  if (/\bPMI\b|POTENCIAL DE MERCADO/.test(t)) { const { respPmi } = await import('./respostas/gerot_estrategico.js'); return respPmi(B, E, c, t); }
+  if (/CADASTRO DE CLIENTES|NOVOS CADASTROS|SALDO DE CADASTRO/.test(t)) { const { respCadastroClientes } = await import('./respostas/gerot_estrategico.js'); return respCadastroClientes(B, E, c, t); }
+  if (/\bCLIVEN\b|APROVEITAMENTO DE CARTEIRA/.test(t)) { const { respCliven } = await import('./respostas/gerot_estrategico.js'); return respCliven(B, E, c, t); }
+  if (/VISAO CAMPO|TEMPO DE VISITA|TEMPO DE ROTA|PEDIDOS? APOS 18H/.test(t)) { const { respCampoGerot } = await import('./respostas/gerot_estrategico.js'); return respCampoGerot(B, E, c, t); }
+  if (/\bJBP\b/.test(t)) { const { respJbpSku } = await import('./respostas/gerot_estrategico.js'); return respJbpSku(B, E, c, t); }
+  if (/\bTMF\b|TEMPO MEDIO DE FATURAMENTO/.test(t)) { const { respTmf } = await import('./respostas/gerot_estrategico.js'); return respTmf(B, E, c, t); }
   // "CLIENTES <VENDEDOR> [hoje|ontem|acumulado/mes]" (27/10/2026): quem comprou, quem nao (e ha quantos dias), quem foi visitado, quantos ja compraram
   if (pessoa && pessoa.tipo === 'vend' && /^(OS )?CLIENTES?\b|\bCLIENTES (D[AOE]|DA VENDEDORA|DO VENDEDOR)\b/.test(t) && !/PRODUTO|SKU|\bMIX\b|RECORRENCIA|PAROU|COMPRAVA|INDUSTRIA|CHE?C?K|JUSTIF|MOTIVO|QUANTOS CLIENTES.{0,70}ROTA|SEM COMPRA|NAO COMPR|NAO VEND|NAO POSITIV|CURVA|POSITIV\w*\b.{0,50}\bFALTAM?\b/.test(t)) {
     const per = /\bONTEM\b/.test(t) ? 'ontem' : /ACUMULAD|\bMES\b|OUTUBRO|CARTEIRA/.test(t) ? 'mes' : 'hoje';
