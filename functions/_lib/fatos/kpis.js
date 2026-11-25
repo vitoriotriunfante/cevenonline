@@ -53,16 +53,16 @@ function completa(o, d, nivelPronto, du) {
 // REGRA 4: clientes (CNPJ) com faturado líquido somado > 0 no recorte. rcas = null => filial inteira
 export async function positivacaoRegra4(db, filial, rcas, mes = hojeBRT().slice(0, 7)) {
   if (rcas && !rcas.length) return { pos: 0, posC: 0 };
-  const lista = rcas ? rcas.map((r) => Number(r)).filter((r) => !Number.isNaN(r)) : null;
-  let filtro = '', binds = [mes, filial];
+  const lista = rcas ? rcas.map((r) => Number(r)).filter((r) => Number.isInteger(r) && r >= 0) : null;
+  let filtro = '';
+  const binds = [mes, filial];
   if (lista) {
     const chaves = [...new Set(lista.flatMap((n) => {
       const s = String(n);
       return [s, s.padStart(2, '0'), s.padStart(3, '0'), s.padStart(4, '0')];
     }))];
     if (!chaves.length) return { pos: 0, posC: 0 };
-    filtro = ` AND rca IN (${chaves.map(() => '?').join(',')})`;
-    binds = [mes, filial, ...chaves];
+    filtro = ` AND rca IN (${chaves.map((s) => `'${s}'`).join(',')})`;
   }
   try {
     const r = await db.prepare(`SELECT sum(CASE WHEN f > 0 THEN 1 ELSE 0 END) pos, sum(CASE WHEN f > 0 OR c > 0 THEN 1 ELSE 0 END) posc FROM (SELECT coalesce(cnpj, cliente) k, sum(json_extract(dados, '$."Faturado líquido (R$)"')) f, sum(json_extract(dados, '$."Carteira pendente (R$)"')) c FROM gerot_cliente_mes WHERE mes = ? AND filial = ?${filtro} GROUP BY k)`).bind(...binds).first();
