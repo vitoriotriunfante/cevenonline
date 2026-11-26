@@ -112,8 +112,16 @@ export async function respCarteiraNivel(B, esc, { papel = 'diretoria', modo = 'b
   const selForn = forn && forn.length ? ', fornecedores' : '';
   const soBloqSql = modo === 'bloq' && papel !== 'vendedor' && !(forn && forn.length);
   let R = [];
+  for (let tent = 0; tent < 2; tent++) {
+    try {
+      R = (await db.prepare(`SELECT filial, pedido, rca, vendedor, entrada, situacao, COALESCE(NULLIF(motivo, ''), '') motivo, cliente, cnpj, status_cliente sc, positivado pos, valor${selForn} FROM gerot_carteira WHERE filial IN (${qs(F)})${rc ? ` AND rca IN (${qs(rc)})` : ''}${soBloqSql ? " AND situacao LIKE 'Bloqueado%'" : ''}`).bind(...F, ...(rc || [])).all()).results || [];
+      break;
+    } catch (e) {
+      if (tent === 1) return null;
+      await new Promise((z) => setTimeout(z, 250));
+    }
+  }
   try {
-    R = (await db.prepare(`SELECT filial, pedido, rca, vendedor, entrada, situacao, COALESCE(NULLIF(motivo, ''), '') motivo, cliente, cnpj, status_cliente sc, positivado pos, valor${selForn} FROM gerot_carteira WHERE filial IN (${qs(F)})${rc ? ` AND rca IN (${qs(rc)})` : ''}${soBloqSql ? " AND situacao LIKE 'Bloqueado%'" : ''}`).bind(...F, ...(rc || [])).all()).results || [];
     // 22/11/2026: so os pedidos que tem a industria pedida (o valor mostrado e o do pedido inteiro)
     if (forn && forn.length) { const nn = (x) => String(x || '').toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/^[A-Z]\s*-\s*/, '').replace(/\b(LTDA|S\.?A\.?|SA|ME)\b\.?/g, '').replace(/\s+/g, ' ').trim(); const alvo = forn.map(nn).filter(Boolean); R = R.filter((r) => { let fs = []; try { fs = JSON.parse(r.fornecedores || '[]'); } catch (e) { fs = []; } return fs.some((f) => alvo.some((a) => nn(f).includes(a) || a.includes(nn(f)))); }); }
   } catch (e) { return null; }
