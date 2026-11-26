@@ -4,22 +4,33 @@
 // Parte do JOTA (functions/api/whatsapp/bot.js), dividido por assunto em 25/10/2026. Mesmas regras: nunca inventar nem estimar.
 // =========================================================================
 import { FRX, VAREJO, hojeSP, nome2, sem, so, vn } from './base.js';
-import { CAMPO, diasUteis, vendedoresGerot } from '../fatos/index.js';
+import { CAMPO, diasUteis, vendedoresGerot, supervisoresGerot } from '../fatos/index.js';
+
+const rcaN = (r) => (/^\d+$/.test(String(r ?? '').trim()) ? String(Number(r)) : String(r ?? '').trim());
 
 // EQUIPE = GESTÃO DE EQUIPE (decisão do Vitório, 23/11/2026; docs/DICIONARIO_KPIS.md 3.27 e conflito 1): o supervisor de cada vendedor é o gravado em
-// config_equipe_soberana. O /api/tv-mostra troca pelo da árvore do CEVEN (parada em 13/11); aqui vale o da Gestão. Código do supervisor: a linha dele no GEROT (pelo nome).
+// config_equipe_soberana. Código do supervisor: gerot_supervisor_mes por nome, fallback por RCA em gerot_cliven_resumo -> gerot_vendedor_mes.
 async function supervisorGestao(B, filial) {
   if (!B || !B.env || !B.env.DB) return null;
   B._supGestao = B._supGestao || {};
   if (!B._supGestao[filial]) B._supGestao[filial] = (async () => {
-    const db = B.env.DB, m = new Map(), cod = new Map(), grp = new Map();
+    const db = B.env.DB, mes = hojeSP().slice(0, 7), m = new Map(), cod = new Map(), grp = new Map(), codPorRca = new Map();
     try {
       B._cfgGestao = B._cfgGestao || db.prepare('SELECT conteudo_json FROM config_equipe_soberana LIMIT 1').first();
       const c = JSON.parse(((await B._cfgGestao) || {}).conteudo_json || '{}');
       for (const [k, L] of Object.entries(c.filiais || {})) if (k.split('_')[0] === filial) for (const v of L || []) if (v && v.rca != null) { m.set(String(v.rca), String(v.supervisor || '')); grp.set(String(v.rca), String(v.grupo || '')); }
     } catch (e) { return null; }
-    try { for (const r of (await db.prepare('SELECT cod_sup, supervisor FROM gerot_supervisor_mes WHERE mes = ? AND filial = ?').bind(hojeSP().slice(0, 7), filial).all()).results || []) if (r.supervisor) cod.set(sem(r.supervisor), String(r.cod_sup)); } catch (e) { /* sem GEROT */ }
-    return { sup: m, cod, grp };
+    try {
+      const [sups, crRes, vg] = await Promise.all([
+        supervisoresGerot(db, filial, mes).catch(() => []),
+        db.prepare('SELECT rca, cod_sup FROM gerot_cliven_resumo WHERE mes = ? AND filial = ? AND cod_sup IS NOT NULL AND cod_sup != ""').bind(mes, filial).all().catch(() => ({ results: [] })),
+        vendedoresGerot(db, filial, mes).catch(() => [])
+      ]);
+      for (const r of sups || []) if (r.supervisor) cod.set(sem(r.supervisor), String(r.cod_sup));
+      for (const r of (crRes && crRes.results) || []) if (r.cod_sup) codPorRca.set(rcaN(r.rca), String(r.cod_sup));
+      for (const r of vg || []) if (r.cod_sup && !codPorRca.has(rcaN(r.rca))) codPorRca.set(rcaN(r.rca), String(r.cod_sup));
+    } catch (e) { /* sem GEROT */ }
+    return { sup: m, cod, grp, codPorRca };
   })();
   return B._supGestao[filial];
 }
@@ -35,7 +46,16 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
   const eq = new Map(); if (mostra && mostra.filiais) for (const [k, L] of Object.entries(mostra.filiais)) if (k.split('_')[0] === filial) for (const v of L) eq.set(String(v.rca), v);
   // 23/11/2026 (coordenador: Gestao de Equipe e a fonte): vendedor que so existe na arvore do CEVEN (novo no /api/tv-mostra, fora do config) NAO entra em equipe nem grupo -> 'fora das equipes'
   if (SG && SG.sup.size) for (const [rca, v] of eq) if (!SG.sup.has(rca)) eq.set(rca, { ...v, supervisor: '', sup_cod: '', grupo: '', foraGestao: true, supervisor_arvore: v.supervisor });
-  if (SG) for (const [rca, v] of eq) { if (v.foraGestao) continue; const s = SG.sup.get(rca); if (s != null && sem(s) !== sem(v.supervisor || '')) eq.set(rca, { ...v, supervisor: s, sup_cod: SG.cod.get(sem(s)) || '', supervisor_arvore: v.supervisor }); }
+  if (SG) for (const [rca, v] of eq) {
+    if (v.foraGestao) continue;
+    const s = SG.sup.get(rca);
+    if (s != null) {
+      const codR = SG.cod.get(sem(s)) || (SG.codPorRca && SG.codPorRca.get(rcaN(rca))) || v.sup_cod || '';
+      if (sem(s) !== sem(v.supervisor || '') || codR !== (v.sup_cod || '')) {
+        eq.set(rca, { ...v, supervisor: s, sup_cod: codR, supervisor_arvore: v.supervisor });
+      }
+    }
+  }
   const vend = [], ocultos = [], outros = []; const macro = { pedidos: 0, dig: 0, devHoje: 0 };
   // DIGITADO DO DIA = PEDIDOS GRAVADOS (Vitorio, 11/11/2026, plano aprovado): a produtividade do CEVEN sai pela cota de 3-4 chamadas/min e atrasava horas
   // (08h45: pedidos gravados R$ 386 mil x produtividade R$ 68 mil). Cada pedido tem numero e valor (pedido_status: Winthor + historico do cliente).

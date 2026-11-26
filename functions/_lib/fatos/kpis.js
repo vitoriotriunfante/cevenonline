@@ -22,10 +22,36 @@ const SOMA = ['fat', 'bruto', 'dev', 'meta', 'cart', 'pedCart', 'cap', 'ideal', 
 const num = (x) => (x == null || x === '' || Number.isNaN(Number(x)) ? null : Number(x));
 const parse = (s) => { try { return JSON.parse(s || '{}'); } catch { return {}; } };
 const rcaN = (r) => (/^\d+$/.test(String(r ?? '').trim()) ? String(Number(r)) : String(r ?? '').trim());
+const CACHE = new WeakMap();
+const CACHE_FIL = new WeakMap();
+const CACHE_SUP = new WeakMap();
+const TTL_VG = 30000;
+
+async function comCache(wm, db, k, fn) {
+  let c = wm.get(db); if (!c) { c = new Map(); wm.set(db, c); }
+  const agora = Date.now(), hit = c.get(k);
+  if (!hit || agora >= hit.exp) {
+    const busca = async () => {
+      for (const espera of [0, 250]) {
+        if (espera) await new Promise((ok) => setTimeout(ok, espera));
+        try { return await fn(); } catch { /* tenta novamente */ }
+      }
+      c.delete(k);
+      return null;
+    };
+    c.set(k, { exp: agora + TTL_VG, p: busca() });
+  }
+  return c.get(k).p;
+}
 
 // posição da carga do GEROT ("23/11/26 08:34"), para o rodapé
-export async function posicaoGerot(db) {
-  try { const st = await db.prepare('SELECT posicao FROM gerot_coleta_status ORDER BY id DESC LIMIT 1').first(); return st && st.posicao ? String(st.posicao).replace(/^Atual\s*·\s*/i, '') : null; } catch { return null; }
+export async function posicaoGerot(db, mes = null) {
+  try {
+    const st = mes
+      ? await db.prepare('SELECT posicao, em FROM gerot_coleta_status WHERE mes = ? ORDER BY id DESC LIMIT 1').bind(mes).first()
+      : await db.prepare('SELECT posicao, em FROM gerot_coleta_status ORDER BY id DESC LIMIT 1').first();
+    return st && st.posicao ? String(st.posicao).replace(/^Atual\s*·\s*/i, '') : null;
+  } catch { return null; }
 }
 
 // soma os R$ de várias linhas (JSON dados do GEROT); campo ausente em todas = null
@@ -53,19 +79,14 @@ function completa(o, d, nivelPronto, du) {
 // REGRA 4: clientes (CNPJ) com faturado líquido somado > 0 no recorte. rcas = null => filial inteira
 export async function positivacaoRegra4(db, filial, rcas, mes = hojeBRT().slice(0, 7)) {
   if (rcas && !rcas.length) return { pos: 0, posC: 0 };
-  const lista = rcas ? rcas.map((r) => Number(r)).filter((r) => Number.isInteger(r) && r >= 0) : null;
+  const lista = rcas ? [...new Set(rcas.map((r) => Number(r)).filter((r) => Number.isInteger(r) && r >= 0))] : null;
   let filtro = '';
-  const binds = [mes, filial];
   if (lista) {
-    const chaves = [...new Set(lista.flatMap((n) => {
-      const s = String(n);
-      return [s, s.padStart(2, '0'), s.padStart(3, '0'), s.padStart(4, '0')];
-    }))];
-    if (!chaves.length) return { pos: 0, posC: 0 };
-    filtro = ` AND rca IN (${chaves.map((s) => `'${s}'`).join(',')})`;
+    if (!lista.length) return { pos: 0, posC: 0 };
+    filtro = ` AND COALESCE(rca_int, CASE WHEN rca NOT LIKE '%|%' THEN CAST(rca AS INTEGER) END) IN (${lista.join(',')})`;
   }
   try {
-    const r = await db.prepare(`SELECT sum(CASE WHEN f > 0 THEN 1 ELSE 0 END) pos, sum(CASE WHEN f > 0 OR c > 0 THEN 1 ELSE 0 END) posc FROM (SELECT coalesce(cnpj, cliente) k, sum(json_extract(dados, '$."Faturado líquido (R$)"')) f, sum(json_extract(dados, '$."Carteira pendente (R$)"')) c FROM gerot_cliente_mes WHERE mes = ? AND filial = ?${filtro} GROUP BY k)`).bind(...binds).first();
+    const r = await db.prepare(`SELECT sum(CASE WHEN f > 0 THEN 1 ELSE 0 END) pos, sum(CASE WHEN f > 0 OR c > 0 THEN 1 ELSE 0 END) posc FROM (SELECT coalesce(cnpj, cliente) k, sum(coalesce(fat_liq, json_extract(dados, '$."Faturado líquido (R$)"'))) f, sum(coalesce(carteira, json_extract(dados, '$."Carteira pendente (R$)"'))) c FROM gerot_cliente_mes WHERE mes = ? AND filial = ?${filtro} GROUP BY k)`).bind(mes, filial).first();
     return { pos: Number(r && r.pos) || 0, posC: Number(r && r.posc) || 0 };
   } catch { return { pos: null, posC: null }; }
 }
@@ -78,33 +99,58 @@ export async function positivacaoPorGrupos(db, filial, grupos, mes = hojeBRT().s
   const out = new Map([...grupos.keys()].map((g) => [g, { pos: 0, posC: 0 }]));
   if (!pares.length) return out;
   try {
-    const R = (await db.prepare(`WITH m(r, g) AS (VALUES ${pares.join(',')}) SELECT g, sum(CASE WHEN f > 0 THEN 1 ELSE 0 END) pos, sum(CASE WHEN f > 0 OR c > 0 THEN 1 ELSE 0 END) posc FROM (SELECT m.g g, coalesce(x.cnpj, x.cliente) k, sum(json_extract(x.dados, '$."Faturado líquido (R$)"')) f, sum(json_extract(x.dados, '$."Carteira pendente (R$)"')) c FROM gerot_cliente_mes x JOIN m ON CAST(x.rca AS INTEGER) = m.r WHERE x.mes = ? AND x.filial = ? GROUP BY m.g, k) GROUP BY g`).bind(mes, filial).all()).results || [];
+    const R = (await db.prepare(`WITH m(r, g) AS (VALUES ${pares.join(',')}) SELECT g, sum(CASE WHEN f > 0 THEN 1 ELSE 0 END) pos, sum(CASE WHEN f > 0 OR c > 0 THEN 1 ELSE 0 END) posc FROM (SELECT m.g g, coalesce(x.cnpj, x.cliente) k, sum(coalesce(x.fat_liq, json_extract(x.dados, '$."Faturado líquido (R$)"'))) f, sum(coalesce(x.carteira, json_extract(x.dados, '$."Carteira pendente (R$)"'))) c FROM gerot_cliente_mes x JOIN m ON COALESCE(x.rca_int, CAST(x.rca AS INTEGER)) = m.r WHERE x.mes = ? AND x.filial = ? GROUP BY m.g, k) GROUP BY g`).bind(mes, filial).all()).results || [];
     for (const r of R) out.set(nomes.get(Number(r.g)), { pos: Number(r.pos) || 0, posC: Number(r.posc) || 0 });
     return out;
   } catch { return null; }
 }
 
-// linhas de vendedor do GEROT de uma filial (cache por db+mes+filial com TTL de 30 s no isolate Cloudflare)
-const CACHE = new WeakMap();
-const TTL_VG = 30000;
-export async function vendedoresGerot(db, filial, mes = hojeBRT().slice(0, 7)) {
-  let c = CACHE.get(db); if (!c) { c = new Map(); CACHE.set(db, c); }
-  const k = mes + '|' + filial, agora = Date.now(), hit = c.get(k);
-  if (!hit || agora >= hit.exp) {
-    const busca = async () => {
-      for (const espera of [0, 250]) {
-        if (espera) await new Promise((ok) => setTimeout(ok, espera));
-        try {
-          const r = await db.prepare('SELECT rca, cod_sup, supervisor, vendedor, dados FROM gerot_vendedor_mes WHERE mes = ? AND filial = ?').bind(mes, filial).all();
-          return (r.results || []).map((x) => ({ rca: rcaN(x.rca), cod_sup: String(x.cod_sup || ''), supervisor: x.supervisor, vendedor: x.vendedor, d: parse(x.dados) }));
-        } catch { /* tenta novamente */ }
-      }
-      c.delete(k);
-      return null;
-    };
-    c.set(k, { exp: agora + TTL_VG, p: busca() });
-  }
-  return c.get(k).p;
+// linhas de filial / supervisor / vendedor do GEROT (cache 30 s por isolate)
+export async function filiaisGerot(db, mes = hojeBRT().slice(0, 7)) {
+  if (!db) return null;
+  return comCache(CACHE_FIL, db, mes, async () => {
+    const r = await db.prepare('SELECT filial, dados, fat_liq, meta, carteira, captacao, pos, meta_pos, mc_rs, mc_pct, cortes_rs, tmf_dias, em FROM gerot_filial_mes WHERE mes = ? ORDER BY filial').bind(mes).all();
+    return (r.results || []).map((x) => {
+      const d = parse(x.dados);
+      return { filial: x.filial, d, em: x.em, fat: num(x.fat_liq) ?? num(d[CAMPO.fat]), meta: num(x.meta) ?? num(d[CAMPO.meta]), cart: num(x.carteira) ?? num(d[CAMPO.cart]), cap: num(x.captacao) ?? num(d[CAMPO.cap]), pos: num(x.pos) ?? num(d[CAMPO.pos]), metaPos: num(x.meta_pos) ?? num(d[CAMPO.metaPos]), mcRs: num(x.mc_rs) ?? num(d[CAMPO.margem]), mcPct: num(x.mc_pct), cortesRs: num(x.cortes_rs), tmf: num(x.tmf_dias) };
+    });
+  });
+}
+
+export async function supervisoresGerot(db, filial = null, mes = hojeBRT().slice(0, 7)) {
+  if (!db) return null;
+  return comCache(CACHE_SUP, db, mes + '|' + (filial || '*'), async () => {
+    const q = filial
+      ? db.prepare('SELECT filial, cod_sup, supervisor, dados, fat_liq, meta, carteira, captacao, pos, meta_pos, mc_rs, mc_pct, cortes_rs, em FROM gerot_supervisor_mes WHERE mes = ? AND filial = ? ORDER BY supervisor').bind(mes, filial)
+      : db.prepare('SELECT filial, cod_sup, supervisor, dados, fat_liq, meta, carteira, captacao, pos, meta_pos, mc_rs, mc_pct, cortes_rs, em FROM gerot_supervisor_mes WHERE mes = ? ORDER BY filial, supervisor').bind(mes);
+    const r = await q.all();
+    return (r.results || []).map((x) => {
+      const d = parse(x.dados);
+      return { filial: x.filial, cod_sup: String(x.cod_sup || ''), supervisor: x.supervisor, d, em: x.em, fat: num(x.fat_liq) ?? num(d[CAMPO.fat]), meta: num(x.meta) ?? num(d[CAMPO.meta]), cart: num(x.carteira) ?? num(d[CAMPO.cart]), cap: num(x.captacao) ?? num(d[CAMPO.cap]), pos: num(x.pos) ?? num(d[CAMPO.pos]), metaPos: num(x.meta_pos) ?? num(d[CAMPO.metaPos]), mcRs: num(x.mc_rs) ?? num(d[CAMPO.margem]), mcPct: num(x.mc_pct), cortesRs: num(x.cortes_rs) };
+    });
+  });
+}
+
+export async function historicoFilialGerot(db, meses, filiais = null) {
+  if (!db || !Array.isArray(meses) || !meses.length) return [];
+  const qs = meses.map(() => '?').join(',');
+  const r = await db.prepare(`SELECT mes, filial, SUM(COALESCE(fat_liq, json_extract(dados, '$."Faturado líquido (R$)"'))) fat FROM gerot_vendas WHERE mes IN (${qs}) GROUP BY mes, filial`).bind(...meses).all();
+  const rows = r.results || [];
+  return filiais && filiais.length ? rows.filter((x) => filiais.includes(x.filial)) : rows;
+}
+
+export async function vendedoresGerot(db, filial = null, mes = hojeBRT().slice(0, 7)) {
+  if (!db) return null;
+  return comCache(CACHE, db, mes + '|' + (filial || '*'), async () => {
+    const q = filial
+      ? db.prepare('SELECT filial, rca, cod_sup, supervisor, vendedor, dados, fat_liq, meta, carteira, captacao, pos, meta_pos, mc_rs, mc_pct, cortes_rs, em FROM gerot_vendedor_mes WHERE mes = ? AND filial = ? ORDER BY vendedor').bind(mes, filial)
+      : db.prepare('SELECT filial, rca, cod_sup, supervisor, vendedor, dados, fat_liq, meta, carteira, captacao, pos, meta_pos, mc_rs, mc_pct, cortes_rs, em FROM gerot_vendedor_mes WHERE mes = ? ORDER BY filial, vendedor').bind(mes);
+    const r = await q.all();
+    return (r.results || []).map((x) => {
+      const d = parse(x.dados);
+      return { filial: x.filial, rca: rcaN(x.rca), rcaRaw: String(x.rca || ''), cod_sup: String(x.cod_sup || ''), supervisor: x.supervisor, vendedor: x.vendedor, d, em: x.em, fat: num(x.fat_liq) ?? num(d[CAMPO.fat]), meta: num(x.meta) ?? num(d[CAMPO.meta]), cart: num(x.carteira) ?? num(d[CAMPO.cart]), cap: num(x.captacao) ?? num(d[CAMPO.cap]), pos: num(x.pos) ?? num(d[CAMPO.pos]), metaPos: num(x.meta_pos) ?? num(d[CAMPO.metaPos]) };
+    });
+  });
 }
 
 // KPIs DO MÊS de um recorte.
@@ -115,10 +161,10 @@ export async function kpisMes(db, { nivel, filiais = [], rcas = null, supCod = n
   if (!db) return null;
   const du = diasUteis(), posicao = await posicaoGerot(db);
   if (nivel === 'brasil' || nivel === 'filial') {
-    let R = []; try { R = (await db.prepare('SELECT filial, dados FROM gerot_filial_mes WHERE mes = ?').bind(mes).all()).results || []; } catch { return null; }
+    let R = await filiaisGerot(db, mes); if (!R) return null;
     if (filiais && filiais.length) R = R.filter((r) => filiais.includes(r.filial));
     if (!R.length) return null;
-    const D = R.map((r) => parse(r.dados)), o = somaLinhas(D);
+    const D = R.map((r) => r.d), o = somaLinhas(D);
     const s = (k) => { const vs = D.map((d) => num(d[CAMPO[k]])).filter((x) => x != null); return vs.length ? vs.reduce((a, b) => a + b, 0) : null; };
     o.pos = s('pos'); o.posC = s('posC'); o.metaPos = s('metaPos'); o.posM1 = s('posM1'); o.metaPosRotulo = 'meta de positivação do GEROT';
     o.porFilial = Object.fromEntries(R.map((r, i) => { const x = completa({ ...somaLinhas([D[i]]), pos: num(D[i][CAMPO.pos]), posC: num(D[i][CAMPO.posC]), metaPos: num(D[i][CAMPO.metaPos]) }, D[i], true, du); return [r.filial, x]; }));
@@ -140,8 +186,12 @@ export async function kpisMes(db, { nivel, filiais = [], rcas = null, supCod = n
     else {
       // meta de positivação do grupo (manual na Gestao de Equipe) ou da equipe (supervisor no GEROT)
       o.metaPos = null; o.metaPosRotulo = null;
-      if (nivel === 'equipe' && supCod) { try { const s = await db.prepare('SELECT dados FROM gerot_supervisor_mes WHERE mes = ? AND filial = ? AND cod_sup = ?').bind(mes, filial, String(supCod)).first(); const m = s ? num(parse(s.dados)[CAMPO.metaPos]) : null; if (m != null) { o.metaPos = m; o.metaPosRotulo = 'meta de positivação do supervisor no GEROT'; } } catch { /* sem linha */ } }
-      else if (nivel === 'grupo' && grupo) {
+      if (nivel === 'equipe' && supCod) {
+        const sups = await supervisoresGerot(db, filial, mes).catch(() => []);
+        const s = (sups || []).find((x) => String(x.cod_sup) === String(supCod));
+        const m = s ? num(s.d[CAMPO.metaPos]) : null;
+        if (m != null) { o.metaPos = m; o.metaPosRotulo = 'meta de positivação do supervisor no GEROT'; }
+      } else if (nivel === 'grupo' && grupo) {
         try {
           const c = parse(((await db.prepare('SELECT conteudo_json FROM config_equipe_soberana LIMIT 1').first()) || {}).conteudo_json);
           const mg = c && c.metas_pos_grupo ? num(c.metas_pos_grupo[String(filial).toUpperCase() + '|' + String(grupo).toUpperCase()]) : null;
@@ -158,7 +208,7 @@ export async function carteira(db, { filiais = [], rcas = null } = {}) {
   if (!db) return null;
   const w = [], b = [];
   if (filiais && filiais.length) { w.push(`filial IN (${filiais.map(() => '?').join(',')})`); b.push(...filiais); }
-  if (rcas) { const l = rcas.map(Number).filter((x) => !Number.isNaN(x)); w.push(`CAST(rca AS INTEGER) IN (${l.join(',') || -1})`); }
+  if (rcas) { const l = rcas.map(Number).filter((x) => !Number.isNaN(x)); w.push(`COALESCE(rca_int, CAST(rca AS INTEGER)) IN (${l.join(',') || -1})`); }
   let R; try { R = (await db.prepare(`SELECT situacao, count(*) n, sum(valor) v FROM gerot_carteira${w.length ? ' WHERE ' + w.join(' AND ') : ''} GROUP BY situacao`).bind(...b).all()).results || []; } catch { return null; }
   const o = { porSituacao: {}, total: { v: 0, n: 0 }, bloqueado: { v: 0, n: 0 }, bloqFin: { v: 0, n: 0 }, bloqCom: { v: 0, n: 0 }, faturavel: { v: 0, n: 0 } };
   const add = (a, r) => { a.v += Number(r.v) || 0; a.n += Number(r.n) || 0; };

@@ -8,7 +8,7 @@
 // RITMO = o do GEROT: captacao do mes / meta ideal de captacao de hoje. Nao e projecao do Jota: e a regua do GEROT. Nada estimado.
 // ==========================================================================================
 import { N, R$, hojeSP } from '../base.js';
-import { diasUteis } from '../../fatos/index.js';
+import { diasUteis, filiaisGerot, historicoFilialGerot, posicaoGerot } from '../../fatos/index.js';
 
 const K = {
   fat: 'Faturado líquido (R$)', cart: 'Carteira pendente (R$)', fc: 'Faturado + Carteira (R$)', meta: 'Meta (R$)',
@@ -28,10 +28,10 @@ const rotMes = (mes) => `${NOME_MES[Number(mes.slice(5)) - 1]}/${mes.slice(2, 4)
 export async function lerGerotMes(B, filiais = null) {
   if (!B || !B.env || !B.env.DB) return null;
   const db = B.env.DB, mes = hojeSP().slice(0, 7);
-  let R = []; try { R = (await db.prepare('SELECT filial, dados FROM gerot_filial_mes WHERE mes = ?').bind(mes).all()).results || []; } catch (e) { return null; }
+  let R = await filiaisGerot(db, mes).catch(() => null); if (!R) return null;
   if (filiais && filiais.length) R = R.filter((r) => filiais.includes(r.filial));
   if (!R.length) return null;
-  const F = R.map((r) => { let d = {}; try { d = JSON.parse(r.dados || '{}'); } catch (e) { d = {}; } const o = { filial: r.filial }; for (const [k, lab] of Object.entries(K)) o[k] = num(d, lab); o.bench = (() => { const kb = Object.keys(d).find((x) => /^Positivação Bench/i.test(x)); return kb ? { rot: kb.replace(/^Positivação Bench\s*/i, ''), v: Number(d[kb]) } : null; })(); return o; });
+  const F = R.map((r) => { const d = r.d || {}; const o = { filial: r.filial }; for (const [k, lab] of Object.entries(K)) o[k] = num(d, lab); o.bench = (() => { const kb = Object.keys(d).find((x) => /^Positivação Bench/i.test(x)); return kb ? { rot: kb.replace(/^Positivação Bench\s*/i, ''), v: Number(d[kb]) } : null; })(); return o; });
   const T = { filial: 'Brasil' };
   for (const k of Object.keys(K)) { const vs = F.map((x) => x[k]).filter((x) => x != null); T[k] = vs.length ? vs.reduce((a, b) => a + b, 0) : null; }
   if (F.length > 1 && T.meta != null && T.cap != null) { const du = diasUteis(); T.nec = du.restantes > 0 ? Math.max(0, T.meta - T.cap) / du.restantes : 0; }
@@ -42,16 +42,15 @@ export async function lerGerotMes(B, filiais = null) {
   const meses = [mesMenos(mes, 1), mesMenos(mes, 2), mesMenos(mes, 3), mesMenos(mes, 12)];
   const H = new Map();
   try {
-    const qs = meses.map(() => '?').join(',');
-    const { results } = await db.prepare(`SELECT mes, filial, SUM(json_extract(dados, '$."Faturado líquido (R$)"')) fat FROM gerot_vendas WHERE mes IN (${qs}) GROUP BY mes, filial`).bind(...meses).all();
-    for (const r of results || []) if (!filiais || !filiais.length || filiais.includes(r.filial)) H.set(r.mes + '|' + r.filial, Number(r.fat) || 0);
+    const results = await historicoFilialGerot(db, meses, filiais);
+    for (const r of results || []) H.set(r.mes + '|' + r.filial, Number(r.fat) || 0);
   } catch (e) { /* sem historico: sem comparativo de faturado */ }
   const hist = (fil) => { const v = (m) => (fil ? H.get(m + '|' + fil) : [...H.entries()].filter(([k]) => k.startsWith(m + '|')).reduce((a, [, x]) => a + x, 0)) ?? null;
     const tem = (m) => (fil ? H.has(m + '|' + fil) : [...H.keys()].some((k) => k.startsWith(m + '|')));
     const m1 = tem(meses[0]) ? v(meses[0]) : null, tres = [0, 1, 2].every((i) => tem(meses[i])) ? (v(meses[0]) + v(meses[1]) + v(meses[2])) / 3 : null, a1 = tem(meses[3]) ? v(meses[3]) : null;
     return { m1, tres, a1 }; };
   T.hist = hist(null); for (const x of F) x.hist = hist(x.filial);
-  let pos = null; try { const st = await db.prepare('SELECT posicao FROM gerot_coleta_status WHERE mes = ? ORDER BY id DESC LIMIT 1').bind(mes).first(); pos = st && st.posicao ? st.posicao.replace(/^Atual\s*·\s*/, '') : null; } catch (e) { /* sem status */ }
+  const pos = await posicaoGerot(db, mes).catch(() => null);
   return { mes, F, T, pos, meses };
 }
 

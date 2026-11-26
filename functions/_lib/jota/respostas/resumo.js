@@ -8,6 +8,7 @@ import { N, P, R$, SUGESTAO, VAREJO, diasUteisRestantes, hojeSP, nome2, sem, tit
 import { agrupa, kpisDoEscopo, listaNomes, pctTxt, rcasEquipeGestao, rcasGrupoGestao, supChave, supNome, supReal } from '../escopo.js';
 import { diasUteisMes } from './gestao.js';
 import { diasUteis as diasUteisGerot } from '../../fatos/dias.js';
+import { kpisMes } from '../../fatos/index.js';
 // RITMO DO GEROT (17/11/2026, Vitorio: "ta errado sua tendencia"): captacao do mes / meta ideal de captacao de hoje, a regua do proprio GEROT.
 // Vale para o Brasil e para a filial inteira (gerot_filial_mes). Sem esses campos devolve null e a resposta mostra a conta antiga.
 async function ritmoGerot(B, E) {
@@ -22,15 +23,17 @@ export async function posGerotFiliais(B) {
   if (!B || !B.env || !B.env.DB) return m;
   try {
     const mes = hojeSP().slice(0, 7);
-    const { results } = await B.env.DB.prepare("SELECT filial, coalesce(json_extract(dados,'$.\"Positivação (filial + CNPJ)\"'), json_extract(dados,'$.\"Positivação (filial)\"')) pos, coalesce(json_extract(dados,'$.\"Meta de positivação\"'), json_extract(dados,'$.\"Meta clientes\"')) meta_pos, json_extract(dados,'$.\"Faturado líquido (R$)\"') fat, json_extract(dados,'$.\"Carteira pendente (R$)\"') pend, json_extract(dados,'$.\"Meta (R$)\"') meta, json_extract(dados,'$.\"Devolução (R$)\"') dev FROM gerot_filial_mes WHERE mes = ?").bind(mes).all();
-    for (const r of results || []) if (r.pos != null || r.fat != null) m.set(r.filial, {
-      pos: Number(r.pos) || 0,
-      metaPos: r.meta_pos != null ? Number(r.meta_pos) || 0 : null,
-      fat: r.fat != null ? Number(r.fat) : null,
-      pend: r.pend != null ? Number(r.pend) : null,
-      meta: r.meta != null ? Number(r.meta) : null,
-      dev: r.dev != null ? Number(r.dev) : null,
-    });
+    const K = await kpisMes(B.env.DB, { nivel: 'brasil', mes });
+    for (const [filial, kf] of Object.entries((K && K.porFilial) || {})) {
+      if (kf.pos != null || kf.fat != null) m.set(filial, {
+        pos: Number(kf.pos) || 0,
+        metaPos: kf.metaPos != null ? Number(kf.metaPos) || 0 : null,
+        fat: kf.fat != null ? Number(kf.fat) : null,
+        pend: kf.cart != null ? Number(kf.cart) : null,
+        meta: kf.meta != null ? Number(kf.meta) : null,
+        dev: kf.dev != null ? Number(kf.dev) : null,
+      });
+    }
   } catch { /* tabela ainda nao populada */ }
   return m;
 }
@@ -251,9 +254,11 @@ export async function respVendedor(B, E, v, opt = {}) {   /* opt.tudo = "ver mai
   let gPos = null, gPosEm = null, DC = null;
   if (B.env && B.env.DB) {
     try {
-      const g = await B.env.DB.prepare("SELECT MAX(coalesce(json_extract(dados, '$.\"Positivação (filial + CNPJ)\"'), json_extract(dados, '$.\"Positivação (filial)\"'))) p, MAX(coalesce(json_extract(dados, '$.\"Meta de positivação\"'), json_extract(dados, '$.\"Meta clientes\"'))) m, MAX(em) em FROM gerot_vendedor_mes WHERE mes = ? AND filial = ? AND rca = ?").bind(hojeSP().slice(0, 7), String(v.filial), String(v.rca)).first();
-      if (g && g.p != null) { gPos = { p: Number(g.p) || 0, m: g.m != null ? Number(g.m) : null }; }
-      const st = await B.env.DB.prepare('SELECT posicao FROM gerot_coleta_status ORDER BY id DESC LIMIT 1').first(); gPosEm = st && st.posicao ? String(st.posicao).replace(/^Atual\s*·\s*/i, '') : null;
+      const kg = await kpisMes(B.env.DB, { nivel: 'vendedor', filiais: [String(v.filial)], rcas: [String(v.rca)], mes: hojeSP().slice(0, 7) });
+      if (kg) {
+        if (kg.pos != null) gPos = { p: Number(kg.pos) || 0, m: kg.metaPos != null ? Number(kg.metaPos) : null };
+        gPosEm = kg.posicao || null;
+      }
     } catch (e) { /* sem GEROT: fica o painel */ }
     try { const { diaClube } = await import('./momentos.js'); DC = await diaClube(B, v); } catch (e) { DC = null; }
   }

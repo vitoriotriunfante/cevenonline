@@ -12,6 +12,7 @@ import { hojeSP, R$, N, sem, titulo } from './base.js';
 import { confereIA } from './confere_ia.js';
 import { nomeForn } from './respostas/metas_industria.js';
 import { carregarContextoAprendido } from './aprendizado.js';
+import { filiaisGerot, supervisoresGerot, posicaoGerot } from '../fatos/index.js';
 
 const MODELO_WORKERS_AI = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
 
@@ -39,38 +40,32 @@ async function montarComplemento360(env, escIA) {
   const soRca = escIA?.rca ? String(escIA.rca) : null;
   const soSup = !soRca && escIA?.supervisor ? String(escIA.supervisor) : null;
 
-  const [filGerotRows, supGerotRows, indRows, bloqRows, cartHojeRows, gerotStRow, aprendizados, briefingRows] = await Promise.all([
+  const [filList, supList, indRows, bloqRows, cartHojeRows, gerotPosStr, aprendizados, briefingRows] = await Promise.all([
     soRca || soSup
-      ? Promise.resolve({ results: [] })
-      : (temFil
-        ? db.prepare(`SELECT filial, dados FROM gerot_filial_mes WHERE mes = ? AND filial IN (${qs})`).bind(mes, ...filiais)
-        : db.prepare('SELECT filial, dados FROM gerot_filial_mes WHERE mes = ?').bind(mes)
-      ).all().catch(() => ({ results: [] })),
+      ? Promise.resolve([])
+      : filiaisGerot(db, mes).then((rs) => (rs || []).filter((r) => !temFil || filiais.includes(r.filial))).catch(() => []),
     soRca
-      ? Promise.resolve({ results: [] })
-      : (temFil
-        ? db.prepare(`SELECT filial, cod_sup, supervisor, dados FROM gerot_supervisor_mes WHERE mes = ? AND filial IN (${qs})`).bind(mes, ...filiais)
-        : db.prepare('SELECT filial, cod_sup, supervisor, dados FROM gerot_supervisor_mes WHERE mes = ?').bind(mes)
-      ).all().catch(() => ({ results: [] })),
+      ? Promise.resolve([])
+      : supervisoresGerot(db, temFil && filiais.length === 1 ? filiais[0] : null, mes).then((rs) => (rs || []).filter((r) => !temFil || filiais.includes(r.filial))).catch(() => []),
     soRca && filiais[0]
-      ? db.prepare('SELECT filial, rca, cod_sup, supervisor, dados FROM gerot_vendas WHERE mes = ? AND filial = ? AND rca = ?').bind(mes, filiais[0], soRca).all().catch(() => ({ results: [] }))
+      ? db.prepare('SELECT filial, rca, cod_sup, supervisor, dados FROM gerot_vendas WHERE mes = ? AND filial = ? AND COALESCE(rca_int, CAST(rca AS INTEGER)) = ?').bind(mes, filiais[0], Number(soRca) || 0).all().catch(() => ({ results: [] }))
       : (temFil
         ? db.prepare(`SELECT filial, rca, cod_sup, supervisor, dados FROM gerot_vendas WHERE mes = ? AND filial IN (${qs})`).bind(mes, ...filiais)
         : db.prepare('SELECT filial, rca, cod_sup, supervisor, dados FROM gerot_vendas WHERE mes = ?').bind(mes)
       ).all().catch(() => ({ results: [] })),
     soRca && filiais[0]
-      ? /* 23/11/2026 (dicionario 3.11, conflito 8): bloqueados = gerot_carteira, nunca pedido_status (esparso) */ db.prepare("SELECT 'BLOQUEADO' status, COUNT(*) qtd, SUM(valor) vlr FROM gerot_carteira WHERE filial = ? AND CAST(rca AS INTEGER) = ? AND situacao LIKE 'Bloqueado%'").bind(filiais[0], Number(soRca)).all().catch(() => ({ results: [] }))
+      ? /* 23/11/2026 (dicionario 3.11, conflito 8): bloqueados = gerot_carteira, nunca pedido_status (esparso) */ db.prepare("SELECT 'BLOQUEADO' status, COUNT(*) qtd, SUM(valor) vlr FROM gerot_carteira WHERE filial = ? AND COALESCE(rca_int, CAST(rca AS INTEGER)) = ? AND situacao LIKE 'Bloqueado%'").bind(filiais[0], Number(soRca)).all().catch(() => ({ results: [] }))
       : (temFil
         ? db.prepare(`SELECT 'BLOQUEADO' status, COUNT(*) qtd, SUM(valor) vlr FROM gerot_carteira WHERE filial IN (${qs}) AND situacao LIKE 'Bloqueado%'`).bind(...filiais)
         : db.prepare("SELECT 'BLOQUEADO' status, COUNT(*) qtd, SUM(valor) vlr FROM gerot_carteira WHERE situacao LIKE 'Bloqueado%'")
       ).all().catch(() => ({ results: [] })),
     (soRca && filiais[0]
-      ? db.prepare('SELECT filial, rca, cod_sup, supervisor, fornecedores FROM (SELECT c.filial, c.rca, "" cod_sup, "" supervisor, c.fornecedores FROM gerot_carteira c WHERE c.entrada = ? AND c.filial = ? AND CAST(c.rca AS INTEGER) = ?)').bind(hoje, filiais[0], Number(soRca))
+      ? db.prepare('SELECT filial, rca, cod_sup, supervisor, fornecedores FROM (SELECT c.filial, c.rca, "" cod_sup, "" supervisor, c.fornecedores FROM gerot_carteira c WHERE c.entrada = ? AND c.filial = ? AND COALESCE(c.rca_int, CAST(c.rca AS INTEGER)) = ?)').bind(hoje, filiais[0], Number(soRca))
       : temFil
         ? db.prepare(`SELECT filial, rca, sup_cod AS cod_sup, "" supervisor, fornecedores FROM gerot_carteira WHERE entrada = ? AND filial IN (${qs})`).bind(hoje, ...filiais)
         : db.prepare('SELECT filial, rca, sup_cod AS cod_sup, "" supervisor, fornecedores FROM gerot_carteira WHERE entrada = ?').bind(hoje)
     ).all().catch(() => ({ results: [] })),
-    db.prepare('SELECT posicao, em FROM gerot_coleta_status WHERE mes = ? ORDER BY id DESC LIMIT 1').bind(mes).first().catch(() => null),
+    posicaoGerot(db, mes).catch(() => null),
     carregarContextoAprendido(db, 6),
     (soRca || soSup)
       ? Promise.resolve({ results: [] })
@@ -88,9 +83,8 @@ async function montarComplemento360(env, escIA) {
 
   let gMeta = 0, gFat = 0, gCart = 0, gPos = 0, gMetaPos = 0, gDev = 0, gCorte = 0, gDesc = 0, gBonif = 0;
   const gFiliais = [];
-  for (const r of filGerotRows.results || []) {
-    let d = {};
-    try { d = JSON.parse(r.dados || '{}'); } catch { continue; }
+  for (const r of filList || []) {
+    const d = r.d || {};
     const meta = Number(d['Meta (R$)']) || 0, fat = Number(d['Faturado líquido (R$)']) || 0, cart = Number(d['Carteira pendente (R$)']) || 0;
     const pos = Number(d['Positivação (filial + CNPJ)'] ?? d['Positivação (filial)']) || 0, metaPos = Number(d['Meta de positivação'] ?? d['Meta clientes']) || 0;
     const dev = Number(d['Devolução (R$)']) || 0, corte = Number(d['Cortes total (R$)'] ?? d['Corte total (R$)']) || 0;
@@ -103,11 +97,10 @@ async function montarComplemento360(env, escIA) {
 
   const gSups = [];
   const supCodsAlvo = new Set();
-  for (const r of supGerotRows.results || []) {
+  for (const r of supList || []) {
     if (soSup && !supMatches(r.supervisor)) continue;
     if (r.cod_sup) supCodsAlvo.add(String(r.cod_sup));
-    let d = {};
-    try { d = JSON.parse(r.dados || '{}'); } catch { continue; }
+    const d = r.d || {};
     const meta = Number(d['Meta (R$)']) || 0, fat = Number(d['Faturado líquido (R$)']) || 0, cart = Number(d['Carteira pendente (R$)']) || 0;
     if (soSup) {
       gMeta += meta; gFat += fat; gCart += cart;
@@ -216,7 +209,7 @@ async function montarComplemento360(env, escIA) {
   const indSemVendaMes = todasInd.filter((x) => (x.fat + x.pend) <= 0).map((x) => x.ind).sort();
   const indComPedidoHoje = todasInd.filter((x) => comPedHojeInd.has(x.ind)).map((x) => x.ind).sort();
   const indSemPedidoHoje = todasInd.filter((x) => !comPedHojeInd.has(x.ind)).map((x) => x.ind).sort();
-  const gerotPos = gerotStRow && (gerotStRow.posicao || gerotStRow.em) ? `${gerotStRow.posicao || ''} (${gerotStRow.em ? new Date(gerotStRow.em).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }) : ''})` : 'GEROT';
+  const gerotPos = gerotPosStr || 'GEROT';
   const indZeroTxt = todasInd.length ? [
     `=== INDÚSTRIAS COM META: SEM VENDA NO MÊS E HOJE (${gerotPos}) ===`,
     `Total de indústrias com meta cadastrada no escopo: ${todasInd.length}`,

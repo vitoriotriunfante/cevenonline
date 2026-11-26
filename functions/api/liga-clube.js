@@ -20,6 +20,7 @@ import { chaveEvoValida } from '../_lib/chave_evo.js';
 import { ocultosDaEquipe, lanceDeOculto } from '../_lib/equipe_ocultos.js';
 import { diaSemLance, ehFeriado } from '../_lib/feriados.js';
 import { fechaDia } from '../_lib/liga_fechamento.js';
+import { vendedoresGerot } from '../_lib/fatos/index.js';
 
 // GPS (copia da regra de functions/api/cron-lances.js): distancia em metros e pontos da empresa (GPS nao captado = nunca impedimento)
 const DEV_COMERCIAL = /SEM DINHEIRO|COND.{1,3}PAGTO|EMITIU COD|PEDIDO DUPLICADO|RECUSOU MERC|PRECO DIFERENTE/;   // igual ao cron-lances.js
@@ -144,7 +145,16 @@ export async function calculaLances(env, origin, dia, conferir = false) {
   const tags = new Map(), comTag = new Set();
   try { const { results } = await db.prepare('SELECT filial, rca, id_cliente, tag FROM cliente_focos').all(); for (const t of results || []) { comTag.add(`${t.filial}|${t.rca}`); if (/RECORR/i.test(t.tag || '')) tags.set(`${t.filial}|${String(t.id_cliente).replace(/\D/g, '')}`, true); } } catch (e) { /* sem tags */ }
   // META x FATURADO DO MES (GEROT) para o campeao + campeao ja dado no mes
-  const metaFat = new Map(); try { const { results } = await db.prepare(`SELECT filial, rca, SUM(coalesce(json_extract(dados, '$."Meta (R$)"'), 0)) m, SUM(coalesce(json_extract(dados, '$."Faturado líquido (R$)"'), 0)) f FROM gerot_vendedor_mes WHERE mes = ? GROUP BY filial, rca`).bind(dia.slice(0, 7)).all(); for (const r of results || []) metaFat.set(`${r.filial}|${r.rca}`, { meta: Number(r.m) || 0, fat: Number(r.f) || 0 }); } catch (e) { /* sem GEROT */ }
+  const metaFat = new Map();
+  try {
+    const vg = (await vendedoresGerot(db, null, dia.slice(0, 7))) || [];
+    for (const r of vg) {
+      const k = `${r.filial}|${r.rcaRaw || r.rca}`, cur = metaFat.get(k) || { meta: 0, fat: 0 };
+      cur.meta += Number(r.meta) || 0;
+      cur.fat += Number(r.fat) || 0;
+      metaFat.set(k, cur);
+    }
+  } catch (e) { /* sem GEROT */ }
   const campeaoJa = new Set(); try { const { results } = await db.prepare("SELECT filial, rca FROM tv_lances WHERE chave LIKE 'gol_campeao|%' AND dia >= ? AND dia < ?").bind(dia.slice(0, 8) + '01', dia).all(); for (const r of results || []) campeaoJa.add(`${r.filial}|${r.rca}`); } catch (e) { /* segue */ }
   const hatJa = new Set(); if (!conferir) try { const { results } = await db.prepare("SELECT filial, rca FROM tv_lances WHERE dia = ? AND chave LIKE 'gol_hattrick|%'").bind(dia).all(); for (const r of results || []) hatJa.add(`${r.filial}|${r.rca}`); } catch (e) { /* segue */ }
 

@@ -7,6 +7,7 @@ import { N, P, R$, SUGESTAO, diasUteisRestantes, hojeSP, nome2, sem, titulo, vn 
 import { agrupa, carregaEscopo, pctTxt, pessoaReal, sn, supChave, supNome, supReal } from '../escopo.js';
 import { totaisOficiais } from './resumo.js';
 import { ehFeriado } from '../../feriados.js';
+import { filiaisGerot, vendedoresGerot, posicaoGerot, kpisMes } from '../../fatos/index.js';
 
 // ---------- PERGUNTAS DA REUNIAO DE 5 H (25/10/2026) que o dado do site ja responde ----------
 export function diasUteisMes() {
@@ -88,9 +89,8 @@ export async function respComparar(B, fs) {
   const gFil = new Map();
   if (B && B.env && B.env.DB) {
     try {
-      const mes = hojeSP().slice(0, 7);
-      const { results } = await B.env.DB.prepare("SELECT filial, coalesce(json_extract(dados,'$.\"Positivação (filial + CNPJ)\"'), json_extract(dados,'$.\"Positivação (filial)\"')) pos, coalesce(json_extract(dados,'$.\"Meta de positivação\"'), json_extract(dados,'$.\"Meta clientes\"')) meta_pos FROM gerot_filial_mes WHERE mes = ?").bind(mes).all();
-      for (const r of results || []) if (r.pos != null) gFil.set(r.filial, { pos: Number(r.pos) || 0, metaPos: r.meta_pos != null ? Number(r.meta_pos) || 0 : null });
+      const K = await kpisMes(B.env.DB, { nivel: 'filial', filiais: fs, mes: hojeSP().slice(0, 7) });
+      for (const [f, kf] of Object.entries((K && K.porFilial) || {})) if (kf.pos != null) gFil.set(f, { pos: Number(kf.pos) || 0, metaPos: kf.metaPos != null ? Number(kf.metaPos) || 0 : null });
     } catch { /* segue com soma */ }
   }
   const F = fs.map((sigla) => {
@@ -164,12 +164,12 @@ export async function respMaiorAtrasoMeta(B, E) {
   if (!B || !B.env || !B.env.DB) return null;
   const mes = hojeSP().slice(0, 7), { dec, falt } = diasUteisAgora();
   const fil = (E.filiais || []).length ? E.filiais : ['ABC', 'API', 'MCD', 'TBE', 'TBL', 'TCA', 'TCG', 'TCV', 'TPA', 'TPH', 'TSJ'];
-  const qs = fil.map(() => '?').join(',');
-  const { results } = await B.env.DB.prepare(`SELECT filial, rca, supervisor, vendedor, dados FROM gerot_vendedor_mes WHERE mes = ? AND filial IN (${qs})`).bind(mes, ...fil).all().catch(() => ({ results: [] }));
-  let rows = (results || []).map((r) => {
-    let d = {}; try { d = JSON.parse(r.dados || '{}'); } catch {}
+  const porF = await Promise.all(fil.map((f) => vendedoresGerot(B.env.DB, f, mes).catch(() => [])));
+  const results = porF.flat().filter(Boolean);
+  let rows = results.map((r) => {
+    const d = r.d || {};
     const meta = Number(d['Meta (R$)']) || 0, fat = Number(d['Faturado líquido (R$)']) || 0, pend = Number(d['Carteira pendente (R$)']) || 0, vend = fat + pend;
-    return { filial: r.filial, rca: r.rca, sup: r.supervisor || '', nome: r.vendedor || '', meta, vend, pct: meta > 0 ? (vend / meta) * 100 : null, falta: Math.max(0, meta - vend), nec: d['Necessidade dia captação (R$)'] == null ? null : Number(d['Necessidade dia captação (R$)']) };   /* 23/11/2026: precisa/dia = o do GEROT (3.8) */
+    return { filial: r.filial, rca: r.rcaRaw || r.rca, sup: r.supervisor || '', nome: r.vendedor || '', meta, vend, pct: meta > 0 ? (vend / meta) * 100 : null, falta: Math.max(0, meta - vend), nec: d['Necessidade dia captação (R$)'] == null ? null : Number(d['Necessidade dia captação (R$)']) };   /* 23/11/2026: precisa/dia = o do GEROT (3.8) */
   }).filter((x) => x.meta > 0 && x.falta > 0);
   if (E.supervisor) {
     const sAlvo = sem(E.supervisor);
@@ -220,9 +220,8 @@ export async function respFaseamentoSemana(B, E, t) {
   let meta = 0, vend = 0;
   if (B && B.env && B.env.DB && !E.rca && !E.supervisor) {
     const mes = hojeSP().slice(0, 7), fil = (E.filiais || []).length ? E.filiais : ['ABC', 'API', 'MCD', 'TBE', 'TBL', 'TCA', 'TCG', 'TCV', 'TPA', 'TPH', 'TSJ'];
-    const qs = fil.map(() => '?').join(',');
-    const { results } = await B.env.DB.prepare(`SELECT dados FROM gerot_filial_mes WHERE mes = ? AND filial IN (${qs})`).bind(mes, ...fil).all().catch(() => ({ results: [] }));
-    for (const r of results || []) { try { const d = JSON.parse(r.dados || '{}'); meta += Number(d['Meta (R$)']) || 0; vend += (Number(d['Faturado líquido (R$)']) || 0) + (Number(d['Carteira pendente (R$)']) || 0); } catch {} }
+    const K = await kpisMes(B.env.DB, { nivel: fil.length > 1 ? 'brasil' : 'filial', filiais: fil, mes }).catch(() => null);
+    if (K && K.meta != null) { meta = Number(K.meta) || 0; vend = (Number(K.fat) || 0) + (Number(K.cart) || 0); }
   }
   if (!meta) { const x = await totaisOficiais(B, E); meta = x.meta; vend = (x.fat || 0) + (x.pend || 0); }
   if (!meta) return `Sem meta cadastrada para calcular o faseamento de ${E.nome}.`;
@@ -242,9 +241,9 @@ export async function respMatinal(B, E) {
   const { hoje, tot, dec, falt } = diasUteisAgora(), mes = hoje.slice(0, 7);
   const fil = (E.filiais || []).length ? E.filiais : ['ABC', 'API', 'MCD', 'TBE', 'TBL', 'TCA', 'TCG', 'TCV', 'TPA', 'TPH', 'TSJ'];
   const qs = fil.map(() => '?').join(',');
-  const [stGerot, vendRes, rotaRes, pedRes, prospRes, arvRes] = await Promise.all([
-    B.env.DB.prepare('SELECT posicao, em FROM gerot_coleta_status WHERE mes = ? ORDER BY id DESC LIMIT 1').bind(mes).first().catch(() => null),
-    B.env.DB.prepare(`SELECT filial, rca, cod_sup, supervisor, vendedor, dados FROM gerot_vendedor_mes WHERE mes = ? AND filial IN (${qs})`).bind(mes, ...fil).all().catch(() => ({ results: [] })),
+  const [gerotPos, vendRowsList, rotaRes, pedRes, prospRes, arvRes] = await Promise.all([
+    posicaoGerot(B.env.DB, mes).catch(() => null),
+    Promise.all(fil.map((f) => vendedoresGerot(B.env.DB, f, mes).catch(() => []))).then((a) => a.flat()),
     /* 16/11/2026 (mapa de dados: 'Rota 0 PDVs' em 57 respostas — a tabela roteiro_dia nao existe): rota do dia = roteiros do Clube de hoje */ B.env.DB.prepare(`SELECT filial, rca, roteiros n FROM clube_venda_dia WHERE dia = ? AND filial IN (${qs})`).bind(hoje, ...fil).all().catch(() => ({ results: [] })),
     /* 17/11/2026: bloqueados = Carteira Total do GEROT (situacao 'Bloqueado Comercial/Financeiro'), nao a linha do tempo parada do CEVEN */ B.env.DB.prepare(`SELECT c.filial, c.rca, COUNT(*) qtd, SUM(c.valor) vlr FROM gerot_carteira c WHERE c.filial IN (${qs}) AND c.situacao LIKE 'Bloqueado%' GROUP BY c.filial, c.rca`).bind(...fil)   /* 23/11/2026 (dicionario 3.11, conflito 8): valor = gerot_carteira.valor, que bate centavo a centavo com a Carteira pendente do GEROT (antes: total do Clube, TPH R$ 487.703 x 549.971) */.all().catch(() => ({ results: [] })),
     B.env.DB.prepare(`SELECT filial, rca, COUNT(*) qtd FROM prospects_mapa WHERE filial IN (${qs}) GROUP BY filial, rca`).bind(...fil).all().catch(() => ({ results: [] })),
@@ -262,18 +261,19 @@ export async function respMatinal(B, E) {
   const prospMap = new Map();
   for (const pr of prospRes.results || []) prospMap.set(`${pr.filial}|${pr.rca}`, Number(pr.qtd) || 0);
 
-  let rows = (vendRes.results || []).map((v) => {
-    let d = {}; try { d = JSON.parse(v.dados || '{}'); } catch {}
+  let rows = (vendRowsList || []).map((v) => {
+    const d = v.d || {};
+    const rcaS = v.rcaRaw || v.rca;
     const meta = Number(d['Meta (R$)']) || 0, fat = Number(d['Faturado líquido (R$)']) || 0, pend = Number(d['Carteira pendente (R$)']) || 0;
     const pos = Number(d['Positivação (filial + CNPJ)']) || 0, metaPos = Number(d['Meta de positivação'] ?? d['Meta clientes']) || 0;
     const cap = d['Captação (R$)'] == null ? null : Number(d['Captação (R$)']), ideal = Number(d['Meta Ideal captação (R$)']) || 0;   // 17/11/2026: ritmo do GEROT
     const vend = fat + pend, tend = cap != null && ideal > 0 ? meta * cap / ideal : dec ? (vend / dec) * tot : vend, tendPct = meta > 0 ? (tend / meta) * 100 : 0;
-    const k = `${v.filial}|${v.rca}`, ped = pedMap.get(k) || { qtd: 0, vlr: 0 };
+    const k = `${v.filial}|${rcaS}`, ped = pedMap.get(k) || { qtd: 0, vlr: 0 };
     const nmRaw = String(v.vendedor || '').trim();
     const nmArv = nomeArv.get(k);
-    const nome = (!nmRaw || /^\d+$/.test(nmRaw) || nmRaw === String(v.rca)) ? (nmArv || '') : nmRaw;
+    const nome = (!nmRaw || /^\d+$/.test(nmRaw) || nmRaw === String(rcaS)) ? (nmArv || '') : nmRaw;
     return {
-      filial: v.filial, rca: v.rca, cod_sup: v.cod_sup, sup: v.supervisor || '', nome,
+      filial: v.filial, rca: rcaS, cod_sup: v.cod_sup, sup: v.supervisor || '', nome,
       meta, vend, pct: meta > 0 ? (vend / meta) * 100 : 0, tend, tendPct,
       precisaDia: d['Necessidade dia captação (R$)'] != null ? Math.max(0, Number(d['Necessidade dia captação (R$)']) || 0) : Math.max(0, meta - vend) / falt,   // 21/11/2026: a mesma conta do GEROT em todas as visoes
       pos, metaPos, rota: rotaMap.get(k) || 0, prospects: prospMap.get(k) || 0,
@@ -432,7 +432,7 @@ export async function respMatinal(B, E) {
     void chartCfg;
   }
 
-  const posGerot = stGerot && stGerot.posicao ? ` · GEROT ${stGerot.posicao}` : '';
+  const posGerot = gerotPos ? ` · GEROT ${gerotPos}` : '';
   // Tenta usar o card PNG mobile-first pre-gerado em Playwright no D1 (matinal_cards)
   let cardPng = null;
   let indCardPng = null;

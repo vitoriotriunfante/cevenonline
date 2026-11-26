@@ -8,7 +8,9 @@
 // CACHE: 1 minuto.
 // =========================================================================
 import { aplicaNaoSupervisores } from '../_lib/nao_supervisores.js';
-import { aplicaArvore } from '../_lib/arvore_ceven.js'; // supervisor = arvore viva do CEVEN (muda todo dia) // nomes que NAO sao supervisores (decisao 04/10/2026)
+
+const semN = (s) => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().trim();
+const rcaN = (r) => (/^\d+$/.test(String(r ?? '').trim()) ? String(Number(r)) : String(r ?? '').trim());
 
 const CORS = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
 let cache = { exp: 0, corpo: null };
@@ -25,19 +27,30 @@ async function aplicaUniverso(env, corpo, completo) {
     // vaga (TCG 466) que o cadastro de representante do CEVEN nao tem. Codigo com canal_ceven.existe = 0 (conferido todo dia) sai do universo: nenhuma tela, total, WhatsApp ou Liga o ve.
     let inexistentes = new Set();
     try { const { results: ne } = await env.DB.prepare('SELECT filial, rca FROM canal_ceven WHERE existe = 0').all(); inexistentes = new Set((ne || []).map((x) => String(x.filial).toUpperCase() + '|' + String(x.rca))); } catch { /* coluna ainda nao existe */ }
-    const ativoGerot = new Set(), supCodGerot = new Map();
+    const ativoGerot = new Set(), supCodGerot = new Map(), supCodCliven = new Map(), supCodNome = new Map();
     try {
       const mesBrt = new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 7);
-      let gv = (await env.DB.prepare('SELECT filial, rca, cod_sup, dados FROM gerot_vendedor_mes WHERE mes = ?').bind(mesBrt).all()).results || [];
+      let mesRef = mesBrt;
+      let gv = (await env.DB.prepare('SELECT filial, rca, cod_sup, dados FROM gerot_vendedor_mes WHERE mes = ?').bind(mesRef).all()).results || [];
       if (!gv.length) {
         const ultM = await env.DB.prepare('SELECT MAX(mes) AS m FROM gerot_vendedor_mes').first();
-        if (ultM && ultM.m) gv = (await env.DB.prepare('SELECT filial, rca, cod_sup, dados FROM gerot_vendedor_mes WHERE mes = ?').bind(ultM.m).all()).results || [];
+        if (ultM && ultM.m) { mesRef = ultM.m; gv = (await env.DB.prepare('SELECT filial, rca, cod_sup, dados FROM gerot_vendedor_mes WHERE mes = ?').bind(mesRef).all()).results || []; }
+      }
+      const [crRes, supRes] = await Promise.all([
+        env.DB.prepare('SELECT filial, rca, cod_sup FROM gerot_cliven_resumo WHERE mes = ? AND cod_sup IS NOT NULL AND cod_sup != ""').bind(mesRef).all().catch(() => ({ results: [] })),
+        env.DB.prepare('SELECT filial, cod_sup, supervisor FROM gerot_supervisor_mes WHERE mes = ?').bind(mesRef).all().catch(() => ({ results: [] }))
+      ]);
+      for (const c of (crRes && crRes.results) || []) {
+        if (c.cod_sup) supCodCliven.set(String(c.filial).toUpperCase() + '|' + rcaN(c.rca), String(c.cod_sup));
+      }
+      for (const s of (supRes && supRes.results) || []) {
+        if (s.supervisor && s.cod_sup) supCodNome.set(String(s.filial).toUpperCase() + '|' + semN(s.supervisor), String(s.cod_sup));
       }
       for (const x of gv) {
         let d = {}; try { d = JSON.parse(x.dados || '{}'); } catch {}
         const tot = Math.abs(Number(d['Meta (R$)']) || 0) + Math.abs(Number(d['Faturado líquido (R$)']) || 0) + Math.abs(Number(d['Carteira pendente (R$)']) || 0) + Math.abs(Number(d['Positivação (filial + CNPJ)']) || 0);
         if (tot > 0) {
-          const rN = /^\d+$/.test(String(x.rca || '').trim()) ? String(Number(x.rca)) : String(x.rca || '').trim();
+          const rN = rcaN(x.rca);
           const key = String(x.filial).toUpperCase() + '|' + rN;
           ativoGerot.add(key);
           if (x.cod_sup) supCodGerot.set(key, String(x.cod_sup));
@@ -56,10 +69,11 @@ async function aplicaUniverso(env, corpo, completo) {
       const sig = k.split('_')[0].toUpperCase();
       novo.filiais[k] = [];
       for (const v of Array.isArray(lista) ? lista : []) {
-        const _keyG = sig + '|' + (/^\d+$/.test(String(v.rca)) ? String(Number(v.rca)) : String(v.rca)), _naArv = ok.has(_keyG), _noGerot = ativoGerot.has(_keyG), na = _naArv || _noGerot;
+        const _keyG = sig + '|' + rcaN(v.rca), _naArv = ok.has(_keyG), _noGerot = ativoGerot.has(_keyG), na = _naArv || _noGerot;
         if (!na) fora++;
         if (!na && !completo) continue;
-        novo.filiais[k].push({ ...v, na_arvore: _naArv, ativo_gerot: _noGerot, sup_cod: supCod.get(_keyG) || supCodGerot.get(_keyG) || '' });
+        const supCodRes = supCodNome.get(sig + '|' + semN(v.supervisor)) || supCodCliven.get(_keyG) || supCodGerot.get(_keyG) || supCod.get(_keyG) || '';
+        novo.filiais[k].push({ ...v, na_arvore: _naArv, ativo_gerot: _noGerot, sup_cod: supCodRes });
         if (v.mostra === false) nao++; else sim++;
       }
     }
@@ -92,7 +106,6 @@ export async function onRequestGet({ env, request }) {
       const row = await env.DB.prepare('SELECT conteudo_json, atualizado_por, atualizado_em FROM config_equipe_soberana WHERE id = 1').first();
       if (row && row.conteudo_json) {
         const corpo = { ...JSON.parse(row.conteudo_json), origem: 'd1', atualizado_por: row.atualizado_por, atualizado_em: row.atualizado_em, gerado_em: new Date().toISOString() };
-        await aplicaArvore(env, corpo); // 06/10/2026: o supervisor guardado na Gestao estava velho (equipes de TPA trocadas); vale o do CEVEN de hoje
         cache = { exp: Date.now() + 60 * 1000, corpo };
         return resp(await aplicaUniverso(env, corpo, completoQ));
       }

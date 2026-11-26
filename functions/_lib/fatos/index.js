@@ -8,4 +8,4 @@
 // Só lê o D1. Não chama o CEVEN nem outra fonte externa.
 // =========================================================================
 export { diasUteis, ehDiaUtil, hojeBRT } from './dias.js';
-export { CAMPO, kpisMes, carteira, linhasQueFecham, positivacaoPorGrupos, positivacaoRegra4, posicaoGerot, vendedoresGerot } from './kpis.js';
+export { CAMPO, kpisMes, carteira, linhasQueFecham, positivacaoPorGrupos, positivacaoRegra4, posicaoGerot, vendedoresGerot, filiaisGerot, supervisoresGerot, historicoFilialGerot } from './kpis.js';

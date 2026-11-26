@@ -3,6 +3,7 @@ import { lerClubeFilial, diaDoClube } from '../_lib/clube.js';
 import { gravaStatusPedidos } from '../_lib/pedido_status.js';   // linha do tempo do status de cada pedido (26/10/2026)
 import R from '../../public/regras.js'; // regras unicas (public/regras.js)
 import { CEVEN_APP_SECRET } from '../_lib/ceven_auth.js';
+import { vendedoresGerot } from '../_lib/fatos/index.js';
 // =========================================================================
 // FICHA DO ARQUIVO
 // O QUE É: endpoint enxuto da TV (CFTV) — 1 vendedor, só dado AO VIVO do CEVEN.
@@ -262,16 +263,17 @@ async function lerCentral(env, id, maxIdadeMs, filial, comReserva = false) {
     if (comReserva && !dashFinal) {
       try {
         const sig = String(row.filial_sigla || filial || '').replace(/1$/, '').toUpperCase(), mes = dataHojeBrasilia().slice(0, 7);
-        const g = await env.DB.prepare('SELECT vendedor, dados, em FROM gerot_vendedor_mes WHERE mes = ? AND filial = ? AND rca = ?').bind(mes, sig, String(id)).all();
-        const R0 = (g && g.results) || [];
+        const vg = (await vendedoresGerot(env.DB, sig, mes)) || [];
+        const rcaChave = /^\d+$/.test(String(id).trim()) ? String(Number(id)) : String(id).trim();
+        const R0 = vg.filter((x) => x.rca === rcaChave);
         if (R0.length) {
-          const s = (k) => { let t = 0, ok = false; for (const r of R0) { const x = lê(r.dados)?.[k]; const v = x == null || x === '' ? NaN : Number(x); if (Number.isFinite(v)) { t += v; ok = true; } } return ok ? t : null; };
-          const mx = (k) => { let best = null; for (const r of R0) { const x = lê(r.dados)?.[k]; const v = x == null || x === '' ? NaN : Number(x); if (Number.isFinite(v) && (best == null || v > best)) best = v; } return best; };
+          const s = (k) => { let t = 0, ok = false; for (const r of R0) { const x = r.d?.[k]; const v = x == null || x === '' ? NaN : Number(x); if (Number.isFinite(v)) { t += v; ok = true; } } return ok ? t : null; };
+          const mx = (k) => { let best = null; for (const r of R0) { const x = r.d?.[k]; const v = x == null || x === '' ? NaN : Number(x); if (Number.isFinite(v) && (best == null || v > best)) best = v; } return best; };
           // carteira do vendedor: soma da Carteira Total (valor calibrado contra a tela do GEROT); (23/11/2026: a 'Carteira pendente' por vendedor do GEROT NAO vem vazia; soma dos vendedores = filial nas 11. Usa a do GEROT primeiro)
-          let cart = null; try { const c = await env.DB.prepare('SELECT SUM(valor) v, COUNT(*) n FROM gerot_carteira WHERE filial = ? AND rca = ?').bind(sig, String(id)).first(); if (c && c.n) cart = Number(c.v) || 0; else cart = 0; } catch { /* sem carteira */ }
+          let cart = null; try { const c = await env.DB.prepare('SELECT SUM(valor) v, COUNT(*) n FROM gerot_carteira WHERE filial = ? AND COALESCE(rca_int, CAST(rca AS INTEGER)) = ?').bind(sig, Number(id) || 0).first(); if (c && c.n) cart = Number(c.v) || 0; else cart = 0; } catch { /* sem carteira */ }
           const nm = String(R0[0].vendedor || '').replace(/^\s*\d+\s*-\s*/, '').trim() || null;
           dashFinal = { nome: nm, financeiro: { meta: s('Meta (R$)'), faturado: s('Faturado líquido (R$)'), pendente: s('Carteira pendente (R$)') ?? cart, devolucao: s('Devolução (R$)') }, positivacao: { meta: mx('Meta de positivação') ?? mx('Meta clientes'), realizado: mx('Positivação (filial + CNPJ)') ?? mx('Positivação (filial)') } };
-          reforco = { dashboard: { fonte: 'GEROT', em: R0.map((r) => r.em).sort().pop() } };
+          reforco = { dashboard: { fonte: 'GEROT', em: R0.map((r) => r.em).filter(Boolean).sort().pop() || null } };
         }
       } catch { /* sem GEROT: segue para a reserva */ }
     }

@@ -19,15 +19,12 @@ export async function onRequestGet({ env, request }) {
   if (!env.DB) return resp({ erro: 'D1 (env.DB) não configurado' }, 503);
   try {
     const mes = R.hojeSP().slice(0, 7);
-    const { results } = await env.DB.prepare('SELECT filial, dados FROM gerot_filial_mes WHERE mes = ?').bind(mes).all();
-    const st = await env.DB.prepare('SELECT posicao FROM gerot_coleta_status ORDER BY id DESC LIMIT 1').first().catch(() => null);
-    const num = (v) => (v == null || v === '' || isNaN(Number(v)) ? null : Number(v));
+    const K = await kpisMes(env.DB, { nivel: 'brasil', mes });
     const filiais = {}; const total = { meta_fat: 0, meta_pos: 0, fat_liq: 0, positivados: 0, carteira: 0 };
-    for (const r of results || []) {
-      let d = {}; try { d = JSON.parse(r.dados || '{}'); } catch (e) { continue; }
-      const f = { meta_fat: num(d['Meta (R$)']), meta_pos: num(d['Meta de positivação']), fat_liq: num(d['Faturado líquido (R$)']), positivados: num(d['Positivação (filial + CNPJ)']), carteira: num(d['Carteira pendente (R$)']) };
+    for (const [sig, kf] of Object.entries((K && K.porFilial) || {})) {
+      const f = { meta_fat: kf.meta, meta_pos: kf.metaPos, fat_liq: kf.fat, positivados: kf.pos, carteira: kf.cart };
       if (!(f.meta_fat > 0)) continue;
-      filiais[r.filial] = f;
+      filiais[sig] = f;
       for (const k of Object.keys(total)) total[k] += f[k] || 0;
     }
     if (!Object.keys(filiais).length) return resp({ erro: 'sem metas do GEROT para ' + mes }, 404);
@@ -40,11 +37,11 @@ export async function onRequestGet({ env, request }) {
       try {
         const c = JSON.parse(((await env.DB.prepare('SELECT conteudo_json FROM config_equipe_soberana LIMIT 1').first()) || {}).conteudo_json || '{}');
         const rcas = Object.entries(c.filiais || {}).filter(([k]) => k.split('_')[0] === gf).flatMap(([, L]) => L || []).filter((v) => String(v.grupo || '').toUpperCase() === gg).map((v) => String(v.rca));
-        const K = rcas.length ? await kpisMes(env.DB, { nivel: 'grupo', filiais: [gf], grupo: gg, rcas }) : null;
-        if (K) grupo = { filial: gf, grupo: gg, vendedores: rcas.length, meta_fat: K.meta, fat_liq: K.fat, carteira: K.cart, positivados: K.pos, meta_pos: K.metaPos, ...(K.metaPosRotulo ? { meta_pos_rotulo: K.metaPosRotulo } : {}), fonte: 'GEROT por vendedor do grupo (Gestão de Equipe); positivados = clientes distintos' };
+        const KG = rcas.length ? await kpisMes(env.DB, { nivel: 'grupo', filiais: [gf], grupo: gg, rcas }) : null;
+        if (KG) grupo = { filial: gf, grupo: gg, vendedores: rcas.length, meta_fat: KG.meta, fat_liq: KG.fat, carteira: KG.cart, positivados: KG.pos, meta_pos: KG.metaPos, ...(KG.metaPosRotulo ? { meta_pos_rotulo: KG.metaPosRotulo } : {}), fonte: 'GEROT por vendedor do grupo (Gestão de Equipe); positivados = clientes distintos' };
       } catch (e) { grupo = null; }
     }
-    return resp({ mes, fonte: 'GEROT (meta da filial)', posicao: st ? st.posicao : null, atualizado_em: new Date().toISOString(), filiais, total: { ...total, meta_pos: Math.round(total.meta_pos) }, ...(grupo ? { grupo } : {}) });
+    return resp({ mes, fonte: 'GEROT (meta da filial)', posicao: K.posicao || null, atualizado_em: new Date().toISOString(), filiais, total: { ...total, meta_pos: Math.round(total.meta_pos) }, ...(grupo ? { grupo } : {}) });
   } catch (e) {
     return resp({ erro: 'falha ao ler metas: ' + e.message }, 500);
   }

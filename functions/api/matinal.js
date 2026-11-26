@@ -3,7 +3,7 @@
 // Painel da Matinal 100% resiliente ao CEVEN (le direto do D1: GEROT + roteiro_dia + pedido_status + prospects_mapa)
 // =========================================================================
 import { ehFeriado, diaSemLance } from '../_lib/feriados.js';
-import { diasUteis as diasUteisFatos } from '../_lib/fatos/index.js';
+import { diasUteis as diasUteisFatos, posicaoGerot, filiaisGerot, supervisoresGerot, vendedoresGerot } from '../_lib/fatos/index.js';
 import { nomeForn } from '../_lib/jota/respostas/metas_industria.js';
 
 const j = (obj, st = 200) => new Response(JSON.stringify(obj), {
@@ -26,24 +26,22 @@ function ultimoDiaUtil(hoje) {
   return hoje;
 }
 
+function camposGerot(d = {}) {
+  return {
+    meta: Number(d['Meta (R$)']) || 0,
+    fat: Number(d['Faturado líquido (R$)']) || 0,
+    pend: Number(d['Carteira pendente (R$)']) || 0,
+    capDia: Number(d['Captação Dia (R$)']) || 0,
+    dev: Number(d['Devolução (R$)']) || 0,
+    pos: Number(d['Positivação (filial + CNPJ)']) || 0,
+    metaPos: Number(d['Meta de positivação'] ?? d['Meta clientes']) || 0,
+    pi: d['% Meta Ideal captação'] == null ? null : Number(d['% Meta Ideal captação']),
+    nd: d['Necessidade dia captação (R$)'] == null ? null : Number(d['Necessidade dia captação (R$)'])
+  };
+}
 function parseDados(raw) {
-  try {
-    const d = JSON.parse(raw || '{}');
-    return {
-      meta: Number(d['Meta (R$)']) || 0,
-      fat: Number(d['Faturado líquido (R$)']) || 0,
-      pend: Number(d['Carteira pendente (R$)']) || 0,
-      capDia: Number(d['Captação Dia (R$)']) || 0,
-      dev: Number(d['Devolução (R$)']) || 0,
-      pos: Number(d['Positivação (filial + CNPJ)']) || 0,
-      metaPos: Number(d['Meta de positivação'] ?? d['Meta clientes']) || 0,
-      // 21/11/2026: ritmo e necessidade do proprio GEROT (a mesma conta do texto da Matinal; nada de projecao)
-      pi: d['% Meta Ideal captação'] == null ? null : Number(d['% Meta Ideal captação']),
-      nd: d['Necessidade dia captação (R$)'] == null ? null : Number(d['Necessidade dia captação (R$)'])
-    };
-  } catch {
-    return { meta: 0, fat: 0, pend: 0, capDia: 0, dev: 0, pos: 0, metaPos: 0, pi: null, nd: null };
-  }
+  if (raw && typeof raw === 'object') return camposGerot(raw);
+  try { return camposGerot(JSON.parse(raw || '{}')); } catch { return camposGerot({}); }
 }
 
 export async function onRequestGet({ request, env }) {
@@ -64,17 +62,11 @@ export async function onRequestGet({ request, env }) {
   const dias = { tot: du.total, dec: du.decorridos, falt: du.restantes };
 
   try {
-    const [stGerot, filRows, supRows, vendRows, rotaRows, pedRows, prospRows, ontRows, indRows] = await Promise.all([
-      env.DB.prepare('SELECT posicao, em FROM gerot_coleta_status WHERE mes = ? ORDER BY id DESC LIMIT 1').bind(mes).first().catch(() => null),
-      env.DB.prepare('SELECT filial, dados, em FROM gerot_filial_mes WHERE mes = ? ORDER BY filial').bind(mes).all(),
-      (fil
-        ? env.DB.prepare('SELECT filial, cod_sup, supervisor, dados FROM gerot_supervisor_mes WHERE mes = ? AND filial = ? ORDER BY supervisor').bind(mes, fil)
-        : env.DB.prepare('SELECT filial, cod_sup, supervisor, dados FROM gerot_supervisor_mes WHERE mes = ? ORDER BY filial, supervisor').bind(mes)
-      ).all(),
-      (fil
-        ? env.DB.prepare('SELECT filial, rca, cod_sup, supervisor, vendedor, dados FROM gerot_vendedor_mes WHERE mes = ? AND filial = ? ORDER BY vendedor').bind(mes, fil)
-        : env.DB.prepare('SELECT filial, rca, cod_sup, supervisor, vendedor, dados FROM gerot_vendedor_mes WHERE mes = ? ORDER BY filial, vendedor').bind(mes)
-      ).all(),
+    const [gerotPosicao, filList, supList, vendList, rotaRows, pedRows, prospRows, ontRows, indRows] = await Promise.all([
+      posicaoGerot(env.DB, mes).catch(() => null),
+      filiaisGerot(env.DB, mes).catch(() => []),
+      supervisoresGerot(env.DB, fil || null, mes).catch(() => []),
+      vendedoresGerot(env.DB, fil || null, mes).catch(() => []),
       (fil
         /* rota do dia = roteiros do Clube de hoje (a tabela roteiro_dia nunca existiu) */
         ? env.DB.prepare('SELECT filial, rca, roteiros n FROM clube_venda_dia WHERE dia = ? AND filial = ?').bind(hoje, fil)
@@ -109,9 +101,10 @@ export async function onRequestGet({ request, env }) {
     // 22/11/2026: R$ dos bloqueados so quando a soma da Carteira Total bate (5%) com a 'Carteira pendente' do GEROT; senao so a quantidade
     let valorOk = false;
     try {
-      const cpG = (filRows.results || []).reduce((a, f) => a + (Number(JSON.parse(f.dados || '{}')['Carteira pendente (R$)']) || 0), 0);
+      const cpG = (filList || []).reduce((a, f) => a + (Number(f.cart != null ? f.cart : (f.d && f.d['Carteira pendente (R$)'])) || 0), 0);
       const sc = await env.DB.prepare(`SELECT SUM(valor) s FROM gerot_carteira${fil ? ' WHERE filial = ?' : ''}`).bind(...(fil ? [fil] : [])).first();
-      const cpF = fil ? (Number(JSON.parse(((filRows.results || []).find((f) => f.filial === fil) || {}).dados || '{}')['Carteira pendente (R$)']) || 0) : cpG;
+      const fAlvo = fil ? (filList || []).find((f) => f.filial === fil) : null;
+      const cpF = fil ? (Number(fAlvo && (fAlvo.cart != null ? fAlvo.cart : fAlvo.d?.['Carteira pendente (R$)'])) || 0) : cpG;
       valorOk = cpF > 0 && Math.abs((Number(sc && sc.s) || 0) / cpF - 1) <= 0.05;
     } catch (e) { valorOk = false; }
     const pedMap = new Map();
@@ -137,38 +130,40 @@ export async function onRequestGet({ request, env }) {
       });
     }
 
-    const filiais = (filRows.results || []).map((f) => {
-      const m = parseDados(f.dados);
+    const filiais = (filList || []).map((f) => {
+      const m = parseDados(f.d);
       const vend = m.fat + m.pend;
       const tendPct = m.pi != null ? m.pi * 100 : 0, tend = m.meta * (tendPct / 100);   // ritmo do GEROT (captacao / meta ideal); tend = ritmo em R$ da meta, so para somar grupos
       return { filial: f.filial, ...m, vend, tend, tendPct, em: f.em };
     });
 
-    const supervisores = (supRows.results || []).map((s) => {
-      const m = parseDados(s.dados);
+    const supervisores = (supList || []).map((s) => {
+      const m = parseDados(s.d);
       const vend = m.fat + m.pend;
       const tendPct = m.pi != null ? m.pi * 100 : 0, tend = m.meta * (tendPct / 100);
       return { filial: s.filial, cod_sup: s.cod_sup, supervisor: s.supervisor, ...m, vend, tend, tendPct };
     });
 
-    const vendedores = (vendRows.results || [])
+    const vendedores = (vendList || [])
       .filter((v) => {
-        if (String(v.rca || '').includes('|')) return false;
+        const rcaS = v.rcaRaw || v.rca;
+        if (String(rcaS || '').includes('|')) return false;
         if (/(Hist[oó]rico|\bVAGO\b)/i.test(String(v.vendedor || ''))) return false;
         if (sup && String(v.cod_sup) !== sup && !String(v.supervisor || '').toUpperCase().includes(sup.toUpperCase())) return false;
         return true;
       })
       .map((v) => {
-        const m = parseDados(v.dados);
+        const m = parseDados(v.d);
+        const rcaS = v.rcaRaw || v.rca;
         const vend = m.fat + m.pend;
         const tendPctG = m.pi != null ? m.pi * 100 : 0, tend = m.meta * (tendPctG / 100);   // 21/11/2026: ritmo do GEROT, igual ao texto
         const falta = Math.max(0, m.meta - vend);
-        const k = `${v.filial}|${v.rca}`;
+        const k = `${v.filial}|${rcaS}`;
         const p = pedMap.get(k) || { bloqQtd: 0, bloqVlr: 0, libQtd: 0, libVlr: 0 };
         const ont = ontMap.get(k) || { qtd: 0, vlr: 0, pos: 0 };
         return {
           filial: v.filial,
-          rca: v.rca,
+          rca: rcaS,
           cod_sup: v.cod_sup,
           supervisor: v.supervisor,
           vendedor: v.vendedor,
@@ -261,8 +256,8 @@ export async function onRequestGet({ request, env }) {
       dias,
       fonte: {
         modo: 'D1 (GEROT + Clube da Venda)',
-        gerotPosicao: stGerot?.posicao || null,
-        gerotEm: stGerot?.em || filiais[0]?.em || null
+        gerotPosicao: gerotPosicao || null,
+        gerotEm: filiais[0]?.em || null
       },
       filiais,
       supervisores,
