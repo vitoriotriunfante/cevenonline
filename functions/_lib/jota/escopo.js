@@ -14,23 +14,72 @@ async function supervisorGestao(B, filial) {
   if (!B || !B.env || !B.env.DB) return null;
   B._supGestao = B._supGestao || {};
   if (!B._supGestao[filial]) B._supGestao[filial] = (async () => {
-    const db = B.env.DB, mes = hojeSP().slice(0, 7), m = new Map(), cod = new Map(), grp = new Map(), codPorRca = new Map();
+    const db = B.env.DB, mes = hojeSP().slice(0, 7);
+    const m = new Map(), cod = new Map(), codToSup = new Map(), grp = new Map(), supGrupo = new Map(), codPorRca = new Map(), gerotSup = new Map(), arvSup = new Map();
     try {
       B._cfgGestao = B._cfgGestao || db.prepare('SELECT conteudo_json FROM config_equipe_soberana LIMIT 1').first();
       const c = JSON.parse(((await B._cfgGestao) || {}).conteudo_json || '{}');
-      for (const [k, L] of Object.entries(c.filiais || {})) if (k.split('_')[0] === filial) for (const v of L || []) if (v && v.rca != null) { m.set(String(v.rca), String(v.supervisor || '')); grp.set(String(v.rca), String(v.grupo || '')); }
+      for (const [k, L] of Object.entries(c.filiais || {})) if (k.split('_')[0] === filial) for (const v of L || []) if (v && v.rca != null) {
+        const rN = rcaN(v.rca), sN = String(v.supervisor || ''), gN = String(v.grupo || '');
+        m.set(rN, sN);
+        grp.set(rN, gN);
+        if (sN && gN) supGrupo.set(sem(sN), gN);
+      }
     } catch (e) { return null; }
     try {
-      const [sups, crRes, vg] = await Promise.all([
+      const [sups, crRes, vg, arvRes] = await Promise.all([
         supervisoresGerot(db, filial, mes).catch(() => []),
-        db.prepare('SELECT rca, cod_sup FROM gerot_cliven_resumo WHERE mes = ? AND filial = ? AND cod_sup IS NOT NULL AND cod_sup != ""').bind(mes, filial).all().catch(() => ({ results: [] })),
-        vendedoresGerot(db, filial, mes).catch(() => [])
+        Promise.resolve().then(() => db.prepare('SELECT rca, cod_sup FROM gerot_cliven_resumo WHERE mes = ? AND filial = ? AND cod_sup IS NOT NULL AND cod_sup != ""').bind(mes, filial).all()).catch(() => ({ results: [] })),
+        vendedoresGerot(db, filial, mes).catch(() => []),
+        Promise.resolve().then(() => db.prepare('SELECT rca, nome, sup_id, sup_nome FROM arvore_supervisores WHERE filial = ?').bind(filial).all()).catch(() => ({ results: [] }))
       ]);
-      for (const r of sups || []) if (r.supervisor) cod.set(sem(r.supervisor), String(r.cod_sup));
+      for (const r of sups || []) if (r.supervisor && r.cod_sup) {
+        cod.set(sem(r.supervisor), String(r.cod_sup));
+        codToSup.set(String(r.cod_sup), String(r.supervisor));
+      }
       for (const r of (crRes && crRes.results) || []) if (r.cod_sup) codPorRca.set(rcaN(r.rca), String(r.cod_sup));
-      for (const r of vg || []) if (r.cod_sup && !codPorRca.has(rcaN(r.rca))) codPorRca.set(rcaN(r.rca), String(r.cod_sup));
+      for (const r of vg || []) {
+        const rN = rcaN(r.rca);
+        if (r.cod_sup && !codPorRca.has(rN)) codPorRca.set(rN, String(r.cod_sup));
+        if (r.rcaRaw && String(r.rcaRaw).includes('|')) continue;
+        const rNum = /^\d+$/.test(rN) ? Number(rN) : NaN;
+        if (!Number.isInteger(rNum) || rNum <= 0 || rNum === 2) continue;
+        const peso = Math.abs(Number(r.fat) || 0) + Math.abs(Number(r.meta) || 0) + Math.abs(Number(r.cart) || 0) + Math.abs(Number(r.pos) || 0);
+        const codSup = r.cod_sup ? String(r.cod_sup) : '';
+        const supN = String(r.supervisor || '').trim() || (codSup && codToSup.get(codSup)) || '';
+        const vendN = String(r.vendedor || '').trim();
+        const prev = gerotSup.get(rN);
+        if (!prev || (!prev.supervisor && supN) || (!!supN === !!prev.supervisor && peso > prev.peso)) {
+          gerotSup.set(rN, { supervisor: supN || (prev && prev.supervisor) || '', cod_sup: codSup || (prev && prev.cod_sup) || '', nome: vendN || (prev && prev.nome) || '', peso });
+        } else {
+          if (!prev.supervisor && supN) prev.supervisor = supN;
+          if (!prev.cod_sup && codSup) prev.cod_sup = codSup;
+          if (!prev.nome && vendN) prev.nome = vendN;
+        }
+      }
+      for (const a of (arvRes && arvRes.results) || []) {
+        const rN = rcaN(a.rca);
+        arvSup.set(rN, { supervisor: String(a.sup_nome || ''), sup_id: String(a.sup_id || ''), nome: String(a.nome || '') });
+      }
     } catch (e) { /* sem GEROT */ }
-    return { sup: m, cod, grp, codPorRca };
+    const supEfetivo = new Map(m), grpEfetivo = new Map(grp);
+    for (const [rN, gs] of gerotSup.entries()) {
+      if (m.has(rN)) continue;
+      const arv = arvSup.get(rN);
+      const sVivo = gs.supervisor || (arv && arv.supervisor) || '';
+      if (sVivo) {
+        supEfetivo.set(rN, sVivo);
+        const gVivo = supGrupo.get(sem(sVivo));
+        if (gVivo) grpEfetivo.set(rN, gVivo);
+      }
+    }
+    for (const [rN, arv] of arvSup.entries()) {
+      if (m.has(rN) || supEfetivo.has(rN) || !arv.supervisor) continue;
+      supEfetivo.set(rN, arv.supervisor);
+      const gVivo = supGrupo.get(sem(arv.supervisor));
+      if (gVivo) grpEfetivo.set(rN, gVivo);
+    }
+    return { sup: m, cod, codToSup, grp, supGrupo, codPorRca, gerotSup, arvSup, supEfetivo, grpEfetivo };
   })();
   return B._supGestao[filial];
 }
@@ -44,15 +93,22 @@ export const sn = (nome, cod) => { const c = cod || SUPCOD.get(sem(nome)); retur
 export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
   const [snap, mostra, SG] = await Promise.all([B.snap(filial), B.mostra(), supervisorGestao(B, filial)]);
   const eq = new Map(); if (mostra && mostra.filiais) for (const [k, L] of Object.entries(mostra.filiais)) if (k.split('_')[0] === filial) for (const v of L) eq.set(String(v.rca), v);
-  // 23/11/2026 (coordenador: Gestao de Equipe e a fonte): vendedor que so existe na arvore do CEVEN (novo no /api/tv-mostra, fora do config) NAO entra em equipe nem grupo -> 'fora das equipes'
-  if (SG && SG.sup.size) for (const [rca, v] of eq) if (!SG.sup.has(rca)) eq.set(rca, { ...v, supervisor: '', sup_cod: '', grupo: '', foraGestao: true, supervisor_arvore: v.supervisor });
-  if (SG) for (const [rca, v] of eq) {
-    if (v.foraGestao) continue;
-    const s = SG.sup.get(rca);
-    if (s != null) {
-      const codR = SG.cod.get(sem(s)) || (SG.codPorRca && SG.codPorRca.get(rcaN(rca))) || v.sup_cod || '';
-      if (sem(s) !== sem(v.supervisor || '') || codR !== (v.sup_cod || '')) {
-        eq.set(rca, { ...v, supervisor: s, sup_cod: codR, supervisor_arvore: v.supervisor });
+  // 26/11/2026: Gestao de Equipe manda para quem JA esta salvo nela (overrides como VAGO / grupos). Vendedor novo fora da Gestao mantem a arvore viva (GEROT -> CEVEN), nunca zerando supervisor/grupo.
+  if (SG && SG.sup.size) {
+    for (const [rca, v] of eq) {
+      const rN = rcaN(rca);
+      if (!SG.sup.has(rN)) {
+        const gs = SG.gerotSup.get(rN), arv = SG.arvSup.get(rN);
+        const sVivo = SG.supEfetivo.get(rN) || (gs && gs.supervisor) || (arv && arv.supervisor) || v.supervisor || '';
+        const codVivo = (gs && gs.cod_sup) || (sVivo && SG.cod.get(sem(sVivo))) || (SG.codPorRca && SG.codPorRca.get(rN)) || v.sup_cod || (arv && arv.sup_id) || '';
+        const gVivo = SG.grpEfetivo.get(rN) || (sVivo && SG.supGrupo.get(sem(sVivo))) || v.grupo || '';
+        eq.set(rca, { ...v, supervisor: sVivo, sup_cod: codVivo, grupo: gVivo, foraGestao: true, supervisor_arvore: v.supervisor || sVivo });
+      } else {
+        const s = SG.sup.get(rN);
+        const codR = SG.cod.get(sem(s)) || (SG.codPorRca && SG.codPorRca.get(rN)) || v.sup_cod || '';
+        if (sem(s) !== sem(v.supervisor || '') || codR !== (v.sup_cod || '')) {
+          eq.set(rca, { ...v, supervisor: s, sup_cod: codR, supervisor_arvore: v.supervisor });
+        }
       }
     }
   }
@@ -108,7 +164,14 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
     macro.devHoje += (Array.isArray(r.devolucoes) ? r.devolucoes : []).filter((x) => String(x && x.data || '').slice(0, 10) === hojeSP()).reduce((t, x) => t + Math.abs(parseFloat(x.vl_devolvido || x.valor || 0) || 0), 0);
     // 21/11/2026 (Vitorio: 'numero e numero... perguntou tem que responder independente se ta vago ou nao'): quem nao esta na Gestao de Equipe ENTRA nos numeros
     // (marcado como fora da Gestao); so fica de fora quem nao tem nenhum numero. Ocultar vale so para a Champions.
-    if (!e) { if (!(gerotVend.has(String(Number(rca))) || r.dashboard || r.dashboard_reserva || r.produtividade)) continue; e = { nome: d.nome || '', supervisor: '', sup_cod: '', canal: '', grupo: '', mostra: true, foraGestao: true }; }
+    if (!e) {
+      if (!(gerotVend.has(String(Number(rca))) || r.dashboard || r.dashboard_reserva || r.produtividade)) continue;
+      const rN = rcaN(rca), gs = SG && SG.gerotSup && SG.gerotSup.get(rN), arv = SG && SG.arvSup && SG.arvSup.get(rN);
+      const sVivo = (SG && SG.supEfetivo && SG.supEfetivo.get(rN)) || (gs && gs.supervisor) || (arv && arv.supervisor) || '';
+      const codVivo = (gs && gs.cod_sup) || (sVivo && SG && SG.cod && SG.cod.get(sem(sVivo))) || (SG && SG.codPorRca && SG.codPorRca.get(rN)) || (arv && arv.sup_id) || '';
+      const gVivo = (SG && SG.grpEfetivo && SG.grpEfetivo.get(rN)) || (sVivo && SG && SG.supGrupo && SG.supGrupo.get(sem(sVivo))) || '';
+      e = { nome: d.nome || (gs && gs.nome) || (arv && arv.nome) || '', supervisor: sVivo, sup_cod: codVivo, canal: '', grupo: gVivo, mostra: true, foraGestao: true };
+    }
     if (e.supervisor && e.sup_cod) SUPCOD.set(sem(e.supervisor), e.sup_cod);
     const varejo = VAREJO.has(String(e.canal || '').toUpperCase());
     const nomeVend = e.nome || d.nome || 'RCA ' + rca;
@@ -183,15 +246,15 @@ export async function vendedoresDaFilial(B, filial, grupo, supervisor, soRca) {
   return { vend, ocultos, outros, macro, clubeFalhou: !!(snap && snap.clube_falhou), clubeLidoEm: (snap && snap.clube_lido_em) || null };
 }
 
-// RCAs da equipe de um supervisor NA GESTÃO DE EQUIPE (inclui quem não está na leitura do CEVEN)
+// RCAs da equipe de um supervisor NA GESTÃO DE EQUIPE + árvore viva GEROT/CEVEN (inclui quem não está na leitura do CEVEN)
 export async function rcasEquipeGestao(B, filial, supNome) {
   const SG = await supervisorGestao(B, filial); if (!SG) return [];
-  const s = sem(supNome || ''); return [...SG.sup.entries()].filter(([, x]) => sem(x) === s).map(([r]) => r);
+  const s = sem(supNome || ''), mapa = SG.supEfetivo || SG.sup; return [...mapa.entries()].filter(([, x]) => sem(x) === s).map(([r]) => r);
 }
-// RCAs de um grupo de gerente (MCD/TPH) NA GESTAO DE EQUIPE
+// RCAs de um grupo de gerente (MCD/TPH) NA GESTAO DE EQUIPE + árvore viva GEROT/CEVEN
 export async function rcasGrupoGestao(B, filial, grupo) {
-  const SG = await supervisorGestao(B, filial); if (!SG) return []; const g = sem(grupo || '');
-  return [...SG.grp.entries()].filter(([, x]) => sem(x) === g).map(([r]) => r);
+  const SG = await supervisorGestao(B, filial); if (!SG) return []; const g = sem(grupo || ''), mapa = SG.grpEfetivo || SG.grp;
+  return [...mapa.entries()].filter(([, x]) => sem(x) === g).map(([r]) => r);
 }
 // KPIs DO MÊS DO ESCOPO pela camada única (functions/_lib/fatos): Brasil, filial(is), grupo, equipe (supervisor = soma da equipe da Gestão) ou vendedor.
 // Total e linhas da MESMA tabela (gerot_vendedor_mes / gerot_filial_mes). null = sem GEROT.
@@ -209,7 +272,7 @@ export async function kpisDoEscopo(B, E) {
       const rcas = [...new Set(V.filter((v) => v.filial === fil).map((v) => String(Number(v.rca))).concat((await rcasEquipeGestao(B, fil, nomeSup)).map((r) => String(Number(r)))))];
       return kpisMes(db, { nivel: 'equipe', filiais: [fil], rcas, supCod: (V[0] && V[0].supCod) || null });
     }
-    if (E.grupo && !E.nacional) { const SG = await supervisorGestao(B, E.filiais[0]), gg = sem(E.grupo); return kpisMes(db, { nivel: 'grupo', filiais: [E.filiais[0]], grupo: gg, rcas: [...new Set(V.map((v) => String(Number(v.rca))).concat(SG ? [...SG.grp.entries()].filter(([, x]) => sem(x) === gg).map(([r]) => String(Number(r))) : []))] }); }
+    if (E.grupo && !E.nacional) { const SG = await supervisorGestao(B, E.filiais[0]), gg = sem(E.grupo), mapaG = SG && (SG.grpEfetivo || SG.grp); return kpisMes(db, { nivel: 'grupo', filiais: [E.filiais[0]], grupo: gg, rcas: [...new Set(V.map((v) => String(Number(v.rca))).concat(mapaG ? [...mapaG.entries()].filter(([, x]) => sem(x) === gg).map(([r]) => String(Number(r))) : []))] }); }
     return kpisMes(db, { nivel: E.nacional ? 'brasil' : 'filial', filiais: E.nacional ? [] : E.filiais });
   })().catch(() => null);
   B._kpisEsc.set(k, p);

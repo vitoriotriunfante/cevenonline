@@ -128,6 +128,15 @@ export async function respCarteiraNivel(B, esc, { papel = 'diretoria', modo = 'b
   // 23/11/2026 (equipe = Gestao de Equipe, config_equipe_soberana): supervisor da linha = o da Gestao; RCA sem equipe = 'fora das equipes' (total = linhas)
   const supDe = new Map();
   try { const c = JSON.parse(((await db.prepare('SELECT conteudo_json FROM config_equipe_soberana LIMIT 1').first()) || {}).conteudo_json || '{}'); for (const [k, Lc] of Object.entries(c.filiais || {})) for (const v of Lc || []) if (v && v.supervisor) supDe.set(k.split('_')[0] + '|' + String(Number(v.rca)), nomeCurto(String(v.supervisor))); } catch (e) { /* sem Gestao */ }
+  try {
+    const gvSup = (await db.prepare(`SELECT filial, rca, supervisor FROM gerot_vendedor_mes WHERE mes = ? AND filial IN (${qs(F)}) AND rca NOT LIKE '%|%' AND supervisor IS NOT NULL AND supervisor != ''`).bind(mesAtual(), ...F).all()).results || [];
+    for (const r of gvSup) {
+      const rNum = /^\d+$/.test(String(r.rca).trim()) ? Number(r.rca) : NaN;
+      if (!Number.isInteger(rNum) || rNum <= 0 || rNum === 2) continue;
+      const kSup = String(r.filial).toUpperCase() + '|' + String(rNum);
+      if (!supDe.has(kSup)) supDe.set(kSup, nomeCurto(String(r.supervisor)));
+    }
+  } catch (e) { /* sem GEROT */ }
   const ehBloq = (s) => /BLOQ/i.test(s), tipoOk = (s) => !tipo || new RegExp(tipo, 'i').test(s);
   const A = R.filter((r) => (modo === 'total' || ehBloq(r.situacao)) && tipoOk(r.situacao));
   const indN = forn && forn.length ? ' · ' + titulo(String(forn[0]).replace(/\b(LTDA|S\.?A\.?|SA)\b\.?/gi, '').toLowerCase()).trim() : '';

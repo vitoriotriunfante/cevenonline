@@ -38,11 +38,57 @@ const FIL = {}; for (const r of sql("SELECT mes, filial, dados FROM gerot_filial
 const VEND = {}; for (const r of sql(`SELECT mes, filial, rca, cod_sup, dados FROM gerot_vendedor_mes WHERE mes >= '2026-08'`)) { const k = `${r.mes}|${r.filial}|${String(+r.rca)}`; (VEND[k] = VEND[k] || []).push({ cod_sup: r.cod_sup, d: J(r) }); }
 const CART = sql("SELECT filial, CAST(rca AS INTEGER) rca, situacao, count(*) n, sum(valor) v FROM gerot_carteira GROUP BY 1,2,3");
 const GEST = JSON.parse(sql('SELECT conteudo_json FROM config_equipe_soberana')[0].conteudo_json);
+const ARV = sql('SELECT filial, rca, sup_nome FROM arvore_supervisores');
+const SUP_M = sql(`SELECT filial, cod_sup, supervisor FROM gerot_supervisor_mes WHERE mes = '${MES}'`);
+const VEND_AT = sql(`SELECT filial, rca, cod_sup, supervisor, COALESCE(fat_liq,0) f, COALESCE(meta,0) m, COALESCE(carteira,0) c FROM gerot_vendedor_mes WHERE mes = '${MES}' AND rca NOT LIKE '%|%'`);
 const LEIT_CLUBE = sql(`SELECT count(*) n, max(lido_em) l FROM clube_venda_dia WHERE dia = '${HOJE}'`)[0] || {};
 const SEM_LEITURA_HOJE = !(LEIT_CLUBE.n > 0);
 
 const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/\s+/g, ' ').trim();
-const gest = (f) => GEST.filiais[f] || [];
+const GEST_EFETIVO = (() => {
+  const out = {}, supGrupo = {}, codToSup = {}, arvMap = {};
+  for (const s of SUP_M) if (s.supervisor && s.cod_sup) codToSup[`${s.filial}|${s.cod_sup}`] = s.supervisor;
+  for (const a of ARV) if (a.sup_nome) arvMap[`${a.filial}|${String(+a.rca)}`] = a.sup_nome;
+  for (const [k, L] of Object.entries(GEST.filiais || {})) {
+    const f = k.split('_')[0];
+    out[f] = out[f] || [];
+    for (const v of L || []) {
+      if (!v || v.rca == null) continue;
+      out[f].push(v);
+      if (v.supervisor && v.grupo) supGrupo[`${f}|${norm(v.supervisor)}`] = v.grupo;
+    }
+  }
+  const vistos = {};
+  for (const f of FILIAIS) vistos[f] = new Set((out[f] || []).map((v) => String(+v.rca)));
+  const gerotMelhores = new Map();
+  for (const r of VEND_AT) {
+    const rNum = /^\d+$/.test(String(r.rca).trim()) ? Number(r.rca) : NaN;
+    if (!Number.isInteger(rNum) || rNum <= 0 || rNum === 2) continue;
+    const f = r.filial, rN = String(rNum), k = `${f}|${rN}`;
+    if (vistos[f] && vistos[f].has(rN)) continue;
+    const peso = Math.abs(r.f || 0) + Math.abs(r.m || 0) + Math.abs(r.c || 0);
+    const sup = String(r.supervisor || '').trim() || (r.cod_sup && codToSup[`${f}|${r.cod_sup}`]) || arvMap[k] || '';
+    const prev = gerotMelhores.get(k);
+    if (!prev || (!prev.sup && sup) || (!!sup === !!prev.sup && peso > prev.peso)) gerotMelhores.set(k, { f, rN, sup, peso });
+  }
+  for (const { f, rN, sup } of gerotMelhores.values()) {
+    if (!sup) continue;
+    out[f] = out[f] || [];
+    out[f].push({ rca: rN, supervisor: sup, grupo: supGrupo[`${f}|${norm(sup)}`] || '' });
+    if (vistos[f]) vistos[f].add(rN);
+  }
+  for (const a of ARV) {
+    const rNum = /^\d+$/.test(String(a.rca).trim()) ? Number(a.rca) : NaN;
+    if (!Number.isInteger(rNum) || rNum <= 0 || rNum === 2 || !a.sup_nome) continue;
+    const f = a.filial, rN = String(rNum);
+    if (vistos[f] && vistos[f].has(rN)) continue;
+    out[f] = out[f] || [];
+    out[f].push({ rca: rN, supervisor: a.sup_nome, grupo: supGrupo[`${f}|${norm(a.sup_nome)}`] || '' });
+    if (vistos[f]) vistos[f].add(rN);
+  }
+  return out;
+})();
+const gest = (f) => GEST_EFETIVO[f] || [];
 const rcasEquipe = (f, sup) => gest(f).filter((v) => norm(v.supervisor) === norm(sup)).map((v) => String(+v.rca));
 const rcasGrupo = (f, g) => gest(f).filter((v) => norm(v.grupo) === norm(g)).map((v) => String(+v.rca));
 const somaV = (mes, f, rcas, campo) => rcas.reduce((s, r) => s + (VEND[`${mes}|${f}|${r}`] || []).reduce((a, x) => a + (+x.d[campo] || 0), 0), 0);

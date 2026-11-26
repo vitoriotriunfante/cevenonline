@@ -4533,6 +4533,34 @@
    "pergunta": "Cliven",
    "assunto": "cliven|carteira|positiv",
    "checagens": []
+  },
+  {
+   "id": "G249",
+   "linha": "4.equipe_leonardo",
+   "contato": { "nome": "LEONARDO MANOSSO DE GODOI", "papel": "supervisor", "filial": "TBL", "rca": null, "grupo": null },
+   "pergunta": "Como esta a equipe hoje",
+   "dia": true,
+   "assunto": "pericles|juliana",
+   "proibido": "outro supervisor",
+   "checagens": [{ "id": "clube_dia", "p": { "filial": "TBL", "supervisor": "LEONARDO MANOSSO DE GODOI" } }]
+  },
+  {
+   "id": "G250",
+   "linha": "4.equipe_leonardo",
+   "contato": { "nome": "LEONARDO MANOSSO DE GODOI", "papel": "supervisor", "filial": "TBL", "rca": null, "grupo": null },
+   "pergunta": "E o pericles",
+   "assunto": "pericles|1211",
+   "proibido": "outro supervisor",
+   "checagens": [{ "id": "fat_liq_vendedor_mes", "p": { "filial": "TBL", "rca": "1211" } }]
+  },
+  {
+   "id": "G251",
+   "linha": "4.equipe_leonardo",
+   "contato": { "nome": "LEONARDO MANOSSO DE GODOI", "papel": "supervisor", "filial": "TBL", "rca": null, "grupo": null },
+   "pergunta": "Juliana",
+   "assunto": "juliana|1221",
+   "proibido": "outro supervisor",
+   "checagens": [{ "id": "fat_liq_vendedor_mes", "p": { "filial": "TBL", "rca": "1221" } }]
   }
  ]
 }

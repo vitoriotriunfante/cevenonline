@@ -27,14 +27,14 @@ async function aplicaUniverso(env, corpo, completo) {
     // vaga (TCG 466) que o cadastro de representante do CEVEN nao tem. Codigo com canal_ceven.existe = 0 (conferido todo dia) sai do universo: nenhuma tela, total, WhatsApp ou Liga o ve.
     let inexistentes = new Set();
     try { const { results: ne } = await env.DB.prepare('SELECT filial, rca FROM canal_ceven WHERE existe = 0').all(); inexistentes = new Set((ne || []).map((x) => String(x.filial).toUpperCase() + '|' + String(x.rca))); } catch { /* coluna ainda nao existe */ }
-    const ativoGerot = new Set(), supCodGerot = new Map(), supCodCliven = new Map(), supCodNome = new Map();
+    const ativoGerot = new Set(), supCodGerot = new Map(), supCodCliven = new Map(), supCodNome = new Map(), supNomePorCod = new Map(), gerotInfo = new Map();
     try {
       const mesBrt = new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 7);
       let mesRef = mesBrt;
-      let gv = (await env.DB.prepare('SELECT filial, rca, cod_sup, dados FROM gerot_vendedor_mes WHERE mes = ?').bind(mesRef).all()).results || [];
+      let gv = (await env.DB.prepare('SELECT filial, rca, cod_sup, supervisor, vendedor, dados FROM gerot_vendedor_mes WHERE mes = ?').bind(mesRef).all()).results || [];
       if (!gv.length) {
         const ultM = await env.DB.prepare('SELECT MAX(mes) AS m FROM gerot_vendedor_mes').first();
-        if (ultM && ultM.m) { mesRef = ultM.m; gv = (await env.DB.prepare('SELECT filial, rca, cod_sup, dados FROM gerot_vendedor_mes WHERE mes = ?').bind(mesRef).all()).results || []; }
+        if (ultM && ultM.m) { mesRef = ultM.m; gv = (await env.DB.prepare('SELECT filial, rca, cod_sup, supervisor, vendedor, dados FROM gerot_vendedor_mes WHERE mes = ?').bind(mesRef).all()).results || []; }
       }
       const [crRes, supRes] = await Promise.all([
         env.DB.prepare('SELECT filial, rca, cod_sup FROM gerot_cliven_resumo WHERE mes = ? AND cod_sup IS NOT NULL AND cod_sup != ""').bind(mesRef).all().catch(() => ({ results: [] })),
@@ -44,16 +44,35 @@ async function aplicaUniverso(env, corpo, completo) {
         if (c.cod_sup) supCodCliven.set(String(c.filial).toUpperCase() + '|' + rcaN(c.rca), String(c.cod_sup));
       }
       for (const s of (supRes && supRes.results) || []) {
-        if (s.supervisor && s.cod_sup) supCodNome.set(String(s.filial).toUpperCase() + '|' + semN(s.supervisor), String(s.cod_sup));
+        if (s.supervisor && s.cod_sup) {
+          const fSig = String(s.filial).toUpperCase();
+          supCodNome.set(fSig + '|' + semN(s.supervisor), String(s.cod_sup));
+          supNomePorCod.set(fSig + '|' + String(s.cod_sup), String(s.supervisor));
+        }
       }
       for (const x of gv) {
-        let d = {}; try { d = JSON.parse(x.dados || '{}'); } catch {}
+        let d = {}; try { d = JSON.parse(x.dados || '{}'); } catch { }
         const tot = Math.abs(Number(d['Meta (R$)']) || 0) + Math.abs(Number(d['Faturado líquido (R$)']) || 0) + Math.abs(Number(d['Carteira pendente (R$)']) || 0) + Math.abs(Number(d['Positivação (filial + CNPJ)']) || 0);
         if (tot > 0) {
           const rN = rcaN(x.rca);
-          const key = String(x.filial).toUpperCase() + '|' + rN;
+          const sig = String(x.filial).toUpperCase();
+          const key = sig + '|' + rN;
           ativoGerot.add(key);
-          if (x.cod_sup) supCodGerot.set(key, String(x.cod_sup));
+          const codSup = x.cod_sup ? String(x.cod_sup) : '';
+          if (codSup) supCodGerot.set(key, codSup);
+          const rNum = /^\d+$/.test(rN) ? Number(rN) : NaN;
+          if (!String(x.rca || '').includes('|') && Number.isInteger(rNum) && rNum > 0 && rNum !== 2) {
+            const supNom = String(x.supervisor || '').trim() || (codSup && supNomePorCod.get(sig + '|' + codSup)) || '';
+            const vendNom = String(x.vendedor || '').trim();
+            const prev = gerotInfo.get(key);
+            if (!prev || tot > prev.peso) {
+              gerotInfo.set(key, { nome: vendNom || (prev && prev.nome) || '', supervisor: supNom || (prev && prev.supervisor) || '', cod_sup: codSup || (prev && prev.cod_sup) || '', peso: tot });
+            } else {
+              if (!prev.nome && vendNom) prev.nome = vendNom;
+              if (!prev.supervisor && supNom) prev.supervisor = supNom;
+              if (!prev.cod_sup && codSup) prev.cod_sup = codSup;
+            }
+          }
         }
       }
     } catch { /* sem GEROT: segue so com arvore */ }
@@ -63,8 +82,14 @@ async function aplicaUniverso(env, corpo, completo) {
     let fora = 0, sim = 0, nao = 0, novos = 0;
     // O NUMERO DO CEVEN E UM SO: toda pessoa da arvore entra no universo. Quem a Gestao ainda nao conhece entra como "novo na arvore" (conta nos totais; mostra=false ate
     // o Vitorio decidir em Gestao -> Divergencias): "mostra / nao mostra" so decide em qual LISTA a pessoa aparece, nunca se ela existe.
-    const naGestao = new Set();
-    for (const [k, lista] of Object.entries(corpo.filiais)) for (const v of Array.isArray(lista) ? lista : []) naGestao.add(k.split('_')[0].toUpperCase() + '|' + String(v.rca));
+    const naGestao = new Set(), supGrupoGestao = new Map();
+    for (const [k, lista] of Object.entries(corpo.filiais)) {
+      const sig = k.split('_')[0].toUpperCase();
+      for (const v of Array.isArray(lista) ? lista : []) {
+        naGestao.add(sig + '|' + rcaN(v.rca));
+        if (v.supervisor && v.grupo) supGrupoGestao.set(sig + '|' + semN(v.supervisor), String(v.grupo));
+      }
+    }
     for (const [k, lista] of Object.entries(corpo.filiais)) {
       const sig = k.split('_')[0].toUpperCase();
       novo.filiais[k] = [];
@@ -77,13 +102,31 @@ async function aplicaUniverso(env, corpo, completo) {
         if (v.mostra === false) nao++; else sim++;
       }
     }
+    const adicionados = new Set();
     for (const a of results) {
-      const sig = String(a.filial).toUpperCase();
-      if (naGestao.has(sig + '|' + String(a.rca))) continue;
-      if (inexistentes.has(sig + '|' + String(a.rca))) continue;   // nao existe no CEVEN hoje
+      const sig = String(a.filial).toUpperCase(), rN = rcaN(a.rca), keyA = sig + '|' + rN;
+      if (naGestao.has(keyA) || adicionados.has(keyA)) continue;
+      if (inexistentes.has(sig + '|' + String(a.rca)) || inexistentes.has(keyA)) continue;   // nao existe no CEVEN hoje
+      const gi = gerotInfo.get(keyA);
+      const supRes = (gi && gi.supervisor) || a.sup_nome || '';
+      const supCodRes = (gi && gi.cod_sup) || supCodNome.get(sig + '|' + semN(supRes)) || supCodCliven.get(keyA) || supCodGerot.get(keyA) || String(a.sup_id || '');
+      const grpRes = supGrupoGestao.get(sig + '|' + semN(supRes)) || '';
+      adicionados.add(keyA);
       (novo.filiais[sig] = novo.filiais[sig] || []).push({
-        rca: /^\d+$/.test(String(a.rca)) ? Number(a.rca) : a.rca, nome: a.nome || ('RCA ' + a.rca), supervisor: a.sup_nome || '', gerente: '', grupo: '',
-        canal: String(a.canal || '').toUpperCase(), mostra: false, motivo: 'Novo na arvore do CEVEN: decidir em Gestao de Equipe > Divergencias', auto_arvore: true, na_arvore: true, novo_na_arvore: true
+        rca: /^\d+$/.test(String(a.rca)) ? Number(a.rca) : a.rca, nome: a.nome || (gi && gi.nome) || ('RCA ' + a.rca), supervisor: supRes, sup_cod: supCodRes, gerente: '', grupo: grpRes,
+        canal: String(a.canal || '').toUpperCase(), mostra: false, motivo: 'Novo na arvore do CEVEN: decidir em Gestao de Equipe > Divergencias', auto_arvore: true, na_arvore: true, ativo_gerot: ativoGerot.has(keyA), novo_na_arvore: true
+      });
+      nao++; novos++;
+    }
+    for (const [keyG, gi] of gerotInfo.entries()) {
+      if (naGestao.has(keyG) || adicionados.has(keyG) || inexistentes.has(keyG)) continue;
+      const [sig, rN] = keyG.split('|');
+      const supRes = gi.supervisor || '';
+      const supCodRes = gi.cod_sup || supCodNome.get(sig + '|' + semN(supRes)) || supCodCliven.get(keyG) || '';
+      const grpRes = supGrupoGestao.get(sig + '|' + semN(supRes)) || '';
+      (novo.filiais[sig] = novo.filiais[sig] || []).push({
+        rca: Number(rN), nome: gi.nome || ('RCA ' + rN), supervisor: supRes, sup_cod: supCodRes, gerente: '', grupo: grpRes,
+        canal: '', mostra: false, motivo: 'Ativo no GEROT fora da Gestao de Equipe: decidir em Gestao de Equipe > Divergencias', auto_arvore: true, na_arvore: false, ativo_gerot: true, novo_na_arvore: true
       });
       nao++; novos++;
     }
@@ -124,7 +167,7 @@ export async function onRequestGet({ env, request }) {
       cache = { exp: Date.now() + 60 * 1000, corpo: data };
       return resp(data);
     }
-  } catch (err) {}
+  } catch (err) { }
 
   return resp({ erro: 'lista MOSTRA indisponivel (D1 e copia falharam)' }, 502);
 }
