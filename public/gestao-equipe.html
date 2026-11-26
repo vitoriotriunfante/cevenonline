@@ -721,6 +721,23 @@ table { font-size: clamp(11px, .95vw, 13px) !important; }
   </div>
 </div>
 
+<!-- MODAL CONCILIACAO GEROT (DIRETORIA) -->
+<div id="modal-conciliacao" class="modal-overlay">
+  <div class="modal-box modal-lg">
+    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);padding-bottom:12px;">
+      <div>
+        <h3 style="color:#fff;font-size:18px;">🔄 Conciliação 1-Clique (Gestão de Equipe ↔ GEROT)</h3>
+        <p style="font-size:12px;color:var(--tx-mut);" id="conc-subtitulo">Comparando base soberana contra vendedores, Cliven e supervisores do GEROT...</p>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="nav-btn" onclick="carregarConciliacaoGerot()">↻ Recarregar</button>
+        <button class="nav-btn" onclick="fecharModalConciliacao()">✖ Fechar</button>
+      </div>
+    </div>
+    <div id="conc-corpo" style="max-height:60vh;overflow-y:auto;display:flex;flex-direction:column;gap:14px;"></div>
+  </div>
+</div>
+
 <header>
   <div class="brand">
     <div class="brand-badge">CEVEN SOBERANO</div>
@@ -753,6 +770,10 @@ table { font-size: clamp(11px, .95vw, 13px) !important; }
     
     <a href="/championstriunfante" class="nav-btn">⚽ Brasileirão</a>
     <a href="/apresentacao-diretoria" class="nav-btn">📊 Apresentação</a>
+
+    <button class="nav-btn" id="btn-conciliacao" style="display:none;border-color:#38bdf8;color:#38bdf8;" onclick="abrirConciliacaoGerot()">
+      🔄 Conciliação GEROT
+    </button>
     
     <button class="nav-btn btn-save-main" id="btn-salvar-master" style="display:none;" onclick="salvarAlteracoesMaster()">
       💾 Salvar no CEVEN (Master)
@@ -1010,12 +1031,14 @@ function aplicarPerfilUsuario() {
   const btnEnviarSolic = document.getElementById('btn-enviar-solic');
   const btnMinhasSolic = document.getElementById('btn-minhas-solic');
   const btnSalvarMaster = document.getElementById('btn-salvar-master');
+  const btnConciliacao = document.getElementById('btn-conciliacao');
   const btnAddVend = document.getElementById('btn-add-vend');
 
   if (USUARIO_LOGADO.isDiretoria) {
     selectFilial.disabled = false;
     btnCentralAprov.style.display = 'inline-flex';
     btnSalvarMaster.style.display = 'inline-flex';
+    if (btnConciliacao) btnConciliacao.style.display = 'inline-flex';
     btnEnviarSolic.style.display = 'none';
     btnMinhasSolic.style.display = 'none';
     btnAddVend.textContent = '➕ Novo Vendedor (Direto)';
@@ -1030,6 +1053,7 @@ function aplicarPerfilUsuario() {
     selectFilial.disabled = true; // Trava o gerente na filial dele!
     btnCentralAprov.style.display = 'none';
     btnSalvarMaster.style.display = 'none';
+    if (btnConciliacao) btnConciliacao.style.display = 'none';
     btnEnviarSolic.style.display = 'inline-flex';
     btnMinhasSolic.style.display = 'inline-flex';
     btnAddVend.textContent = '➕ Solicitar Novo Vendedor';
@@ -1707,6 +1731,101 @@ async function salvarAlteracoesMaster() {
   } catch (e) {
     mostrarToast('✅ Alterações aplicadas na sessão local.');
   }
+}
+
+/* CONCILIACAO 1-CLIQUE (GESTAO DE EQUIPE <-> GEROT) */
+let DADOS_CONC = null;
+function abrirConciliacaoGerot() {
+  if (!USUARIO_LOGADO || !USUARIO_LOGADO.isDiretoria) return;
+  document.getElementById('modal-conciliacao').style.display = 'flex';
+  carregarConciliacaoGerot();
+}
+function fecharModalConciliacao() {
+  document.getElementById('modal-conciliacao').style.display = 'none';
+}
+async function carregarConciliacaoGerot() {
+  const corpo = document.getElementById('conc-corpo');
+  const sub = document.getElementById('conc-subtitulo');
+  corpo.innerHTML = '<div style="padding:24px;text-align:center;color:var(--tx-mut);">Consultando GEROT e Gestão de Equipe no D1...</div>';
+  try {
+    const res = await fetch('/api/equipe-conciliacao?t=' + Date.now(), { headers: hdrsAprovacao() });
+    const d = await res.json();
+    if (!res.ok || !d.ok) {
+      corpo.innerHTML = `<div style="padding:20px;color:var(--bad);">Erro ao carregar conciliação: ${d.erro || ('HTTP ' + res.status)}</div>`;
+      return;
+    }
+    DADOS_CONC = d;
+    const r = d.resumo || {};
+    sub.textContent = `Mês ${d.mes} · Gestão: ${r.gestao_sim}/${r.gestao_total} SIM · GEROT ativos: ${r.gerot_rcas_ativos} · Novos: ${r.novos} · Sem movimento: ${r.inativos} · Sup. divergente: ${r.supervisor_divergente} · Multi-pasta/dup: ${r.duplicados}`;
+    const money = (v) => 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+    const secNovos = d.novos_no_gerot.length
+      ? `<div><h4 style="color:#38bdf8;margin:4px 0 8px;">➕ Novos no GEROT com movimento (${d.novos_no_gerot.length})</h4>` +
+        d.novos_no_gerot.slice(0, 60).map((x, idx) => `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 10px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;background:rgba(255,255,255,0.02);"><div><b>[${x.filial}] ${x.rca} - ${x.nome}</b><div style="font-size:11px;color:var(--tx-mut);">Sup. GEROT: ${x.supervisor_gerot || '—'} · Meta: ${money(x.meta)} · Fat: ${money(x.fat_liq)} · Cart: ${money(x.carteira)}</div></div><button class="nav-btn btn-save-main" onclick="concIncluirRca(${idx})">Incluir como SIM</button></div>`).join('') + '</div>'
+      : '<div style="color:var(--ok);font-size:13px;">✅ Nenhum RCA novo com movimento fora da Gestão de Equipe.</div>';
+    const secSup = d.supervisor_divergente.length
+      ? `<div><h4 style="color:var(--warn);margin:4px 0 8px;">🔄 Supervisor divergente vs GEROT (${d.supervisor_divergente.length})</h4>` +
+        d.supervisor_divergente.slice(0, 60).map((x, idx) => `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 10px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;background:rgba(255,255,255,0.02);"><div><b>[${x.filial}] ${x.rca} - ${x.nome}</b><div style="font-size:11px;color:var(--tx-mut);">Gestão: <b>${x.supervisor_gestao}</b> → GEROT: <b>${x.supervisor_gerot}</b></div></div><button class="nav-btn" style="border-color:var(--warn);color:var(--warn);" onclick="concAdotarSup(${idx})">Adotar supervisor GEROT</button></div>`).join('') + '</div>'
+      : '<div style="color:var(--ok);font-size:13px;">✅ Nenhuma divergência de supervisor com movimento ativo.</div>';
+    const secInat = d.inativos_na_gestao.length
+      ? `<div><h4 style="color:#f87171;margin:4px 0 8px;">⏸️ Ativos (SIM) na Gestão sem movimento no GEROT (${d.inativos_na_gestao.length})</h4>` +
+        d.inativos_na_gestao.slice(0, 60).map((x, idx) => `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 10px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;background:rgba(255,255,255,0.02);"><div><b>[${x.filial}] ${x.rca} - ${x.nome}</b><div style="font-size:11px;color:var(--tx-mut);">Sup.: ${x.supervisor_gestao || '—'} · Canal: ${x.canal || '—'}</div></div><button class="nav-btn" style="border-color:#f87171;color:#f87171;" onclick="concOcultarRca(${idx})">Marcar NÃO</button></div>`).join('') + '</div>'
+      : '<div style="color:var(--ok);font-size:13px;">✅ Nenhum vendedor SIM sem movimento no GEROT.</div>';
+    const secDup = d.duplicados_multi_pasta.length
+      ? `<div><h4 style="color:var(--tx-mut);margin:4px 0 8px;">ℹ️ Multi-pasta GEROT / Duplicidades (${d.duplicados_multi_pasta.length})</h4>` +
+        d.duplicados_multi_pasta.slice(0, 40).map((x) => `<div style="font-size:12px;padding:5px 10px;border-left:3px solid #38bdf8;margin-bottom:4px;"><b>[${x.filial}] ${x.rca} - ${x.nome}</b>: ${x.detalhe}</div>`).join('') + '</div>'
+      : '';
+    corpo.innerHTML = secNovos + secSup + secInat + secDup;
+  } catch (e) {
+    corpo.innerHTML = `<div style="padding:20px;color:var(--bad);">Falha: ${e.message}</div>`;
+  }
+}
+async function concIncluirRca(idx) {
+  const x = DADOS_CONC && DADOS_CONC.novos_no_gerot[idx];
+  if (!x || !BASE_MOSTRA || !BASE_MOSTRA.filiais) return;
+  let grupo = '';
+  if (x.filial === 'TPH' || x.filial === 'MCD') {
+    const opts = x.filial === 'TPH' ? 'VAGNER ou FABIO' : 'CLEVERSON ou ADRIANO';
+    grupo = (prompt(`Filial ${x.filial} dividida — informe o gerente (${opts}):`) || '').trim().toUpperCase();
+    if (!grupo) return;
+  }
+  if (!BASE_MOSTRA.filiais[x.filial]) BASE_MOSTRA.filiais[x.filial] = [];
+  BASE_MOSTRA.filiais[x.filial].unshift({
+    rca: String(x.rca),
+    nome: String(x.nome || ('RCA ' + x.rca)).toUpperCase(),
+    canal: 'VJ',
+    supervisor: String(x.supervisor_gerot || ('SUPERVISOR ' + x.filial)).toUpperCase(),
+    gerente: (typeof NOMES_GERENTES !== 'undefined' && NOMES_GERENTES[x.filial]) || 'Gerência Geral',
+    grupo,
+    mostra: true,
+    motivo: 'Conciliação GEROT 1-clique em ' + new Date().toLocaleDateString('pt-BR')
+  });
+  atualizarKPIs(); filtrarTabela();
+  await salvarAlteracoesMaster();
+  carregarConciliacaoGerot();
+}
+async function concOcultarRca(idx) {
+  const x = DADOS_CONC && DADOS_CONC.inativos_na_gestao[idx];
+  if (!x || !BASE_MOSTRA || !BASE_MOSTRA.filiais) return;
+  const lst = BASE_MOSTRA.filiais[x.chaveFil] || BASE_MOSTRA.filiais[x.filial] || [];
+  const item = lst.find((r) => String(Number(r.rca) || r.rca) === String(Number(x.rca) || x.rca));
+  if (!item) return;
+  item.mostra = false;
+  item.motivo = 'Conciliação GEROT (sem movimento) em ' + new Date().toLocaleDateString('pt-BR');
+  atualizarKPIs(); filtrarTabela();
+  await salvarAlteracoesMaster();
+  carregarConciliacaoGerot();
+}
+async function concAdotarSup(idx) {
+  const x = DADOS_CONC && DADOS_CONC.supervisor_divergente[idx];
+  if (!x || !BASE_MOSTRA || !BASE_MOSTRA.filiais) return;
+  const lst = BASE_MOSTRA.filiais[x.chaveFil] || BASE_MOSTRA.filiais[x.filial] || [];
+  const item = lst.find((r) => String(Number(r.rca) || r.rca) === String(Number(x.rca) || x.rca));
+  if (!item) return;
+  item.supervisor = String(x.supervisor_gerot || '').toUpperCase();
+  item.motivo = 'Conciliação supervisor GEROT em ' + new Date().toLocaleDateString('pt-BR');
+  atualizarKPIs(); filtrarTabela();
+  await salvarAlteracoesMaster();
+  carregarConciliacaoGerot();
 }
 
 function mostrarToast(msg) {

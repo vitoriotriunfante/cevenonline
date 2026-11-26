@@ -34,12 +34,19 @@ f.onload = () => { try { document.title = f.contentDocument.title; } catch {} f.
 const alterna = () => { try { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); } catch {} };
 document.addEventListener('keydown', e => { if (e.key === 'f' || e.key === 'F') alterna(); });
 
-// atualização automática: recarrega só o iframe
-let versao = null, pendente = false, pendenteDesde = 0;
+// atualização automática: recarrega só o iframe (código + dados GEROT/fatos)
+let versao = null, versaoDados = null, pendente = false, pendenteDesde = 0;
 async function confere() {
   try {
     const d = await (await fetch('/api/version', { cache: 'no-store' })).json();
     if (d && d.version) { if (versao && versao !== d.version) { if (!pendente) pendenteDesde = Date.now(); pendente = true; } else if (!versao) versao = d.version; }
+  } catch {}
+}
+async function confereDados() {
+  try {
+    const d = await (await fetch('/api/fatos/versao', { cache: 'no-store' })).json();
+    const k = d ? `${d.carga_id || ''}|${d.gerado_em || ''}|${d.posicao || ''}` : '';
+    if (k && k !== '||') { if (versaoDados && versaoDados !== k) { if (!pendente) pendenteDesde = Date.now(); pendente = true; } else if (!versaoDados) versaoDados = k; }
   } catch {}
 }
 setInterval(() => {
@@ -47,7 +54,8 @@ setInterval(() => {
   // 19/10/2026 (TV da TSJ parada com numero velho): um VAR travado deixava 'ocupado' para sempre e a TV nunca mais recarregava. Espera o VAR no maximo 3 min.
   try { const w = f.contentWindow; if (w.__tv && w.__tv.ocupado && w.__tv.ocupado() && Date.now() - (pendenteDesde || Date.now()) < 3 * 60 * 1000) return; w.location.reload(); }
   catch { f.src = f.src; }
-  pendente = false; versao = null; confere();
+  pendente = false; versao = null; versaoDados = null; confere(); confereDados();
 }, 2000);
 setInterval(confere, 30000); confere();
+setInterval(confereDados, 60000); confereDados();
 </script></body></html>

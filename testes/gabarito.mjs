@@ -94,6 +94,9 @@ const V = {
   bloq_por_filial: () => FILIAIS.map((f) => cart(f, null, bloq)).map((c, i) => c.n ? rs(`bloqueados ${FILIAIS[i]}`, c.v) : null).filter(Boolean),
   margem_por_filial: () => FILIAIS.map((f) => rs(`margem ${f}`, F(MES, f, 'Margem de contribuição (R$)'))),
   fat_liq_por_filial: () => FILIAIS.map((f) => rs(`faturado ${f}`, F(MES, f, 'Faturado líquido (R$)'))),
+  desvio_brasil: () => { const r = sql(`SELECT fat_liq, meta FROM gerot_desvio_mes WHERE mes = '${MES}' AND nivel = 'brasil' LIMIT 1`)[0]; return r ? [rs('faturado desvio Brasil', r.fat_liq), rs('meta desvio Brasil', r.meta)] : []; },
+  desvio_vendedor: (p) => { const r = sql(`SELECT fat_liq, meta FROM gerot_desvio_mes WHERE mes = '${MES}' AND nivel = 'vendedor' AND filial = '${p.filial}' AND CAST(cod AS INTEGER) = ${+p.rca} LIMIT 1`)[0]; return r ? [rs('faturado desvio vendedor', r.fat_liq), rs('meta desvio vendedor', r.meta)] : []; },
+  curva_neg_brasil: () => { const r = sql(`SELECT COUNT(*) n, COALESCE(SUM(margem_rs), 0) m FROM gerot_curva_neg_margem WHERE mes = '${MES}'`)[0]; return r ? [n('pedidos curva neg Brasil', r.n), rs('margem neg Brasil', r.m)] : []; },
   // dia (Clube): só confere quando há leitura de hoje; aceita as duas somas do Clube (3.13 ainda em decisão)
   clube_dia: (p) => {
     const w = [p.filial && `filial = '${p.filial}'`, p.rca && `CAST(rca AS INTEGER) = ${+p.rca}`, p.supervisor && `CAST(rca AS INTEGER) IN (${rcasEquipe(p.filial, p.supervisor).map(Number).join(',') || -1})`, p.grupo && `CAST(rca AS INTEGER) IN (${rcasGrupo(p.filial, p.grupo).map(Number).join(',') || -1})`].filter(Boolean);

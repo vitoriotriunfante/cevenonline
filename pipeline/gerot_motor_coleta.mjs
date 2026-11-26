@@ -1461,8 +1461,10 @@ async function processarMes(mes, { cubo, motor, meta }, tiers, posicao, loteId) 
     const cad = (cubo.clivenCad && cubo.clivenCad.c && (cubo.clivenCad.c[cnpj] || cubo.clivenCad.c[nCnpj(cnpj)])) || null;
     if (cad && cad[2]) addGrp('cidade', filial, `${cad[1] || ''}:${cad[2]}`, `${cad[2]}/${cad[1] || ''}`, r);
     else if (ci.mun) addGrp('cidade', filial, ci.mun, ci.mun, r);
-    const redeCad = cad && !Array.isArray(cad) ? cad.rede : (Array.isArray(cad) && typeof cad[6] === 'string' && cad[6].trim() ? cad[6].trim() : '');
-    if (redeCad) addGrp('rede', filial, redeCad.slice(0, 80), redeCad.slice(0, 80), r);
+    const redeCad = cad && !Array.isArray(cad)
+      ? String(cad.rede || '').trim()
+      : (Array.isArray(cad) && typeof cad[6] === 'string' && cad[6].trim() && !/^\d{5,8}$/.test(cad[6].trim()) ? cad[6].trim() : '');
+    if (redeCad && redeCad !== '-1' && redeCad !== '0') addGrp('rede', filial, redeCad.slice(0, 80), redeCad.slice(0, 80), r);
   }
   let eRedCount = 0;
   try {
@@ -1471,7 +1473,7 @@ async function processarMes(mes, { cubo, motor, meta }, tiers, posicao, loteId) 
     (dim.rede && dim.rede.cod || []).forEach((c, i) => redNomes.set(String(c), String((dim.rede.nome && dim.rede.nome[i]) || c)));
     for (const [k, r] of eRed.map) {
       const [filial, rk] = k.split(SEP);
-      if (!/^[A-Z]{3}$/.test(filial) || !rk) continue;
+      if (!/^[A-Z]{3}$/.test(filial) || !rk || rk === '-1' || rk === '0') continue;
       const dados = montaDadosComum(r, {}, { pctMesCorrido: pctMes, duTotal: duTot });
       dimRows.push({ mes, dim: 'rede', filial, chave: rk, nome: redNomes.get(rk) || rk, dados, hash: sha(dados) });
       eRedCount++;
@@ -1739,8 +1741,8 @@ async function processarMes(mes, { cubo, motor, meta }, tiers, posicao, loteId) 
               clvCliMap.set(`${fil}|${cliId}`, {
                 filial: fil, cliente: cliId, cnpj: c14,
                 nome: String(cad[0] || cliId),
-                cep: !Array.isArray(cad) ? String(cad.cep || '') : String(typeof cad[5] === 'string' && /^\d{5}/.test(cad[5]) ? cad[5] : ''),
-                rede: !Array.isArray(cad) ? String(cad.rede || '') : String(typeof cad[6] === 'string' ? cad[6] : ''),
+                cep: !Array.isArray(cad) ? String(cad.cep || '') : String((/^\d{5,8}$/.test(String(cad[6] || '')) ? cad[6] : (/^\d{5,8}$/.test(String(cad[5] || '')) ? cad[5] : '')) || ''),
+                rede: !Array.isArray(cad) ? String(cad.rede || '') : (typeof cad[6] === 'string' && cad[6].trim() && !/^\d{5,8}$/.test(cad[6].trim()) ? cad[6].trim() : ''),
                 uf: String(cad[1] || ''), municipio: String(cad[2] || ''),
                 tipologia: !Array.isArray(cad) ? String(cad.tipologia || '') : String(typeof cad[7] === 'string' ? cad[7] : ''),
                 status: String(cad[3] || ''),
@@ -2001,7 +2003,8 @@ async function main() {
     clivenCart: cubo && cubo.clivenCart ? Object.keys(cubo.clivenCart) : null,
     batalha: cubo && cubo.batalha ? Object.keys(cubo.batalha) : null,
     carrinho: cubo && cubo.carrinho ? Object.keys(cubo.carrinho) : null,
-    dimRede: cubo && cubo.dim && cubo.dim.rede ? (cubo.dim.rede.cod || []).length : 0
+    dimRede: cubo && cubo.dim && cubo.dim.rede ? (cubo.dim.rede.cod || []).length : 0,
+    redes: cubo && cubo.redes ? (Array.isArray(cubo.redes) ? `arr[${cubo.redes.length}]` : Object.keys(cubo.redes).slice(0, 8)) : null
   }));
 
   for (const m of meses) {

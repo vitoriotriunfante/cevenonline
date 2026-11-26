@@ -260,11 +260,17 @@ export async function respCurvaNegMargem(B, E, c, t) {
   const esc = escopoWhere(E, c, { temRca: true, temSup: true });
   const onde = E.nacional ? 'Brasil' : esc.fils.join(', ');
 
-  let rows = [];
+  let tot = null, rows = [];
   try {
-    rows = (await db.prepare(`SELECT filial, pedido, nf, data, rca, vendedor, cliente, itens, fat_bruto, desconto_pct, custo, margem_rs, margem_pct, margem_perdida FROM gerot_curva_neg_margem WHERE mes = ? AND ${esc.sql} ORDER BY margem_rs ASC LIMIT 200`).bind(mes, ...esc.bind).all()).results || [];
-  } catch { rows = []; }
-  if (!rows.length) {
+    const [tRes, rRes] = await Promise.all([
+      db.prepare(`SELECT COUNT(*) n, COALESCE(SUM(fat_bruto), 0) fat, COALESCE(SUM(margem_rs), 0) mg FROM gerot_curva_neg_margem WHERE mes = ? AND ${esc.sql}`).bind(mes, ...esc.bind).first(),
+      db.prepare(`SELECT filial, pedido, nf, data, rca, vendedor, cliente, itens, fat_bruto, desconto_pct, custo, margem_rs, margem_pct, margem_perdida FROM gerot_curva_neg_margem WHERE mes = ? AND ${esc.sql} ORDER BY margem_rs ASC LIMIT 6`).bind(mes, ...esc.bind).all()
+    ]);
+    tot = tRes;
+    rows = (rRes && rRes.results) || [];
+  } catch { tot = null; rows = []; }
+  const totN = Number(tot && tot.n) || rows.length;
+  if (!rows.length || !totN) {
     return [
       `📉 *Curva Negativa de Margem — ${onde}* (${mes})`,
       'Nenhum pedido faturado com margem negativa registrado neste recorte.',
@@ -274,11 +280,11 @@ export async function respCurvaNegMargem(B, E, c, t) {
     ].join('\n');
   }
 
-  const totPerd = rows.reduce((s, r) => s + (Number(r.margem_rs) || 0), 0);
-  const totFat = rows.reduce((s, r) => s + (Number(r.fat_bruto) || 0), 0);
+  const totPerd = Number(tot && tot.mg) || rows.reduce((s, r) => s + (Number(r.margem_rs) || 0), 0);
+  const totFat = Number(tot && tot.fat) || rows.reduce((s, r) => s + (Number(r.fat_bruto) || 0), 0);
   return [
     `🚨 *Curva Negativa de Margem — ${onde}* (${mes})`,
-    `Pedidos faturados com prejuízo: *${N(rows.length)}* · Fat. bruto: ${R$(totFat)} · *Margem negativa: ${R$(totPerd)}*`,
+    `Pedidos faturados com prejuízo: *${N(totN)}* · Fat. bruto: ${R$(totFat)} · *Margem negativa: ${R$(totPerd)}*`,
     '',
     '*Piores pedidos:*',
     ...rows.slice(0, 6).map((x, i) => `${i + 1}. [${x.filial}] Ped. *${x.pedido}* · ${titulo(x.cliente).slice(0, 22)} · ${titulo(x.vendedor).slice(0, 14)} · Desc. ${pct1(x.desconto_pct)} · *${R$(x.margem_rs)}* (${pct1(x.margem_pct)})`),
@@ -661,7 +667,7 @@ export async function respRede(B, E, c) {
           let d = {}; try { d = JSON.parse(r.dados || '{}'); } catch {}
           const nome = String(r.nome || r.chave || '').trim();
           const k = sem(nome || r.chave);
-          if (!k) continue;
+          if (!k || nome === '-1' || nome === '0' || /^\d{5,8}$/.test(nome)) continue;
           const o = grp.get(k) || { rede: nome, fat: 0, meta: 0, cart: 0, pos: 0 };
           o.fat += Number(d['Faturado líquido (R$)']) || 0;
           o.meta += Number(d['Meta (R$)']) || 0;
@@ -675,11 +681,13 @@ export async function respRede(B, E, c) {
     if (!lista.length) {
       const mesC = await mesOuUltimo(db, 'gerot_cliven_carteira');
       const sc = clivenCartScope(E, c, 'c');
-      const rs = (await db.prepare(`SELECT TRIM(cl.rede) rede, COUNT(DISTINCT c.filial||'|'||c.cliente) cli, SUM(CASE WHEN c.positivado = 1 THEN 1 ELSE 0 END) pos, SUM(COALESCE(c.fat_mes, 0)) fat FROM gerot_cliven_carteira c JOIN gerot_cliven_clientes cl ON cl.filial = c.filial AND cl.cliente = c.cliente WHERE c.mes = ? AND c.forn_cod = '*' AND COALESCE(TRIM(cl.rede), '') <> '' AND ${sc.sql} GROUP BY UPPER(TRIM(cl.rede)) ORDER BY fat DESC LIMIT 12`).bind(mesC, ...sc.bind).all()).results || [];
-      lista = rs.map((r) => ({ rede: r.rede, fat: Number(r.fat) || 0, pos: Number(r.pos) || 0, cli: Number(r.cli) || 0, meta: 0 }));
+      const rs = (await db.prepare(`SELECT TRIM(cl.rede) rede, COUNT(DISTINCT c.filial||'|'||c.cliente) cli, SUM(CASE WHEN c.positivado = 1 THEN 1 ELSE 0 END) pos, SUM(COALESCE(c.fat_mes, 0)) fat FROM gerot_cliven_carteira c JOIN gerot_cliven_clientes cl ON cl.filial = c.filial AND cl.cliente = c.cliente WHERE c.mes = ? AND c.forn_cod = '*' AND COALESCE(TRIM(cl.rede), '') NOT IN ('', '-1', '0') AND ${sc.sql} GROUP BY UPPER(TRIM(cl.rede)) ORDER BY fat DESC LIMIT 12`).bind(mesC, ...sc.bind).all()).results || [];
+      lista = rs
+        .filter((r) => { const s = String(r.rede || '').trim(); return s && s !== '-1' && s !== '0' && !/^\d{5,8}$/.test(s); })
+        .map((r) => ({ rede: r.rede, fat: Number(r.fat) || 0, pos: Number(r.pos) || 0, cli: Number(r.cli) || 0, meta: 0 }));
     }
   } catch { lista = []; }
-  if (!lista.length) return `🏬 *Redes de Clientes — ${onde} (${mes})*\nAinda sem dados por rede gravados no D1 para este escopo.`;
+  if (!lista.length) return `🏬 *Redes de Clientes — ${onde}* (${mes})\nAinda sem redes nomeadas gravadas no GEROT para este escopo.\n\n${await posFooter(db, mes)}`;
   const totFat = lista.reduce((s, x) => s + (x.fat || 0), 0);
   return [
     `🏬 *Redes de Clientes — ${onde}* (${mes})`,

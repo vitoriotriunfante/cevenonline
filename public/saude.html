@@ -3,13 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CEVEN — Sala de Controle</title>
-<!--
-FICHA DO ARQUIVO: public/saude.html  (rota /saude)
-O QUE É: painel de controle ("sala da NASA") — saúde da base, do CEVEN, da coleta, das metas, da Gestão de Equipe, dos lances e do WhatsApp.
-LÊ: /api/saude (só leitura, atualiza a cada 15 s). Nenhum número é estimado: o que não deu para medir aparece como "—".
-PEDIDO: Vitório, 12/10/2026 ("se mandar alerta vai encher meu WhatsApp... monte um painel da NASA e completo").
--->
+<title>CEVEN — Sala de Controle v2 (GEROT + Clube)</title>
 <style>
   :root{--bg:#050b16;--panel:#0b1626;--panel2:#0f1d33;--line:#1c2d49;--tx:#dbe7f7;--mut:#7f93b2;--ok:#22c55e;--warn:#f59e0b;--bad:#ef4444;--ac:#38bdf8}
   *{box-sizing:border-box}
@@ -29,13 +23,13 @@ PEDIDO: Vitório, 12/10/2026 ("se mandar alerta vai encher meu WhatsApp... monte
   .prob{margin:4px 0;font-size:13px}
   .prob .tag{display:inline-block;min-width:78px;text-align:center;font-size:10px;font-weight:700;padding:1px 7px;border-radius:9px;margin-right:8px;text-transform:uppercase}
   .prob .tag.critico{background:var(--bad);color:#fff}.prob .tag.atencao{background:var(--warn);color:#201400}
-  td .tag{display:inline-block;font-size:11px;font-weight:800;padding:2px 9px;border-radius:9px;white-space:nowrap}td .tag.ok{background:var(--ok,#22c55e);color:#04210f}td .tag.critico{background:var(--bad);color:#fff}td .tag.atencao{background:var(--warn);color:#201400}
+  td .tag{display:inline-block;font-size:11px;font-weight:800;padding:2px 9px;border-radius:9px;white-space:nowrap}td .tag.ok{background:var(--ok);color:#04210f}td .tag.critico{background:var(--bad);color:#fff}td .tag.atencao{background:var(--warn);color:#201400}
   .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));margin-bottom:14px}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;position:relative}
   .card .t{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.08em}
-  .card .v{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;margin:2px 0}
+  .card .v{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;margin:2px 0}
   .card .s{color:var(--mut);font-size:12px}
-  .card.ok{border-top:3px solid var(--ok)}.card.atencao{border-top:3px solid var(--warn)}.card.critico{border-top:3px solid var(--bad)}
+  .card.ok{border-top:3px solid var(--ok)}.card.atencao{border-top:3px solid var(--warn)}.card.critico{border-top:3px solid var(--bad)}.card.desligado{border-top:3px solid #475569;opacity:.82}
   .sec{margin:18px 0 8px;color:var(--ac);font-size:12px;letter-spacing:.14em;text-transform:uppercase}
   table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
   th,td{padding:7px 10px;text-align:right;font-variant-numeric:tabular-nums;border-bottom:1px solid var(--line);font-size:13px}
@@ -45,8 +39,6 @@ PEDIDO: Vitório, 12/10/2026 ("se mandar alerta vai encher meu WhatsApp... monte
   .pill{display:inline-block;padding:1px 8px;border-radius:9px;font-size:11px;font-weight:700}
   .pill.ok{background:rgba(34,197,94,.18);color:var(--ok)}.pill.atencao{background:rgba(245,158,11,.18);color:var(--warn)}.pill.critico{background:rgba(239,68,68,.2);color:var(--bad)}.pill.fut{background:rgba(127,147,178,.18);color:var(--mut)}
   .barra{height:8px;background:#13233d;border-radius:4px;overflow:hidden;min-width:70px}.barra i{display:block;height:100%;background:var(--ok)}
-  .cols{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
-  svg{width:100%;height:90px;display:block}
   .leg{font-size:11px;color:var(--mut)}
   .erro{color:var(--bad);padding:30px;text-align:center}
   @media (max-width:640px){header{padding:10px 12px}.relogio{font-size:16px}main{padding:12px}.card .v{font-size:22px}}
@@ -55,8 +47,9 @@ PEDIDO: Vitório, 12/10/2026 ("se mandar alerta vai encher meu WhatsApp... monte
 <body>
 <header>
   <div class="farol" id="farol"></div>
-  <div><h1>CEVEN · Sala de Controle</h1><div class="sub" id="sub">carregando…</div></div>
-  <a href="/contatos" style="color:#38bdf8;text-decoration:none;border:1px solid #22304d;border-radius:8px;padding:6px 10px;margin-left:8px">👥 Contatos do JOTA</a>
+  <div><h1>CEVEN · Sala de Controle v2</h1><div class="sub" id="sub">carregando…</div></div>
+  <a href="/gestao-equipe" style="color:#38bdf8;text-decoration:none;border:1px solid #22304d;border-radius:8px;padding:6px 10px;margin-left:8px">🔄 Gestão de Equipe</a>
+  <a href="/contatos" style="color:#38bdf8;text-decoration:none;border:1px solid #22304d;border-radius:8px;padding:6px 10px">👥 Contatos do JOTA</a>
   <div class="grow"></div>
   <div style="text-align:right"><div class="relogio" id="relogio">--:--:--</div><div class="sub" id="prox">atualiza a cada 15 s</div></div>
 </header>
@@ -68,87 +61,69 @@ const nf = (n) => n == null ? '—' : Number(n).toLocaleString('pt-BR', { maximu
 const brl = (n) => n == null ? '—' : 'R$ ' + Number(n).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
 const mi = (n) => n == null ? '—' : 'R$ ' + (Number(n) / 1e6).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' mi';
 const idade = (s) => s == null ? '—' : s < 90 ? s + ' s' : s < 5400 ? Math.round(s / 60) + ' min' : (s / 3600).toFixed(1).replace('.', ',') + ' h';
-const sem = (c) => c; // classe do semáforo
 let falhasSeguidas = 0, ultimo = null;
 
-function spark(serie, campos, cores, altura = 90) {
-  if (!serie || serie.length < 2) return '<div class="leg">sem pontos suficientes (a telemetria começa a partir da próxima rodada)</div>';
-  const W = 600, H = altura, pad = 4, n = serie.length;
-  const max = Math.max(1, ...serie.flatMap((p) => campos.map((c) => p[c] || 0)));
-  const x = (i) => pad + (i / (n - 1)) * (W - 2 * pad), y = (v) => H - pad - (v / max) * (H - 2 * pad);
-  const linhas = campos.map((c, k) => `<polyline fill="none" stroke="${cores[k]}" stroke-width="2" points="${serie.map((p, i) => x(i) + ',' + y(p[c] || 0)).join(' ')}"/>`).join('');
-  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><line x1="0" y1="${H - pad}" x2="${W}" y2="${H - pad}" stroke="#1c2d49"/>${linhas}</svg><div class="leg">máx. ${nf(max)} por rodada</div>`;
+function card(t, v, s, cls) {
+  return `<div class="card ${cls || ''}"><div class="t">${t}</div><div class="v">${v}</div><div class="s">${s || ''}</div></div>`;
 }
 
-function card(t, v, s, cls) { return `<div class="card ${cls || ''}"><div class="t">${t}</div><div class="v">${v}</div><div class="s">${s || ''}</div></div>`; }
-
 function render(d) {
-  const b = d.base, c = d.coleta, cv = d.ceven, e = d.equipe, m = d.metas, l = d.lances;
-  const nivelBase = !b.rcas ? (d.horario_comercial ? 'critico' : 'atencao') : (d.problemas.some((p) => p.bloco === 'base' && p.nivel === 'critico') ? 'critico' : d.problemas.some((p) => p.bloco === 'base') ? 'atencao' : 'ok');
-  const s = cv.sonda;
-  const nivelCeven = !s ? 'atencao' : (s.http === 200 && s.ms < 5000 && !cv.r429_60min && !cv.r401_60min) ? 'ok' : (s.http === 0 || s.http >= 500 || s.http === 401 || s.http === 403) ? 'critico' : 'atencao';
-  const nivelColeta = d.problemas.some((p) => p.bloco === 'coleta') ? 'critico' : (c.ticks_60min ? 'ok' : (d.horario_comercial && d.dia_util ? 'critico' : 'atencao'));
-  const nivelMetas = d.problemas.some((p) => p.bloco === 'metas') ? 'atencao' : 'ok';
+  const g = d.gerot || {}, cl = d.clube || {}, e = d.equipe, m = d.metas || {}, l = d.lances || {}, c = d.coleta || {};
+  const nivelGerot = d.problemas.some((p) => p.bloco === 'gerot' && p.nivel === 'critico') ? 'critico' : d.problemas.some((p) => p.bloco === 'gerot') ? 'atencao' : 'ok';
+  const nivelClube = d.problemas.some((p) => p.bloco === 'clube') ? 'atencao' : 'ok';
+  const nivelMetas = d.problemas.some((p) => p.bloco === 'metas' && p.nivel === 'critico') ? 'critico' : d.problemas.some((p) => p.bloco === 'metas') ? 'atencao' : 'ok';
   const nivelEq = d.problemas.some((p) => p.bloco === 'equipe' && p.nivel === 'critico') ? 'critico' : d.problemas.some((p) => p.bloco === 'equipe') ? 'atencao' : 'ok';
-  const hdr = { ok: 'Todos os sistemas operando', atencao: 'Atenção: há itens para olhar', critico: 'CRÍTICO: há falha que afeta o jogo' }[d.nivel];
+  const hdr = { ok: 'Todos os sistemas operando (GEROT + Clube)', atencao: 'Atenção: há itens para olhar', critico: 'CRÍTICO: há falha em componente ativo' }[d.nivel] || 'Monitoramento';
 
   $('farol').className = 'farol ' + d.nivel;
   $('sub').textContent = `${d.dia} · ${d.hora_sp} (Brasília) · ${d.dia_util ? 'dia útil' : 'fim de semana'} · versão ${d.versao || '—'}`;
 
   let h = `<div class="banner ${d.nivel}"><h2>${hdr}</h2>` +
-    (d.problemas.length ? d.problemas.map((p) => `<div class="prob"><span class="tag ${p.nivel}">${p.bloco}</span>${p.texto}</div>`).join('') : '<div class="s" style="color:var(--mut)">Nenhum problema detectado agora.</div>') + '</div>';
+    (d.problemas.length ? d.problemas.map((p) => `<div class="prob"><span class="tag ${p.nivel}">${p.bloco}</span>${p.texto}</div>`).join('') : '<div class="s" style="color:var(--mut)">Nenhum problema detectado nos sistemas ativos.</div>') + '</div>';
 
-  h += '<div class="sec">Coleta e base</div><div class="grid">';
-  h += card('RCAs na base de hoje', nf(b.rcas), `última gravação há ${idade(b.mais_novo_s)} · mediana ${idade(b.mediana_s)} · mais antiga ${idade(b.mais_antigo_s)}`, nivelBase);
-  h += card('Sem dashboard (meta/faturado)', nf(b.sem_dashboard), `sem produtividade ${nf(b.sem_produtividade)} · sem rota ${nf(b.sem_rota)} · sem devolução ${nf(b.sem_devolucoes)}`, b.sem_dashboard || b.sem_produtividade ? (b.sem_dashboard > 20 || b.sem_produtividade > 20 ? 'critico' : 'atencao') : 'ok');
-  h += card('Leituras com +15 min', nf(b.acima_15min), `p90 de idade: ${idade(b.p90_s)}`, b.acima_15min > 60 && d.horario_comercial ? 'atencao' : 'ok');
-  h += card('Rodadas de coleta (60 min)', nf(c.ticks_60min), `duração média ${c.duracao_media_ms ? (c.duracao_media_ms / 1000).toFixed(0) + ' s' : '—'} · último tick ${c.ultimo_tick_em ? c.ultimo_tick_em.slice(11, 19) + ' UTC' : '—'}`, nivelColeta);
+  h += '<div class="sec">GEROT Oficial &amp; Portão Contábil</div><div class="grid">';
+  h += card('Posição GEROT ativa', g.portao_status || '—', `${g.posicao || 'sem posição'} · idade ${idade(g.idade_s)}`, nivelGerot);
+  h += card('Briefing Cache (IA)', nf(g.briefing_chaves), `chaves pré-agregadas (Brasil/Filiais/Sups) · ${nf(g.filiais_cobertas)}/11 filiais`, g.briefing_chaves >= 12 ? 'ok' : 'atencao');
+  h += card('Clube da Venda (hoje)', mi(cl.digitado_hoje), `${nf(cl.rcas_lidos)} RCAs · ${nf(cl.pedidos_hoje)} pedidos · há ${idade(cl.idade_s)}`, nivelClube);
+  h += card('Gabarito JOTA', d.jota ? `${d.jota.ok}/${d.jota.total}` : '—', d.jota ? `${d.jota.origem || 'D1'} · ${String(d.jota.em || '').slice(0, 16)}` : 'sem auditoria recente', 'ok');
   h += '</div>';
 
-  h += '<div class="sec">CEVEN (acesso e velocidade)</div><div class="grid">';
-  h += card('Sonda ao vivo', s ? (s.http === 200 ? 'ONLINE' : s.http === 0 ? 'SEM RESPOSTA' : 'HTTP ' + s.http) : '—', s ? `${(s.ms / 1000).toFixed(2).replace('.', ',')} s por chamada${s.retry_after ? ' · libera em ' + s.retry_after + ' s' : ''}` : 'sem RCA para sondar', nivelCeven);
-  h += card('Chamadas (60 min)', nf(c.chamadas_60min), `sucesso ${c.taxa_sucesso_pct == null ? '—' : c.taxa_sucesso_pct + '%'} · falhas ${nf(c.falhas_60min)}`, 'ok');
-  h += card('Limite do CEVEN (429)', nf(c.r429_60min), 'bloqueios por excesso de chamadas na última hora', c.r429_60min > 20 ? 'atencao' : 'ok');
-  h += card('Chamadas simultâneas (auto)', c.concorrencia ? nf(c.concorrencia.atual) : '—', c.concorrencia ? `ajustada sozinha entre 4 e 6 · ${c.concorrencia.motivo || ''}` : 'ainda sem ajuste', 'ok');
-  h += card('Chave recusada (401/403)', nf(c.r401_60min), 'se subir, o CEVEN trocou a chave', c.r401_60min ? 'critico' : 'ok');
-  h += '</div>';
-
-  h += '<div class="cols"><div class="card"><div class="t">Chamadas ao CEVEN por rodada (3 h)</div>' + spark(c.serie, ['chamadas', 'ok'], ['#38bdf8', '#22c55e']) + '<div class="leg">azul = chamadas · verde = respondidas</div></div>' +
-       '<div class="card"><div class="t">Bloqueios e falhas por rodada (3 h)</div>' + spark(c.serie, ['r429', 'falhas', 'r401'], ['#f59e0b', '#a78bfa', '#ef4444']) + '<div class="leg">laranja = 429 · roxo = falhas · vermelho = 401</div></div>' +
-       '<div class="card"><div class="t">Duração da rodada em ms (3 h)</div>' + spark(c.serie, ['ms'], ['#38bdf8']) + '</div></div>';
-
-  h += '<div class="sec">Metas e Gestão de Equipe</div><div class="grid">';
-  h += card('Meta geral (soma dos RCAs)', mi(m.soma_dos_rcas), `Matriz mostra ${mi(m.matriz_mostra != null ? m.matriz_mostra : m.resumo_todas)} · ${m.filiais_no_resumo}/11 filiais` + (m.integridade ? ` · base: ${m.integridade.de_hoje}/${m.integridade.rcas} RCAs lidos hoje` + (m.integridade.leitura_anterior ? ` · ${m.integridade.leitura_anterior} com leitura anterior` : '') : ''), nivelMetas);
+  h += '<div class="sec">Metas &amp; Gestão de Equipe</div><div class="grid">';
+  h += card('Meta GEROT Brasil', mi(m.soma_dos_rcas), `Matriz mostra ${mi(m.matriz_mostra)} · ${nf(m.filiais_no_resumo)}/11 filiais`, nivelMetas);
   if (e) {
-    h += card('Gestão de Equipe', nf(e.total), `mostra SIM ${nf(e.mostra_sim)} · NÃO ${nf(e.mostra_nao)} · fonte ${e.origem}${e.atualizado_por ? ' · por ' + e.atualizado_por : ''}`, nivelEq);
-    h += card('Representantes', nf(e.representantes), `meta ${mi(e.representantes_meta)} · faturado ${mi(e.representantes_faturado)}`, e.representantes ? 'ok' : 'atencao');
-    h += card('Fora da Gestão (com meta)', nf(e.fora_da_gestao_com_meta), `${mi(e.fora_da_gestao_meta)} de meta sem decisão` + (e.fora_da_gestao_top && e.fora_da_gestao_top.length ? ' · maiores: ' + e.fora_da_gestao_top.slice(0, 3).map((x) => x.filial + ' ' + x.rca).join(', ') : ''), e.fora_da_gestao_com_meta ? 'atencao' : 'ok');
+    h += card('Gestão de Equipe', nf(e.total), `mostra SIM ${nf(e.mostra_sim)} · NÃO ${nf(e.mostra_nao)} · fonte ${e.origem}${e.atualizado_por ? ' · ' + e.atualizado_por : ''}`, nivelEq);
+    h += card('Representantes', nf(e.representantes), `meta ${mi(e.representantes_meta)} · faturado ${mi(e.representantes_faturado)}`, 'ok');
+    h += card('Fora da Gestão (com meta)', nf(e.fora_da_gestao_com_meta), `${mi(e.fora_da_gestao_meta)} sem decisão` + (e.fora_da_gestao_top && e.fora_da_gestao_top.length ? ' · maiores: ' + e.fora_da_gestao_top.slice(0, 3).map((x) => x.filial + ' ' + x.rca).join(', ') : ''), e.fora_da_gestao_com_meta ? 'atencao' : 'ok');
   }
   h += '</div>';
 
-  h += '<div class="sec">Lances e WhatsApp</div><div class="grid">';
+  h += '<div class="sec">Lances &amp; WhatsApp (JOTA)</div><div class="grid">';
   h += card('Lances gravados hoje', nf(l.hoje), `último às ${l.ultimo_hora_sp || '—'}` + (l.por_nivel && l.por_nivel.length ? ' · ' + l.por_nivel.slice(0, 4).map((x) => x.nivel + ' ' + x.n).join(' · ') : ''), 'ok');
   const w = d.whatsapp;
   const horarios = w && w.horarios && w.horarios.length ? w.horarios.map((x) => `<span class="pill ${x.estado === 'futuro' ? 'fut' : ['concluido', 'ok', 'enviado', 'em_andamento'].includes(x.estado) ? 'ok' : 'atencao'}" title="${x.estado}">${x.hm}</span>`).join(' ') : '—';
-  h += card('Disparos de WhatsApp do dia', w && w.dia_util ? 'dia útil' : 'sem disparo', horarios + (w && w.erro ? ' · ' + w.erro : ''), d.problemas.some((p) => p.bloco === 'whatsapp') ? 'critico' : 'ok');
+  h += card('Disparos de WhatsApp', w && w.dia_util ? 'dia útil' : 'sem disparo', horarios + (w && w.erro ? ' · ' + w.erro : ''), d.problemas.some((p) => p.bloco === 'whatsapp') ? 'critico' : 'ok');
   h += '</div>';
 
   h += quadroTVs();
-  h += '<div class="sec">Filiais (cobertura da base e metas)</div><table><thead><tr><th>Filial</th><th>RCAs</th><th>Sem dash.</th><th>Sem prod.</th><th>Sem rota</th><th>Leitura mais antiga</th><th>Meta fat.</th><th>Faturado</th><th>% meta</th><th>Positivados / meta</th><th>Digitado hoje</th></tr></thead><tbody>';
-  let T = { rcas: 0, sd: 0, sp: 0, sr: 0, meta: 0, fat: 0, pos: 0, pmeta: 0, dig: 0 };
-  for (const f of d.filiais) {
-    const pct = f.meta_fat ? f.faturado / f.meta_fat * 100 : null;
-    T.rcas += f.rcas; T.sd += f.sem_dashboard; T.sp += f.sem_produtividade; T.sr += f.sem_rota; T.meta += f.meta_fat; T.fat += f.faturado; T.pos += f.positivados; T.pmeta += f.meta_pos; T.dig += f.digitado_hoje;
-    const cls = (n) => n ? 'style="color:var(--warn);font-weight:700"' : '';
-    h += `<tr><td><b>${f.filial}</b></td><td>${nf(f.rcas)}</td><td ${cls(f.sem_dashboard)}>${nf(f.sem_dashboard)}</td><td ${cls(f.sem_produtividade)}>${nf(f.sem_produtividade)}</td><td ${cls(f.sem_rota)}>${nf(f.sem_rota)}</td><td>${idade(f.mais_antigo_s)}</td><td>${brl(f.meta_fat)}</td><td>${brl(f.faturado)}</td><td>${pct == null ? '—' : pct.toFixed(1).replace('.', ',') + '%'}<div class="barra"><i style="width:${Math.min(100, pct || 0)}%"></i></div></td><td>${nf(f.positivados)} / ${nf(f.meta_pos)}</td><td>${brl(f.digitado_hoje)}</td></tr>`;
+
+  h += '<div class="sec">Filiais (Consolidado GEROT + Clube Hoje)</div><table><thead><tr><th>Filial</th><th>RCAs Gestão</th><th>Meta Fat.</th><th>Faturado GEROT</th><th>% Meta</th><th>Carteira Pend.</th><th>Positivação / Meta</th><th>Digitado Clube</th><th>TMF (dias)</th></tr></thead><tbody>';
+  let T = { rcas: 0, meta: 0, fat: 0, pend: 0, pos: 0, pmeta: 0, dig: 0 };
+  for (const f of d.filiais || []) {
+    const pct = f.meta_fat ? (f.faturado / f.meta_fat) * 100 : null;
+    T.rcas += f.rcas || 0; T.meta += f.meta_fat || 0; T.fat += f.faturado || 0; T.pend += f.pendente || 0; T.pos += f.positivados || 0; T.pmeta += f.meta_pos || 0; T.dig += f.digitado_hoje || 0;
+    h += `<tr><td><b>${f.filial}</b></td><td>${nf(f.rcas)}</td><td>${brl(f.meta_fat)}</td><td>${brl(f.faturado)}</td><td>${pct == null ? '—' : pct.toFixed(1).replace('.', ',') + '%'}<div class="barra"><i style="width:${Math.min(100, pct || 0)}%"></i></div></td><td>${brl(f.pendente)}</td><td>${nf(f.positivados)} / ${nf(f.meta_pos)}</td><td>${brl(f.digitado_hoje)}</td><td>${f.tmf_dias == null ? '—' : Number(f.tmf_dias).toFixed(2).replace('.', ',')}</td></tr>`;
   }
-  h += `<tr class="tot"><td>TOTAL</td><td>${nf(T.rcas)}</td><td>${nf(T.sd)}</td><td>${nf(T.sp)}</td><td>${nf(T.sr)}</td><td></td><td>${brl(T.meta)}</td><td>${brl(T.fat)}</td><td>${T.meta ? (T.fat / T.meta * 100).toFixed(1).replace('.', ',') + '%' : '—'}</td><td>${nf(T.pos)} / ${nf(T.pmeta)}</td><td>${brl(T.dig)}</td></tr></tbody></table>`;
-  h += `<p class="leg">Gerado em ${d.gerado_em}. Semáforo: verde = ok · amarelo = atenção · vermelho = crítico. Este painel só lê; não grava nem aciona nada.</p>`;
+  h += `<tr class="tot"><td>TOTAL</td><td>${nf(T.rcas)}</td><td>${brl(T.meta)}</td><td>${brl(T.fat)}</td><td>${T.meta ? ((T.fat / T.meta) * 100).toFixed(1).replace('.', ',') + '%' : '—'}</td><td>${brl(T.pend)}</td><td>${nf(T.pos)} / ${nf(T.pmeta)}</td><td>${brl(T.dig)}</td><td></td></tr></tbody></table>`;
+
+  h += '<div class="sec">CEVEN (legado desligado)</div><div class="grid">';
+  h += card('Motor CEVEN', 'DESLIGADO', 'Substituído integralmente pelo GEROT + Clube da Venda', 'desligado');
+  h += card('Chamadas simultâneas (auto)', c.concorrencia ? nf(c.concorrencia.atual) : '0', 'Sem atividade (legado)', 'desligado');
+  h += '</div>';
+
+  h += `<p class="leg">Gerado em ${d.gerado_em}. Este painel só lê (D1 / fatos); não grava nem aciona rotinas.</p>`;
   $('raiz').innerHTML = h;
 }
 
-// TVS LIGADAS OU DESLIGADAS (Vitorio, 19/10/2026): cada TV manda um sinal de vida por minuto (/api/tv-ping) com a versao que esta rodando.
-// Ligada = sinal nos ultimos 3 min. Sem sinal = desligada OU presa numa versao antiga (anterior a 19/10 18:52, que ainda nao mandava sinal).
 let TVS = null;
 const TVS_ESPERADAS = ['MTZ', 'TBL', 'TPH', 'TCV', 'ABC', 'TCA', 'MCD', 'TCG', 'API', 'TBE', 'TPA', 'TSJ'];
 function quadroTVs() {
@@ -158,19 +133,19 @@ function quadroTVs() {
   const linhas = [];
   for (const f of TVS_ESPERADAS) {
     const lst = (porFil[f] || []).sort((a, b) => a.minutos_sem_sinal - b.minutos_sem_sinal);
-    if (!lst.length) { linhas.push({ f, g: '', st: 'critico', txt: 'SEM SINAL', det: 'desligada ou presa numa versão antiga (nunca mandou sinal)' }); continue; }
+    if (!lst.length) { linhas.push({ f, g: '', st: 'critico', txt: 'SEM SINAL', det: 'desligada ou presa numa versão antiga' }); continue; }
     for (const t of lst) {
       const ligada = t.minutos_sem_sinal <= 3;
       const st = !ligada ? 'critico' : t.versao_velha ? 'atencao' : 'ok';
       const txt = !ligada ? 'DESLIGADA' : t.versao_velha ? 'LIGADA · versão velha' : 'LIGADA';
-      const det = (ligada ? '' : 'último sinal há ' + idade(t.minutos_sem_sinal * 60) + ' · ') + (t.ocupado ? 'VAR na tela · ' : '') + 'fila do VAR ' + nf(t.espera) + (t.filial !== 'MTZ' ? ' · ' + nf(t.vendedores) + ' vendedores carregados' : '') + (t.dados_de ? ' · dados de ' + t.dados_de : '') + ' · versão ' + (t.versao || '—');
+      const det = (ligada ? '' : 'último sinal há ' + idade(t.minutos_sem_sinal * 60) + ' · ') + (t.ocupado ? 'VAR na tela · ' : '') + 'fila VAR ' + nf(t.espera) + (t.filial !== 'MTZ' ? ' · ' + nf(t.vendedores) + ' vendedores' : '') + (t.dados_de ? ' · dados ' + t.dados_de : '') + ' · v. ' + (t.versao || '—');
       linhas.push({ f, g: t.grupo || '', st, txt, det });
     }
   }
   const lig = linhas.filter((l) => l.st !== 'critico').length;
   return `<div class="sec">TVs das filiais · ${lig} ligada(s) de ${linhas.length} · <a href="/tvs" style="color:#38bdf8">painel para print (/tvs)</a></div><table><thead><tr><th>TV</th><th>Situação</th><th>Detalhe</th></tr></thead><tbody>` +
     linhas.map((l) => `<tr><td><b>${l.f}</b>${l.g ? ' · ' + l.g : ''}</td><td><span class="tag ${l.st}">${l.txt}</span></td><td>${l.det}</td></tr>`).join('') +
-    `</tbody></table><p class="leg">Ligada = mandou sinal nos últimos 3 min. A TV atualiza sozinha a cada publicação; "versão velha" por mais de alguns minutos = VAR travado ou TV sem internet. Versão atual do site: ${TVS.versao_atual}.</p>`;
+    `</tbody></table><p class="leg">Versão atual do site: ${TVS.versao_atual}.</p>`;
 }
 async function carregaTVs() { try { TVS = await (await fetch('/api/tv-ping?t=' + Date.now(), { cache: 'no-store' })).json(); } catch (e) {} }
 

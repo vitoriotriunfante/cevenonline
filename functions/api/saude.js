@@ -1,204 +1,300 @@
 // =========================================================================
-// FICHA DO ARQUIVO: functions/api/saude.js
-// O QUE É: "painel da NASA" do sistema — um JSON único com a saúde da coleta de dados, do CEVEN, da Gestão de Equipe, dos lances,
-//          do WhatsApp e das metas. Alimenta public/saude.html (/saude). Pedido do Vitório (12/10/2026): em vez de alerta no WhatsApp,
-//          uma tela para ver tudo: base, acessos, velocidade, coleta.
-// SÓ LEITURA: lê o D1 e faz UMA sonda ao CEVEN (1 chamada, cache de 45 s). Nada é gravado aqui. Nunca inventa dado: o que não deu para medir vem null.
-// SEMÁFORO: ok | atencao | critico, por bloco, e `problemas[]` com o texto do que está errado.
+// FICHA DO ARQUIVO: functions/api/saude.js (v2 — Arquitetura GEROT + Clube)
+// O QUE E: painel de controle (/saude) com saude do GEROT, Portao Contabil,
+//   Clube da Venda, Gestao de Equipe, Lances, WhatsApp e Gabarito JOTA.
+//   CEVEN antigo marcado como desligado/legado (zero alertas falsos).
+// SO LEITURA: le exclusivamente D1 (fatos/) e endpoints GET internos.
 // =========================================================================
-import { CEVEN_HDR } from '../_lib/ceven_auth.js';
-import { calculaResumoMes } from '../_lib/resumo_base.js';
 import { foraDoHorario } from '../_lib/horario_reduzido.js';
-import R from '../../public/regras.js'; // regras unicas (public/regras.js)
+import { filiaisGerot } from '../_lib/fatos/index.js';
+import R from '../../public/regras.js';
 
-const CEVEN = 'https://ceven.drivetriunfante-locomotiva.com.br';
-const CORS = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'public, max-age=10, s-maxage=10, stale-while-revalidate=5' };
+const CORS = {
+  'Content-Type': 'application/json; charset=utf-8',
+  'Access-Control-Allow-Origin': '*',
+  'Cache-Control': 'public, max-age=10, s-maxage=10, stale-while-revalidate=5'
+};
 const FILIAIS = ['ABC', 'API', 'MCD', 'TBE', 'TBL', 'TCA', 'TCG', 'TCV', 'TPA', 'TPH', 'TSJ'];
 
 const hojeSP = () => R.hojeSP();
 const horaSP = () => R.relogioSP().hm;
-const q = (a, p) => (a.length ? a[Math.min(a.length - 1, Math.floor(p * a.length))] : null);
-const utc = (s) => Date.parse(String(s).replace(' ', 'T') + 'Z');
+const utc = (s) => {
+  if (!s) return NaN;
+  const iso = String(s).includes('T') ? String(s) : String(s).replace(' ', 'T') + 'Z';
+  return Date.parse(iso);
+};
 const safe = async (fn, padrao = null) => { try { return await fn(); } catch { return padrao; } };
 let memSaude = { exp: 0, json: null };
 
-// A SONDA NAO CHAMA MAIS O CEVEN (13/10/2026): cada atualizacao do painel gastava 1 das ~3 chamadas/min que o CEVEN deixa passar em /api/rca/* e ainda renovava o bloqueio.
-// O estado vem do que a propria coleta registrou (ceven_ban_ate em coleta_estado).
+// Legado: apenas leitura passiva de coleta_estado (motor CEVEN desligado).
 async function sondaCeven(env) {
-  const b = await safe(() => env.DB.prepare("SELECT valor FROM coleta_estado WHERE chave = 'ceven_ban_ate'").first());
-  const ate = Number(b && b.valor) || 0, resta = Math.ceil((ate - Date.now()) / 1000);
-  return { http: resta > 0 ? 429 : 200, ms: 0, retry_after: resta > 0 ? resta : null, em: new Date().toISOString(), derivada: true };
+  const b = await safe(() => env.DB.prepare("SELECT valor, atualizado_em FROM coleta_estado WHERE chave = 'ceven_ban_ate'").first());
+  const ate = Number(b && b.valor) || 0;
+  const resta = Math.ceil((ate - Date.now()) / 1000);
+  return {
+    status: 'desligado',
+    legado: true,
+    http: null,
+    ms: 0,
+    retry_after: resta > 0 ? resta : null,
+    em: new Date().toISOString(),
+    derivada: true
+  };
 }
 
 export async function onRequestGet({ env, request }) {
-  if (!env.DB) return new Response(JSON.stringify({ erro: 'D1 não configurado' }), { status: 503, headers: CORS });
+  if (!env.DB) return new Response(JSON.stringify({ erro: 'D1 nao configurado' }), { status: 503, headers: CORS });
   const urlObj = new URL(request.url);
-  if (memSaude.json && Date.now() < memSaude.exp && !urlObj.searchParams.has('fresco')) return new Response(memSaude.json, { headers: CORS });
+  if (memSaude.json && Date.now() < memSaude.exp && !urlObj.searchParams.has('fresco')) {
+    return new Response(memSaude.json, { headers: CORS });
+  }
   const origin = urlObj.origin;
-  const dia = hojeSP(), agora = Date.now(), hm = horaSP();
+  const dia = hojeSP(), mes = dia.slice(0, 7), agora = Date.now(), hm = horaSP();
   const diaUtil = ![0, 6].includes(R.relogioSP().dow);
-  const horarioComercial = !foraDoHorario();   /* mesma regra dos crons (25/10/2026): fora das 06h-21h e domingo a coleta roda a cada 30 min; nao alarma */
+  const horarioComercial = !foraDoHorario();
   const problemas = [];
   const add = (nivel, bloco, texto) => problemas.push({ nivel, bloco, texto });
 
-  // ---------- 1. BASE (varredura central) ----------
-  const linhas = (await safe(async () => (await env.DB.prepare(
-    `SELECT rca_codigo AS r, filial_sigla AS f, updated_at AS ua,
-            (dashboard_json IS NULL OR dashboard_json = 'null') AS sd, (produtividade_json IS NULL OR produtividade_json = 'null') AS sp,
-            (roteiro_json IS NULL OR roteiro_json = 'null') AS sr, (devolucoes_json IS NULL OR devolucoes_json = 'null') AS sv,
-            CAST(json_extract(dashboard_json, '$.financeiro.meta') AS REAL) AS meta, CAST(json_extract(dashboard_json, '$.financeiro.faturado') AS REAL) AS fat,
-            CAST(json_extract(dashboard_json, '$.financeiro.pendente') AS REAL) AS pend, CAST(json_extract(dashboard_json, '$.positivacao.meta') AS REAL) AS pmeta,
-            CAST(json_extract(dashboard_json, '$.positivacao.realizado') AS REAL) AS preal,
-            CAST(json_extract(produtividade_json, '$.dia.dig_pedido') AS REAL) AS dig
-       FROM varredura_central_rca WHERE data_ref = ?`).bind(dia).all()).results, [])) || [];
-  const idades = linhas.map((l) => Math.round((agora - utc(l.ua)) / 1000)).filter((x) => Number.isFinite(x)).sort((a, b) => a - b);
-  const base = {
-    data_ref: dia, rcas: linhas.length,
-    mais_novo_s: idades[0] ?? null, mediana_s: q(idades, 0.5), p90_s: q(idades, 0.9), mais_antigo_s: idades.length ? idades[idades.length - 1] : null,
-    acima_15min: idades.filter((x) => x > 900).length,
-    sem_dashboard: linhas.filter((l) => l.sd).length, sem_produtividade: linhas.filter((l) => l.sp).length,
-    sem_rota: linhas.filter((l) => l.sr).length, sem_devolucoes: linhas.filter((l) => l.sv).length
-  };
-  // fora do horario comercial tambem avisa (16/10/2026 00h: base zerada e o painel dizia 'Todos os sistemas operando')
-  if (!linhas.length) add(horarioComercial ? 'critico' : 'atencao', 'base', horarioComercial ? `Base de hoje VAZIA (${hm}). Nenhuma leitura gravada: coleta parada.` : `Base de hoje ainda vazia (${hm}): virada do dia, a coleta está lendo todos de novo.`);
-  else {
-    if (diaUtil && horarioComercial && base.mais_novo_s > 600) add('critico', 'base', `Coleta parada: a última gravação tem ${Math.round(base.mais_novo_s / 60)} min.`);
-    else if (base.mais_novo_s > 300 && horarioComercial) add('atencao', 'base', `Última gravação há ${Math.round(base.mais_novo_s / 60)} min.`);
-    if (base.sem_dashboard) add(base.sem_dashboard > 20 ? 'critico' : 'atencao', 'base', `${base.sem_dashboard} RCAs sem dashboard (meta/faturado).`);
-    if (base.sem_produtividade) add(base.sem_produtividade > 20 ? 'critico' : 'atencao', 'base', `${base.sem_produtividade} RCAs sem produtividade (vendas do dia).`);
-    if (base.sem_rota > 20) add('atencao', 'base', `${base.sem_rota} RCAs sem rota.`);
-    if (base.acima_15min > 60 && horarioComercial) add('atencao', 'base', `${base.acima_15min} RCAs com leitura de mais de 15 min.`);
-  }
+  // ---------- 1. GEROT & PORTAO CONTABIL + BRIEFING CACHE ----------
+  const [gerotSt, portaoCtrl, versaoAtivaRow, briefCountRow, filGerot, vendGerotRes] = await Promise.all([
+    safe(() => env.DB.prepare('SELECT id, mes, linhas, enviadas, posicao, em FROM gerot_coleta_status ORDER BY id DESC LIMIT 1').first()),
+    safe(() => env.DB.prepare("SELECT lote_id, status, filiais, linhas, gravadas, detalhe, atualizado_em FROM gerot_carga_controle WHERE etapa = 'portao_contabil' ORDER BY atualizado_em DESC LIMIT 1").first()),
+    safe(() => env.DB.prepare("SELECT valor FROM config_flags WHERE chave = 'gerot_versao_ativa'").first()),
+    safe(() => env.DB.prepare('SELECT COUNT(*) AS n, MAX(gerado_em) AS ult FROM fatos_briefing_cache WHERE mes = ?').bind(mes).first()),
+    safe(() => filiaisGerot(env.DB, mes), []),
+    safe(() => env.DB.prepare(
+      `SELECT filial, COALESCE(rca_int, CAST(rca AS INTEGER)) AS rca_int,
+              COALESCE(meta, CAST(json_extract(dados, '$."Meta (R$)"') AS REAL), 0) AS meta,
+              COALESCE(fat_liq, CAST(json_extract(dados, '$."Faturado líquido (R$)"') AS REAL), 0) AS fat_liq,
+              COALESCE(carteira, CAST(json_extract(dados, '$."Carteira pendente (R$)"') AS REAL), 0) AS carteira
+         FROM gerot_vendedor_mes
+        WHERE mes = ? AND rca NOT LIKE '%|%' AND COALESCE(rca_int, CAST(rca AS INTEGER)) > 0 AND COALESCE(rca_int, CAST(rca AS INTEGER)) <> 2`
+    ).bind(mes).all())
+  ]);
 
-  // ---------- 2. por filial ----------
-  const porFilial = {};
-  for (const f of FILIAIS) porFilial[f] = { filial: f, rcas: 0, sem_dashboard: 0, sem_produtividade: 0, sem_rota: 0, meta_fat: 0, faturado: 0, pendente: 0, meta_pos: 0, positivados: 0, digitado_hoje: 0, mais_antigo_s: 0 };
-  for (const l of linhas) {
-    const p = porFilial[l.f] || (porFilial[l.f] = { filial: l.f, rcas: 0, sem_dashboard: 0, sem_produtividade: 0, sem_rota: 0, meta_fat: 0, faturado: 0, pendente: 0, meta_pos: 0, positivados: 0, digitado_hoje: 0, mais_antigo_s: 0 });
-    p.rcas++; p.sem_dashboard += l.sd ? 1 : 0; p.sem_produtividade += l.sp ? 1 : 0; p.sem_rota += l.sr ? 1 : 0;
-    p.meta_fat += l.meta || 0; p.faturado += l.fat || 0; p.pendente += l.pend || 0; p.meta_pos += l.pmeta || 0; p.positivados += l.preal || 0; p.digitado_hoje += l.dig || 0;
-    p.mais_antigo_s = Math.max(p.mais_antigo_s, Math.round((agora - utc(l.ua)) / 1000));
-  }
-  // NUMERO UNICO (26/10/2026, Vitorio: "perguntei como tava hoje e a meta ainda continua errada" no JOTA): meta, faturado, pendente e positivacao de cada filial
-  // vem da MESMA conta das telas (calculaResumoMes: so vendedor ativo no CEVEN). Antes esta rota somava tudo por conta propria e o JOTA mostrava R$ 82,79 mi.
-  try {
-    const rbU = await calculaResumoMes(env, dia);
-    for (const [sig, a] of Object.entries((rbU && rbU.porFilial) || {})) {
-      const p = porFilial[sig]; if (!p) continue;
-      p.meta_fat = a.metaFaturado; p.faturado = a.faturado; p.pendente = a.pendente; p.meta_pos = a.metaPositivados; p.positivados = a.positivados;
+  let versaoAtiva = null;
+  try { versaoAtiva = versaoAtivaRow && versaoAtivaRow.valor ? JSON.parse(versaoAtivaRow.valor) : null; } catch {}
+
+  const gerotEm = (gerotSt && gerotSt.em) || (portaoCtrl && portaoCtrl.atualizado_em) || null;
+  const gerotIdadeS = Number.isFinite(utc(gerotEm)) ? Math.max(0, Math.round((agora - utc(gerotEm)) / 1000)) : null;
+  const portaoStatus = portaoCtrl ? portaoCtrl.status : (gerotSt ? 'OK' : null);
+
+  if (!gerotSt && !(filGerot && filGerot.length)) {
+    add('critico', 'gerot', 'Nenhuma carga GEROT encontrada no D1 para o mes atual.');
+  } else {
+    if (portaoStatus && !['OK', 'FORCADO'].includes(String(portaoStatus).toUpperCase())) {
+      add('critico', 'gerot', `Portao Contabil GEROT em estado ${portaoStatus}: ${portaoCtrl?.detalhe || ''}`);
     }
-  } catch (e) { /* sem a conta unica: mantem a soma da linha (aviso no painel) */ }
-  const filiais = Object.values(porFilial);
-  for (const p of filiais) if (!p.rcas && linhas.length) add('critico', 'filiais', `${p.filial}: nenhum RCA na base de hoje.`);
-
-  // ---------- 3. coleta (telemetria por tick) ----------
-  const ticks = (await safe(async () => (await env.DB.prepare(
-    "SELECT ts, modo, rcas, gravados, chamadas, ok, r429, r401, falhas, duracao_ms FROM saude_coleta WHERE ts > datetime('now', '-3 hours') ORDER BY ts"
-  ).all()).results, [])) || [];
-  // linha com modo terminado em '*' = rodada que COMECOU e ainda nao fechou (ou foi cortada pelo agendador): conta como sinal de vida, mas nao entra nas somas
-  const concluidos = ticks.filter((t) => !String(t.modo || '').endsWith('*'));
-  const cortadas60 = ticks.filter((t) => String(t.modo || '').endsWith('*') && agora - utc(t.ts) > 4 * 60000 && agora - utc(t.ts) <= 3600000).length;
-  const ult60 = concluidos.filter((t) => agora - utc(t.ts) <= 3600000);
-  const soma = (a, k) => a.reduce((x, t) => x + (t[k] || 0), 0);
-  const estConc = await safe(async () => await env.DB.prepare("SELECT valor, motivo, atualizado_em FROM coleta_estado WHERE chave = 'conc'").first());
-  const coleta = {
-    concorrencia: estConc ? { atual: Number(estConc.valor), motivo: estConc.motivo, em: estConc.atualizado_em } : null,
-    ticks_3h: concluidos.length, ticks_60min: ult60.length, rodadas_cortadas_60min: cortadas60,
-    ultimo_tick_em: ticks.length ? ticks[ticks.length - 1].ts : null,
-    chamadas_60min: soma(ult60, 'chamadas'), ok_60min: soma(ult60, 'ok'), r429_60min: soma(ult60, 'r429'), r401_60min: soma(ult60, 'r401'), falhas_60min: soma(ult60, 'falhas'),
-    duracao_media_ms: ult60.length ? Math.round(soma(ult60, 'duracao_ms') / ult60.length) : null,
-    taxa_sucesso_pct: soma(ult60, 'chamadas') ? Math.round((soma(ult60, 'ok') / soma(ult60, 'chamadas')) * 1000) / 10 : null,
-    serie: concluidos.map((t) => ({ ts: t.ts, chamadas: t.chamadas, ok: t.ok, r429: t.r429, r401: t.r401, falhas: t.falhas, ms: t.duracao_ms, gravados: t.gravados }))
-  };
-  if (coleta.r401_60min > 0) add('critico', 'ceven', `CEVEN devolveu 401/403 ${coleta.r401_60min}x na última hora: a chave pode ter mudado.`);
-  if (coleta.r429_60min > 20) add('atencao', 'ceven', `CEVEN limitando (429) ${coleta.r429_60min}x na última hora: cota esgotada.`);
-  if (diaUtil && horarioComercial && ticks.length && agora - utc(ticks[ticks.length - 1].ts) > 8 * 60000) add('critico', 'coleta', 'Nenhum ciclo de coleta nos últimos 8 min: o agendador (worker-cron) pode estar parado.');
-
-  // ---------- 4. CEVEN (sonda ao vivo) ----------
-  const amostra = linhas[0];
-  const sonda = await sondaCeven(env);
-  if (sonda) {
-    if (sonda.http === 401 || sonda.http === 403) add('critico', 'ceven', 'Sonda ao CEVEN recusada (401/403): chave inválida.');
-    else if (sonda.http === 429) add('atencao', 'ceven', `Sonda ao CEVEN limitada (429), libera em ~${sonda.retry_after || '?'} s.`);
-    else if (sonda.http === 0) add('critico', 'ceven', `CEVEN não respondeu (${sonda.erro || 'timeout'}).`);
-    else if (sonda.http >= 500) add('critico', 'ceven', `CEVEN com erro ${sonda.http}.`);
-    else if (sonda.ms > 5000) add('atencao', 'ceven', `CEVEN lento: ${(sonda.ms / 1000).toFixed(1)} s por chamada.`);
+    if (diaUtil && horarioComercial && gerotIdadeS != null && gerotIdadeS > 4 * 3600) {
+      add('atencao', 'gerot', `Ultima carga GEROT ha ${Math.round(gerotIdadeS / 3600)} h (${gerotSt?.posicao || 'sem posicao'}).`);
+    }
   }
 
-  // ---------- 5. Gestão de Equipe + representantes ----------
+  const gerot = {
+    mes,
+    posicao: (gerotSt && gerotSt.posicao) || (versaoAtiva && versaoAtiva.posicao) || null,
+    atualizado_em: gerotEm,
+    idade_s: gerotIdadeS,
+    carga_id: (versaoAtiva && versaoAtiva.carga_id) || (portaoCtrl && portaoCtrl.lote_id) || (gerotSt ? String(gerotSt.id) : null),
+    portao_status: portaoStatus,
+    portao_detalhe: portaoCtrl ? portaoCtrl.detalhe : '',
+    filiais_cobertas: (filGerot || []).length,
+    briefing_chaves: briefCountRow ? Number(briefCountRow.n) || 0 : 0,
+    linhas_ultimo_lote: gerotSt ? Number(gerotSt.linhas) || 0 : 0
+  };
+
+  // ---------- 2. CLUBE DA VENDA (intraday) ----------
+  const [clubeSt, clubeDiaAgg, clubePedAgg] = await Promise.all([
+    safe(() => env.DB.prepare('SELECT dia, lido_em, vendedores, falhas, duracao_s FROM clube_coleta_status ORDER BY id DESC LIMIT 1').first()),
+    safe(() => env.DB.prepare('SELECT COUNT(*) AS rcas, COALESCE(SUM(total_pedido), 0) AS dig, MAX(lido_em) AS ult FROM clube_venda_dia WHERE dia = ?').bind(dia).first()),
+    safe(() => env.DB.prepare('SELECT COUNT(*) AS n, COALESCE(SUM(total), 0) AS tot, MAX(lido_em) AS ult FROM clube_pedido WHERE dia = ?').bind(dia).first())
+  ]);
+  const clubeEm = (clubeDiaAgg && clubeDiaAgg.ult) || (clubeSt && clubeSt.lido_em) || null;
+  const clubeIdadeS = Number.isFinite(utc(clubeEm)) ? Math.max(0, Math.round((agora - utc(clubeEm)) / 1000)) : null;
+  if (diaUtil && hm >= '08:30' && hm <= '19:30') {
+    if (!clubeDiaAgg || !(Number(clubeDiaAgg.rcas) > 0)) {
+      add('atencao', 'clube', `Clube da Venda ainda sem leituras de hoje (${dia}).`);
+    } else if (clubeIdadeS != null && clubeIdadeS > 45 * 60) {
+      add('atencao', 'clube', `Ultima leitura do Clube da Venda ha ${Math.round(clubeIdadeS / 60)} min.`);
+    }
+  }
+  const clube = {
+    dia,
+    lido_em: clubeEm,
+    idade_s: clubeIdadeS,
+    rcas_lidos: clubeDiaAgg ? Number(clubeDiaAgg.rcas) || 0 : 0,
+    digitado_hoje: clubeDiaAgg ? Math.round(Number(clubeDiaAgg.dig) || 0) : 0,
+    pedidos_hoje: clubePedAgg ? Number(clubePedAgg.n) || 0 : 0,
+    duracao_s: clubeSt ? clubeSt.duracao_s : null,
+    falhas: clubeSt ? clubeSt.falhas : null
+  };
+
+  // ---------- 3. GESTAO DE EQUIPE + CONCILIACAO GEROT ----------
   const mostra = await safe(async () => (await fetch(origin + '/api/tv-mostra', { signal: AbortSignal.timeout(10000) })).json());
+  const gestaoKeys = new Set();
+  const rcaGestaoSet = new Set();
   let equipe = null;
+  const reps = new Set();
   if (mostra && mostra.filiais) {
-    const reps = new Set(), semGestao = [];
     let total = 0, sim = 0, nao = 0, rep = 0;
-    const naGestao = new Set();
-    for (const lista of Object.values(mostra.filiais)) for (const v of lista) {
-      total++; naGestao.add(String(v.rca));
-      if (String(v.vinculo || '').toUpperCase().startsWith('REP')) { rep++; reps.add(String(v.rca)); }
-      if (v.mostra === false) nao++; else sim++;
+    for (const [k, lista] of Object.entries(mostra.filiais)) {
+      const f = k.split('_')[0];
+      for (const v of lista || []) {
+        total++;
+        const rStr = String(Number(v.rca) || v.rca);
+        gestaoKeys.add(`${f}|${rStr}`);
+        rcaGestaoSet.add(rStr);
+        if (String(v.vinculo || '').toUpperCase().startsWith('REP')) { rep++; reps.add(rStr); }
+        if (v.mostra === false) nao++; else sim++;
+      }
     }
-    // UNIVERSO = vendedor ATIVO no CEVEN hoje (Vitorio, 26/10/2026: "olhamos hoje e nem existem"): a base guarda tambem codigo de rota vaga / fora da arvore (TCG 466, 482...).
-    // Esses NAO existem: nao entram em "fora da Gestao" nem na soma das metas. Fora da Gestao = esta na arvore do CEVEN de hoje e a Gestao ainda nao decidiu.
-    const metaDe = new Map(linhas.map((l) => [l.f + '|' + l.r, l.meta || 0]));
-    for (const [k, lista] of Object.entries(mostra.filiais)) for (const v of lista) if (v.novo_na_arvore) { const m = metaDe.get(k.split('_')[0] + '|' + String(v.rca)) || 0; if (m > 0) semGestao.push({ rca: String(v.rca), filial: k.split('_')[0], meta: Math.round(m) }); }
-    const repL = linhas.filter((l) => reps.has(String(l.r)));
+    const vendGerotRows = (vendGerotRes && vendGerotRes.results) || [];
+    const semGestaoMap = new Map();
+    const repsSoma = { meta: 0, fat: 0 };
+    for (const vg of vendGerotRows) {
+      const f = vg.filial, r = String(vg.rca_int);
+      if (reps.has(r)) {
+        repsSoma.meta += Number(vg.meta) || 0;
+        repsSoma.fat += Number(vg.fat_liq) || 0;
+      }
+      const key = `${f}|${r}`;
+      if (!gestaoKeys.has(key) && (Number(vg.meta) > 0 || Math.abs(Number(vg.fat_liq)) > 0)) {
+        const cur = semGestaoMap.get(key) || { filial: f, rca: r, meta: 0 };
+        cur.meta += Math.round(Number(vg.meta) || 0);
+        semGestaoMap.set(key, cur);
+      }
+    }
+    const semGestao = [...semGestaoMap.values()].filter((x) => x.meta > 0).sort((a, b) => b.meta - a.meta);
     equipe = {
-      origem: mostra.origem, atualizado_em: mostra.atualizado_em || null, atualizado_por: mostra.atualizado_por || null,
-      total, mostra_sim: sim, mostra_nao: nao, representantes: rep,
-      representantes_meta: Math.round(repL.reduce((a, l) => a + (l.meta || 0), 0)), representantes_faturado: Math.round(repL.reduce((a, l) => a + (l.fat || 0), 0)),
-      fora_da_gestao_com_meta: semGestao.length, fora_da_gestao_meta: semGestao.reduce((a, x) => a + x.meta, 0), fora_da_gestao_top: semGestao.sort((a, b) => b.meta - a.meta).slice(0, 8)
+      origem: mostra.origem,
+      atualizado_em: mostra.atualizado_em || null,
+      atualizado_por: mostra.atualizado_por || null,
+      total,
+      mostra_sim: sim,
+      mostra_nao: nao,
+      representantes: rep,
+      representantes_meta: Math.round(repsSoma.meta),
+      representantes_faturado: Math.round(repsSoma.fat),
+      fora_da_gestao_com_meta: semGestao.length,
+      fora_da_gestao_meta: semGestao.reduce((a, x) => a + x.meta, 0),
+      fora_da_gestao_top: semGestao.slice(0, 8)
     };
-    if (mostra.origem !== 'd1') add('critico', 'equipe', 'Gestão de Equipe em CÓPIA ESTÁTICA (D1 indisponível).');
-    if (!rep) add('atencao', 'equipe', 'Nenhum vendedor marcado como REPRESENTANTE na Gestão (vínculo ainda não aplicado).');
-    if (semGestao.length) add('atencao', 'equipe', `${semGestao.length} RCAs com meta no CEVEN que NÃO estão na Gestão de Equipe (R$ ${Math.round(equipe.fora_da_gestao_meta).toLocaleString('pt-BR')}).`);
-  } else add('critico', 'equipe', 'Gestão de Equipe não respondeu (/api/tv-mostra).');
-
-  // ---------- 6. metas ----------
-  const universo = new Set(); if (mostra && mostra.filiais) for (const [k, lista] of Object.entries(mostra.filiais)) for (const v of lista) universo.add(k.split('_')[0] + '|' + String(v.rca));
-  const somaMeta = linhas.filter((l) => !universo.size || universo.has(l.f + '|' + l.r)).reduce((a, l) => a + (l.meta || 0), 0);   /* so o universo (ativo no CEVEN hoje) */
-  const resumo = await safe(async () => (await env.DB.prepare("SELECT filial_sigla AS f, mes_meta_faturado AS meta, mes_faturado AS fat, updated_at AS ua FROM resumo_executivo_live WHERE data_ref = ? AND filial_sigla != '_LOCK_'").bind(dia).all()).results, []) || [];
-  const todas = resumo.find((r) => r.f === 'TODAS');
-  const nFilResumo = resumo.filter((r) => r.f !== 'TODAS' && r.meta > 0).length;
-  const metas = {
-    soma_dos_rcas: Math.round(somaMeta), resumo_todas: todas ? Math.round(todas.meta) : null, resumo_em: todas ? todas.ua : null,
-    filiais_no_resumo: nFilResumo, bate: todas ? Math.abs(todas.meta - somaMeta) < 1000 : null
-  };
-  // INTEGRIDADE (mesma conta que a Matriz usa, direto da base): quantos RCAs entram com leitura de hoje, de dia anterior ou sem leitura
-  const rb = await safe(async () => await calculaResumoMes(env, dia));
-  if (rb) {
-    metas.soma_dos_rcas = Math.round(rb.total.metaFaturado);
-    metas.integridade = { rcas: rb.rcas, de_hoje: rb.deHoje, leitura_anterior: rb.anteriores, sem_leitura: rb.semLeitura, mais_antiga: rb.maisAntiga, meta_fat: Math.round(rb.total.metaFaturado), meta_pos: Math.round(rb.total.metaPositivados) };
-    if (rb.semLeitura > 0) add('atencao', 'metas', `${rb.semLeitura} RCAs sem NENHUMA leitura nos ultimos 7 dias (fora da soma).`);
-    if (rb.anteriores > 0) add(horarioComercial && hm > '09:00' ? 'critico' : 'atencao', 'metas', `${rb.anteriores} RCAs entram na soma com leitura de dia anterior (ainda sem leitura de hoje).`);
+    if (mostra.origem !== 'd1') add('critico', 'equipe', 'Gestao de Equipe em COPIA ESTATICA (D1 indisponivel).');
+    if (semGestao.length) add('atencao', 'equipe', `${semGestao.length} RCAs com meta no GEROT que NAO estao na Gestao de Equipe (R$ ${Math.round(equipe.fora_da_gestao_meta).toLocaleString('pt-BR')}).`);
+  } else {
+    add('critico', 'equipe', 'Gestao de Equipe nao respondeu (/api/tv-mostra).');
   }
-  // CONSISTENCIA ENTRE TELAS: as duas fontes que a Matriz usa para o total tem que ser identicas
+
+  // ---------- 4. FILIAIS (100% FATOS GEROT + DIG CLUBE) ----------
+  const digFilRes = await safe(() => env.DB.prepare('SELECT filial, SUM(total_pedido) AS dig FROM clube_venda_dia WHERE dia = ? GROUP BY filial').bind(dia).all());
+  const digPorFil = new Map(((digFilRes && digFilRes.results) || []).map((r) => [r.filial, Number(r.dig) || 0]));
+  const rcaCntPorFil = new Map();
+  if (mostra && mostra.filiais) {
+    for (const [k, l] of Object.entries(mostra.filiais)) {
+      const f = k.split('_')[0];
+      rcaCntPorFil.set(f, (rcaCntPorFil.get(f) || 0) + (l || []).length);
+    }
+  }
+  const gerotPorFil = new Map((filGerot || []).map((r) => [r.filial, r]));
+  const filiais = FILIAIS.map((f) => {
+    const g = gerotPorFil.get(f);
+    if (!g) add('atencao', 'filiais', `${f}: sem consolidado no GEROT em ${mes}.`);
+    return {
+      filial: f,
+      rcas: rcaCntPorFil.get(f) || 0,
+      meta_fat: g ? Math.round(g.meta || 0) : 0,
+      faturado: g ? Math.round(g.fat || 0) : 0,
+      pendente: g ? Math.round(g.cart || 0) : 0,
+      meta_pos: g ? Math.round(g.metaPos || 0) : 0,
+      positivados: g ? Math.round(g.pos || 0) : 0,
+      digitado_hoje: Math.round(digPorFil.get(f) || 0),
+      tmf_dias: g && g.tmf != null ? Number(g.tmf) : null,
+      em_gerot: g ? g.em : null
+    };
+  });
+
+  const somaMetaGerot = filiais.reduce((s, x) => s + (x.meta_fat || 0), 0);
   const mm = await safe(async () => (await fetch(origin + '/api/metas-mes', { signal: AbortSignal.timeout(10000) })).json());
-  const mx = await safe(async () => (await fetch(origin + '/api/mapa-executivo-live', { signal: AbortSignal.timeout(15000) })).json());
-  if (mm && mm.total && mx && mx.resumo && mx.resumo.TODAS) {
-    metas.matriz_mostra = Math.round(mm.total.meta_fat);
-    metas.executiva_mostra = Math.round(mx.resumo.TODAS.mesMetaFaturado);
-    if (Math.abs(mm.total.meta_fat - mx.resumo.TODAS.mesMetaFaturado) > 1) add('critico', 'metas', `Matriz (R$ ${metas.matriz_mostra.toLocaleString('pt-BR')}) e Executiva (R$ ${metas.executiva_mostra.toLocaleString('pt-BR')}) mostram metas diferentes.`);
+  const matrizMeta = mm && mm.total && mm.total.meta_fat != null ? Math.round(mm.total.meta_fat) : null;
+  const metas = {
+    soma_dos_rcas: somaMetaGerot,
+    resumo_todas: somaMetaGerot,
+    matriz_mostra: matrizMeta,
+    filiais_no_resumo: (filGerot || []).length,
+    bate: matrizMeta == null ? null : Math.abs(somaMetaGerot - matrizMeta) <= 5
+  };
+  if (matrizMeta != null && Math.abs(somaMetaGerot - matrizMeta) > 5) {
+    add('critico', 'metas', `Meta GEROT (R$ ${somaMetaGerot.toLocaleString('pt-BR')}) diverge da Matriz (R$ ${matrizMeta.toLocaleString('pt-BR')}).`);
   }
-  if (linhas.length && nFilResumo < 11) add('atencao', 'metas', `Resumo do mês com ${nFilResumo}/11 filiais (a Matriz pode estar mostrando meta parcial).`);
-  else if (todas && Math.abs(todas.meta - metas.soma_dos_rcas) > Math.max(1000, metas.soma_dos_rcas * 0.01)) add('atencao', 'metas', `Meta da Matriz (R$ ${Math.round(todas.meta).toLocaleString('pt-BR')}) difere da soma dos RCAs (R$ ${Math.round(metas.soma_dos_rcas).toLocaleString('pt-BR')}); recalcula em até 15 min.`);
 
-  // ---------- 7. lances do dia ----------
-  const lances = await safe(async () => await env.DB.prepare("SELECT COUNT(*) AS n, MAX(hora_sp) AS ultima FROM tv_lances WHERE dia = ?").bind(dia).first());
-  const porNivel = await safe(async () => (await env.DB.prepare("SELECT nivel, COUNT(*) AS n FROM tv_lances WHERE dia = ? GROUP BY nivel ORDER BY n DESC").bind(dia).all()).results, []) || [];
-  const lancesBloco = { hoje: lances ? lances.n : null, ultimo_hora_sp: lances ? lances.ultima : null, por_nivel: porNivel };
-  if (lances && lances.n === 0 && diaUtil && hm > '10:00') add('atencao', 'lances', 'Nenhum lance gravado hoje depois das 10h.');
+  // ---------- 5. LANCES, WHATSAPP E GABARITO ----------
+  const [lances, porNivel, jotaAudit] = await Promise.all([
+    safe(() => env.DB.prepare('SELECT COUNT(*) AS n, MAX(hora_sp) AS ultima FROM tv_lances WHERE dia = ?').bind(dia).first()),
+    safe(() => env.DB.prepare('SELECT nivel, COUNT(*) AS n FROM tv_lances WHERE dia = ? GROUP BY nivel ORDER BY n DESC').bind(dia).all()),
+    safe(() => env.DB.prepare('SELECT id, em, origem, ok, total FROM jota_auditoria ORDER BY id DESC LIMIT 1').first())
+  ]);
+  const lancesBloco = { hoje: lances ? lances.n : null, ultimo_hora_sp: lances ? lances.ultima : null, por_nivel: (porNivel && porNivel.results) || [] };
+  if (lances && lances.n === 0 && diaUtil && hm > '10:30') add('atencao', 'lances', 'Nenhum lance gravado hoje depois das 10h30.');
 
-  // ---------- 8. WhatsApp ----------
   const wpp = await safe(async () => (await fetch(origin + '/api/disparo-status', { signal: AbortSignal.timeout(12000) })).json());
-  if (wpp && Array.isArray(wpp.problemas)) for (const p of wpp.problemas) add('critico', 'whatsapp', p.texto || `Disparo das ${p.hm} com problema`);
+  if (wpp && Array.isArray(wpp.problemas)) {
+    for (const p of wpp.problemas) add('critico', 'whatsapp', p.texto || `Disparo das ${p.hm} com problema`);
+  }
 
-  // ---------- 9. publicação ----------
-  const versao = await safe(async () => (await fetch(origin + '/api/version', { signal: AbortSignal.timeout(6000) })).json());
+  // ---------- 6. METADADOS LEGADO CEVEN (DESLIGADO) E VERSAO ----------
+  const [estConc, sonda, versao] = await Promise.all([
+    safe(() => env.DB.prepare("SELECT valor, motivo, atualizado_em FROM coleta_estado WHERE chave = 'conc'").first()),
+    sondaCeven(env),
+    safe(async () => (await fetch(origin + '/api/version', { signal: AbortSignal.timeout(6000) })).json())
+  ]);
+  const coleta = {
+    status: 'desligado',
+    concorrencia: estConc ? { atual: Number(estConc.valor), motivo: estConc.motivo, em: estConc.atualizado_em } : { atual: 0, motivo: 'Motor CEVEN desligado' },
+    ticks_3h: 0, ticks_60min: 0, rodadas_cortadas_60min: 0, ultimo_tick_em: null,
+    chamadas_60min: 0, ok_60min: 0, r429_60min: 0, r401_60min: 0, falhas_60min: 0,
+    duracao_media_ms: null, taxa_sucesso_pct: null, serie: []
+  };
+  const base = {
+    data_ref: dia,
+    rcas: equipe ? equipe.total : 0,
+    mais_novo_s: gerotIdadeS,
+    mediana_s: gerotIdadeS,
+    p90_s: gerotIdadeS,
+    mais_antigo_s: gerotIdadeS,
+    acima_15min: 0,
+    sem_dashboard: 0, sem_produtividade: 0, sem_rota: 0, sem_devolucoes: 0
+  };
 
   const nivel = problemas.some((p) => p.nivel === 'critico') ? 'critico' : problemas.length ? 'atencao' : 'ok';
   const outObj = {
-    gerado_em: new Date(agora).toISOString(), hora_sp: hm, dia, dia_util: diaUtil, horario_comercial: horarioComercial, nivel, problemas,
-    base, filiais, coleta, ceven: { sonda, requisicoes_60min: coleta.chamadas_60min, r429_60min: coleta.r429_60min, r401_60min: coleta.r401_60min, taxa_sucesso_pct: coleta.taxa_sucesso_pct },
-    equipe, metas, lances: lancesBloco, whatsapp: wpp ? { dia_util: wpp.dia_util, horarios: wpp.horarios || [], erro: wpp.erro || null } : null, versao: versao ? versao.version : null
-  }; memSaude = { exp: Date.now() + 20000, json: JSON.stringify(outObj) }; return new Response(memSaude.json, { headers: CORS });
+    gerado_em: new Date(agora).toISOString(),
+    hora_sp: hm,
+    dia,
+    dia_util: diaUtil,
+    horario_comercial: horarioComercial,
+    nivel,
+    problemas,
+    gerot,
+    clube,
+    base,
+    filiais,
+    coleta,
+    ceven: {
+      status: 'desligado',
+      legado: true,
+      sonda,
+      requisicoes_60min: 0,
+      r429_60min: coleta.r429_60min,
+      r401_60min: coleta.r401_60min,
+      taxa_sucesso_pct: null
+    },
+    equipe,
+    metas,
+    lances: lancesBloco,
+    jota: jotaAudit ? { ultimo_em: jotaAudit.em, origem: jotaAudit.origem, ok: jotaAudit.ok, total: jotaAudit.total } : null,
+    whatsapp: wpp ? { dia_util: wpp.dia_util, horarios: wpp.horarios || [], erro: wpp.erro || null } : null,
+    versao: versao ? versao.version : null
+  };
+  memSaude = { exp: Date.now() + 15000, json: JSON.stringify(outObj) };
+  return new Response(memSaude.json, { headers: CORS });
 }

@@ -168,7 +168,20 @@
       const txt = `☀️ *Matinal ${filTxt}* (${ultimoDados.dias.dec}/${ultimoDados.dias.tot}d úteis)\n💰 ${document.getElementById('kVend').textContent} (${document.getElementById('kMeta').textContent})\n📈 Tendência: ${document.getElementById('kTend').textContent}\n\n🎯 *Prioridades do dia (menor tendência):*\n${top5}`;
       try { await navigator.clipboard.writeText(txt); document.getElementById('btnCopiar').textContent = '✅ Copiado!'; setTimeout(() => { document.getElementById('btnCopiar').textContent = '📋 Copiar resumo'; }, 2000); } catch {}
     });
+    let versaoDados = null;
+    async function confereVersaoDados() {
+      try {
+        const d = await (await fetch('/api/fatos/versao', { cache: 'no-store' })).json();
+        const k = d ? `${d.carga_id || ''}|${d.gerado_em || ''}|${d.posicao || ''}` : '';
+        if (k && k !== '||') {
+          if (versaoDados && versaoDados !== k) { versaoDados = k; carregar(); }
+          else if (!versaoDados) versaoDados = k;
+        }
+      } catch {}
+    }
     carregar();
+    confereVersaoDados();
+    setInterval(confereVersaoDados, 60 * 1000);
     setInterval(carregar, 5 * 60 * 1000);
   </script>
 </body>

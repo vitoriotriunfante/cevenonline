@@ -4215,6 +4215,325 @@
     }
    ],
    "linhas": true
+  },
+  {
+   "id": "G210",
+   "linha": "5.desvio",
+   "contato": { "nome": "VITORIO", "papel": "diretoria", "filial": null, "rca": null, "grupo": null },
+   "pergunta": "Desvio do mes",
+   "assunto": "desvio|meta",
+   "checagens": [{ "id": "desvio_brasil", "p": {} }]
+  },
+  {
+   "id": "G211",
+   "linha": "5.desvio",
+   "contato": { "nome": "MARCELO", "papel": "gerente", "filial": "API", "rca": null, "grupo": null },
+   "pergunta": "Desvio do mes",
+   "assunto": "desvio|meta",
+   "checagens": []
+  },
+  {
+   "id": "G212",
+   "linha": "5.desvio",
+   "contato": { "nome": "VAGNER", "papel": "gerente", "filial": "TPH", "rca": null, "grupo": "VAGNER" },
+   "pergunta": "Desvio do mes",
+   "assunto": "desvio|meta",
+   "checagens": []
+  },
+  {
+   "id": "G213",
+   "linha": "4.desvio",
+   "contato": { "nome": "WASHINGTON FLORES DA ROSA", "papel": "supervisor", "filial": "API", "rca": null, "grupo": null },
+   "pergunta": "Desvio do mes",
+   "assunto": "desvio|meta",
+   "checagens": []
+  },
+  {
+   "id": "G214",
+   "linha": "3.desvio",
+   "contato": { "nome": "TAMARA GUEDES", "papel": "vendedor", "filial": "TCV", "rca": "352", "grupo": null },
+   "pergunta": "Desvio do mes",
+   "assunto": "desvio|meta",
+   "checagens": [{ "id": "desvio_vendedor", "p": { "filial": "TCV", "rca": "352" } }]
+  },
+  {
+   "id": "G215",
+   "linha": "5.batalha",
+   "contato": { "nome": "VITORIO", "papel": "diretoria", "filial": null, "rca": null, "grupo": null },
+   "pergunta": "Batalha naval",
+   "assunto": "batalha|gap",
+   "checagens": []
+  },
+  {
+   "id": "G216",
+   "linha": "5.batalha",
+   "contato": { "nome": "DIEGO", "papel": "gerente", "filial": "TBE", "rca": null, "grupo": null },
+   "pergunta": "Batalha naval",
+   "assunto": "batalha|gap",
+   "checagens": []
+  },
+  {
+   "id": "G217",
+   "linha": "4.batalha",
+   "contato": { "nome": "EDER LUCAS DAS FLORES DE OLIVEIRA", "papel": "supervisor", "filial": "ABC", "rca": null, "grupo": null },
+   "pergunta": "Batalha naval",
+   "assunto": "batalha|gap",
+   "checagens": []
+  },
+  {
+   "id": "G218",
+   "linha": "5.carrinho",
+   "contato": { "nome": "VITORIO", "papel": "diretoria", "filial": null, "rca": null, "grupo": null },
+   "pergunta": "Carrinho ideal",
+   "assunto": "carrinho|sku",
+   "checagens": []
+  },
+  {
+   "id": "G219",
+   "linha": "5.carrinho",
+   "contato": { "nome": "SALDANHA", "papel": "gerente", "filial": "TSJ", "rca": null, "grupo": null },
+   "pergunta": "Carrinho ideal",
+   "assunto": "carrinho|sku",
+   "checagens": []
+  },
+  {
+   "id": "G220",
+   "linha": "3.carrinho",
+   "contato": { "nome": "TAMARA GUEDES", "papel": "vendedor", "filial": "TCV", "rca": "352", "grupo": null },
+   "pergunta": "Carrinho ideal",
+   "assunto": "carrinho|sku",
+   "checagens": []
+  },
+  {
+   "id": "G221",
+   "linha": "5.cliven",
+   "contato": { "nome": "VITORIO", "papel": "diretoria", "filial": null, "rca": null, "grupo": null },
+   "pergunta": "Cliven",
+   "assunto": "cliven|carteira|positiv",
+   "checagens": []
+  },
+  {
+   "id": "G222",
+   "linha": "4.cliven",
+   "contato": { "nome": "WASHINGTON FLORES DA ROSA", "papel": "supervisor", "filial": "API", "rca": null, "grupo": null },
+   "pergunta": "Cliven clientes",
+   "assunto": "cliven|carteira|positiv",
+   "checagens": []
+  },
+  {
+   "id": "G223",
+   "linha": "3.cliven",
+   "contato": { "nome": "TAMARA GUEDES", "papel": "vendedor", "filial": "TCV", "rca": "352", "grupo": null },
+   "pergunta": "Cliven clientes",
+   "assunto": "cliven|carteira|positiv",
+   "checagens": []
+  },
+  {
+   "id": "G224",
+   "linha": "3.cliven",
+   "contato": { "nome": "PRISCILA DE BONFIM CORDEIRO", "papel": "vendedor", "filial": "TPH", "rca": "66", "grupo": null },
+   "pergunta": "Aproveitamento de carteira cliven",
+   "assunto": "cliven|carteira|positiv",
+   "checagens": []
+  },
+  {
+   "id": "G225",
+   "linha": "5.tmf",
+   "contato": { "nome": "VITORIO", "papel": "diretoria", "filial": null, "rca": null, "grupo": null },
+   "pergunta": "TMF",
+   "assunto": "tmf|dias",
+   "checagens": []
+  },
+  {
+   "id": "G226",
+   "linha": "5.tmf",
+   "contato": { "nome": "MARCELO", "papel": "gerente", "filial": "API", "rca": null, "grupo": null },
+   "pergunta": "TMF",
+   "assunto": "tmf|dias",
+   "checagens": []
+  },
+  {
+   "id": "G227",
+   "linha": "5.fefo",
+   "contato": { "nome": "VITORIO", "papel": "diretoria", "filial": null, "rca": null, "grupo": null },
+   "pergunta": "FEFO",
+   "assunto": "fefo|lote|venc",
+   "checagens": []
+  },
+  {
+   "id": "G228",
+   "linha": "5.fefo",
+   "contato": { "nome": "CLEVERSON", "papel": "gerente", "filial": "MCD", "rca": null, "grupo": "CLEVERSON" },
+   "pergunta": "FEFO",
+   "assunto": "fefo|lote|venc",
+   "checagens": []
+  },
+  {
+   "id": "G229",
+   "linha": "5.pcest",
+   "contato": { "nome": "VITORIO", "papel": "diretoria", "filial": null, "rca": null, "grupo": null },
+   "pergunta": "Estoque Winthor",
+   "assunto": "estoque|pcest|ruptura",
+   "checagens": []
+  },
+  {
+   "id": "G230",
+   "linha": "5.pcest",
+   "contato": { "nome": "MARCELO", "papel": "gerente", "filial": "API", "rca": null, "grupo": null },
+   "pergunta": "Estoque Winthor",
+   "assunto": "estoque|pcest|ruptura",
+   "checagens": []
+  },
+  {
+   "id": "G231",
+   "linha": "5.dre",
+   "contato": { "nome": "VITORIO", "papel": "diretoria", "filial": null, "rca": null, "grupo": null },
+   "pergunta": "DRE",
+   "assunto": "dre|margem",
+   "checagens": []
+  },
+  {
+   "id": "G232",
+   "linha": "5.hist",
+   "contato": { "nome": "DIEGO", "papel": "gerente", "filial": "TBE", "rca": null, "grupo": null },
+   "pergunta": "Histograma de desconto",
+   "assunto": "histograma|desconto|margem",
+   "checagens": []
+  },
+  {
+   "id": "G233",
+   "linha": "4.dre",
+   "contato": { "nome": "IGOR RODRIGUES DUARTE", "papel": "supervisor", "filial": "TBL", "rca": null, "grupo": null },
+   "pergunta": "DRE",
+   "assunto": "dre|margem",
+   "checagens": []
+  },
+  {
+   "id": "G234",
+   "linha": "5.cnm",
+   "contato": { "nome": "VITORIO", "papel": "diretoria", "filial": null, "rca": null, "grupo": null },
+   "pergunta": "Curva negativa de margem",
+   "assunto": "curva negativa|margem|preju",
+   "checagens": [{ "id": "curva_neg_brasil", "p": {} }]
+  },
+  {
+   "id": "G235",
+   "linha": "5.jbp",
+   "contato": { "nome": "VITORIO", "papel": "diretoria", "filial": null, "rca": null, "grupo": null },
+   "pergunta": "JBP",
+   "assunto": "jbp|sku",
+   "checagens": []
+  },
+  {
+   "id": "G236",
+   "linha": "4.rfv",
+   "contato": { "nome": "JORGE BONI", "papel": "supervisor", "filial": "TCV", "rca": null, "grupo": null },
+   "pergunta": "RFV",
+   "assunto": "rfv|campe|segment",
+   "checagens": []
+  },
+  {
+   "id": "G237",
+   "linha": "5.pmi",
+   "contato": { "nome": "VITORIO", "papel": "diretoria", "filial": null, "rca": null, "grupo": null },
+   "pergunta": "PMI",
+   "assunto": "pmi|potencial",
+   "checagens": []
+  },
+  {
+   "id": "G238",
+   "linha": "5.cad",
+   "contato": { "nome": "VITORIO", "papel": "diretoria", "filial": null, "rca": null, "grupo": null },
+   "pergunta": "Cadastro de clientes",
+   "assunto": "cadastro|compraram|saldo",
+   "checagens": []
+  },
+  {
+   "id": "G239",
+   "linha": "5.rede",
+   "contato": { "nome": "VITORIO", "papel": "diretoria", "filial": null, "rca": null, "grupo": null },
+   "pergunta": "Ranking de redes",
+   "assunto": "redes de clientes|rede",
+   "checagens": []
+  },
+  {
+   "id": "G240",
+   "linha": "3.bloq_papel",
+   "contato": { "nome": "PATRIK SANTOS", "papel": "vendedor", "filial": "ABC", "rca": "212", "grupo": null },
+   "pergunta": "FEFO",
+   "assunto": "acesso gerencial|restrita",
+   "checagens": [],
+   "rodape": false
+  },
+  {
+   "id": "G241",
+   "linha": "3.bloq_papel",
+   "contato": { "nome": "ANDRÉ MARTINS RODRIGUES", "papel": "vendedor", "filial": "TSJ", "rca": "25", "grupo": null },
+   "pergunta": "Estoque Winthor",
+   "assunto": "acesso gerencial|restrita",
+   "checagens": [],
+   "rodape": false
+  },
+  {
+   "id": "G242",
+   "linha": "3.bloq_papel",
+   "contato": { "nome": "EDSON DOS SANTOS MACHADO", "papel": "vendedor", "filial": "TBE", "rca": "1094", "grupo": null },
+   "pergunta": "DRE",
+   "assunto": "acesso gerencial|restrita",
+   "checagens": [],
+   "rodape": false
+  },
+  {
+   "id": "G243",
+   "linha": "3.bloq_papel",
+   "contato": { "nome": "POLIANA JÉSSICA DE ALMEIDA", "papel": "vendedor", "filial": "TBL", "rca": "1087", "grupo": null },
+   "pergunta": "Curva negativa de margem",
+   "assunto": "acesso gerencial|restrita",
+   "checagens": [],
+   "rodape": false
+  },
+  {
+   "id": "G244",
+   "linha": "3.bloq_papel",
+   "contato": { "nome": "BRUNO AMARAL", "papel": "vendedor", "filial": "TPH", "rca": "119", "grupo": null },
+   "pergunta": "JBP",
+   "assunto": "acesso gerencial|restrita",
+   "checagens": [],
+   "rodape": false
+  },
+  {
+   "id": "G245",
+   "linha": "3.bloq_papel",
+   "contato": { "nome": "VANEZA DE LIMA KVASNEY", "papel": "vendedor", "filial": "TCV", "rca": "354", "grupo": null },
+   "pergunta": "Batalha naval",
+   "assunto": "acesso gerencial|restrita",
+   "checagens": [],
+   "rodape": false
+  },
+  {
+   "id": "G246",
+   "linha": "3.multipasta",
+   "contato": { "nome": "VANEZA DE LIMA KVASNEY", "papel": "vendedor", "filial": "TCV", "rca": "354", "grupo": null },
+   "pergunta": "Como estou",
+   "assunto": "faturad|meta",
+   "checagens": [{ "id": "fat_liq_vendedor_mes", "p": { "filial": "TCV", "rca": "354" } }]
+  },
+  {
+   "id": "G247",
+   "linha": "3.multipasta",
+   "contato": { "nome": "PATRIK SANTOS", "papel": "vendedor", "filial": "ABC", "rca": "212", "grupo": null },
+   "pergunta": "Como estou",
+   "assunto": "faturad|meta",
+   "checagens": [{ "id": "fat_liq_vendedor_mes", "p": { "filial": "ABC", "rca": "212" } }]
+  },
+  {
+   "id": "G248",
+   "linha": "4.equipe_sueli",
+   "contato": { "nome": "SUELI APARECIDA TEIXEIRA POLLI", "papel": "supervisor", "filial": "API", "rca": null, "grupo": null },
+   "pergunta": "Como ta minha equipe",
+   "assunto": "faturad|meta",
+   "checagens": [{ "id": "fat_liq_equipe", "p": { "filial": "API", "supervisor": "SUELI APARECIDA TEIXEIRA POLLI" } }],
+   "linhas": true
   }
  ]
 }
