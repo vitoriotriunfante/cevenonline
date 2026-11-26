@@ -122,6 +122,58 @@ async function enviaEmLotes(chave, itens, tam = 200, extrasPrimeiro = {}) {
   }
   return itens.length;
 }
+
+async function enviaDeltaPorFilial({ queryParam, postCampo, removerCampo = null, mes = null, rows = [], keyFn, tam = 250 }) {
+  if (!rows.length) return { total: 0, enviadas: 0, removidas: 0 };
+  const grupos = new Map();
+  for (const r of rows) {
+    if (!r.hash) {
+      const { hash: _h, ...semHash } = r;
+      r.hash = sha(semHash);
+    }
+    const fg = /^[A-Z]{3}$/.test(String(r.filial || '')) ? String(r.filial) : '_GLOBAL_';
+    if (!grupos.has(fg)) grupos.set(fg, []);
+    grupos.get(fg).push(r);
+  }
+  let totEnv = 0, totRem = 0;
+  for (const [fg, list] of grupos) {
+    const q = [`${queryParam}=1`];
+    if (mes) q.push(`mes=${mes}`);
+    if (fg !== '_GLOBAL_') q.push(`filial=${fg}`);
+    const { hashes = {} } = await api('GET', '?' + q.join('&'));
+    const mudaram = list.filter((x) => hashes[keyFn(x)] !== x.hash);
+    if (mudaram.length) totEnv += await enviaEmLotes(postCampo, mudaram, tam);
+    if (removerCampo && fg !== '_GLOBAL_') {
+      const dbKeys = Object.keys(hashes);
+      if (dbKeys.length > 0 && list.length > 0 && list.length >= Math.floor(dbKeys.length * 0.80)) {
+        const ext = new Set(list.map(keyFn));
+        const stale = dbKeys.filter((k) => !ext.has(k));
+        for (let i = 0; i < stale.length; i += 400) {
+          const ch = stale.slice(i, i + 400);
+          await api('POST', '', { ...(mes ? { mes } : {}), [removerCampo]: ch });
+          totRem += ch.length;
+        }
+      }
+    }
+  }
+  log(`${mes || 'global'} ${postCampo}: total=${rows.length} +${totEnv} -${totRem}`);
+  return { total: rows.length, enviadas: totEnv, removidas: totRem };
+}
+
+function preValidaFiliais(filRows, vendRows, vndRows) {
+  const sf = new Map(), sv = new Map(), sfn = new Map();
+  for (const r of filRows) sf.set(r.filial, (sf.get(r.filial) || 0) + (r.dados['Faturado líquido (R$)'] || 0));
+  for (const r of vendRows) sv.set(r.filial, (sv.get(r.filial) || 0) + (r.dados['Faturado líquido (R$)'] || 0));
+  for (const r of vndRows) sfn.set(r.filial, (sfn.get(r.filial) || 0) + (r.dados['Faturado líquido (R$)'] || 0));
+  const ruins = [];
+  for (const [fil, f] of sf) {
+    const dv = Math.abs(f - (sv.get(fil) || 0));
+    const df = Math.abs(f - (sfn.get(fil) || 0));
+    if (dv > 1 || df > 1) ruins.push(fil);
+  }
+  if (ruins.length) log(`AVISO preValidaFiliais: ${ruins.length} filial(is) com divergencia (${ruins.join(',')})`);
+  return ruins;
+}
 const todasChaves = (...maps) => {
   const s = new Set();
   for (const m of maps) if (m) for (const k of m.keys()) s.add(k);
@@ -219,8 +271,9 @@ function indexarExtrair(res, campos, H) {
   for (const r of (res && res.linhas) || []) {
     const k = keyFn(r.idx);
     const cur = map.get(k);
+    const pw = r.pesoKg ?? r.peso;
     if (!cur) {
-      map.set(k, { ...r });
+      map.set(k, { ...r, ...(pw != null ? { pesoKg: pw } : {}) });
     } else {
       cur.bruto += r.bruto || 0;
       cur.devolucao += r.devolucao || 0;
@@ -232,6 +285,9 @@ function indexarExtrair(res, campos, H) {
       cur.positivacao += r.positivacao || 0;
       cur.itens += r.itens || 0;
       cur.pedidos += r.pedidos || 0;
+      if (r.caixas != null) cur.caixas = (cur.caixas || 0) + r.caixas;
+      if (pw != null) cur.pesoKg = (cur.pesoKg || 0) + pw;
+      if (r.qt != null) cur.qt = (cur.qt || 0) + r.qt;
       if (r.carteira != null) cur.carteira = (cur.carteira || 0) + r.carteira;
       if (r.carteiraPedidos != null) cur.carteiraPedidos = (cur.carteiraPedidos || 0) + r.carteiraPedidos;
       if (r.carteiraQt != null) cur.carteiraQt = (cur.carteiraQt || 0) + r.carteiraQt;
@@ -297,7 +353,19 @@ function montaDadosComum(r, refs, opt = {}) {
   const rmp = mp ? (opt.usaClubeInd ? (r.positivacaoClubeInd ?? pos) : opt.usaClube ? (r.positivacaoClube ?? pos) : pos) : null;
   const corteC = R2((r.corteComercial || 0) / 100) || 0;
   const corteL = R2((r.corteLogistico || 0) / 100) || 0;
+  const cortesTot = R2(corteC + corteL);
   const fatCart = cart != null ? R2(fatLiq + cart) : fatLiq;
+  const fatM1 = refs.fatM1 ?? null;
+  const fat3M = refs.fat3M ?? null;
+  const fatA1 = refs.fatA1 ?? null;
+  const fatB = refs.fatB ?? null;
+  const fatDia = opt.fatDia != null ? R2(opt.fatDia / 100) : 0;
+  const devDia = opt.devDia != null ? R2(opt.devDia / 100) : 0;
+  const cx = r.caixas != null ? R2(r.caixas) : null;
+  const kgRaw = r.pesoKg ?? r.peso;
+  const kg = kgRaw != null ? R2(kgRaw) : null;
+  const tendEst = meta != null && pctMes > 0 ? R2(cap / pctMes) : null;
+  const idealDia = meta != null && opt.duTotal > 0 ? R2(meta / opt.duTotal) : null;
 
   const d = {
     'Faturado líquido (R$)': fatLiq,
@@ -307,6 +375,24 @@ function montaDadosComum(r, refs, opt = {}) {
     'Desconto (R$)': desc,
     'Bonificação a tabela (R$)': bonif,
     'Troca (R$)': troca,
+    'Faturado A-1 (R$)': fatA1,
+    'Faturado 3M (média) (R$)': fat3M,
+    'Faturado M-1 (R$)': fatM1,
+    'Faturado Bench jul/25 (R$)': fatB,
+    '% vs A-1': fatA1 > 0 ? frac(fatLiq - fatA1, fatA1) : null,
+    '% vs 3M': fat3M > 0 ? frac(fatLiq - fat3M, fat3M) : null,
+    '% vs M-1': fatM1 > 0 ? frac(fatLiq - fatM1, fatM1) : null,
+    '% vs Bench': fatB > 0 ? frac(fatLiq - fatB, fatB) : null,
+    'Faturado Dia (R$)': fatDia,
+    'Devolução Dia (R$)': devDia,
+    '% Desconto s/ bruto': frac(desc, bruto),
+    '% Bonificação s/ bruto': frac(bonif, bruto),
+    '% Troca s/ bruto': frac(troca, bruto),
+    '% Corte s/ bruto': frac(cortesTot, bruto),
+    'Caixas faturadas': cx,
+    'Peso líquido faturado (kg)': kg,
+    'Preço médio (R$/kg)': kg > 0 ? R2(fatLiq / kg) : null,
+    'Ticket médio / Pedido (R$)': (r.pedidos || 0) > 0 ? R2(fatLiq / r.pedidos) : null,
     'Positivação A-1': refs.posA1 ?? null,
     'Positivação 3M (média)': refs.pos3M ?? null,
     'Positivação M-1': refs.posM1 ?? null,
@@ -319,6 +405,9 @@ function montaDadosComum(r, refs, opt = {}) {
     '% Meta (Pos + Cart)': mpc && posCart != null ? frac(posCart, mpc) : null,
     'Positivação Bench jul/25': refs.posB ?? null,
     '% Bench positivação': refs.posB > 0 ? frac(pos, refs.posB) : null,
+    'Positivação vs M-1 (%)': refs.posM1 > 0 ? frac(pos - refs.posM1, refs.posM1) : null,
+    'Positivação vs 3M (%)': refs.pos3M > 0 ? frac(pos - refs.pos3M, refs.pos3M) : null,
+    'Positivação vs A-1 (%)': refs.posA1 > 0 ? frac(pos - refs.posA1, refs.posA1) : null,
     'Positivação + Captação': posCapt,
     'Meta clientes': mpc,
     '% Meta (Pos + Capt)': mpc && posCapt != null ? frac(posCapt, mpc) : null,
@@ -327,14 +416,21 @@ function montaDadosComum(r, refs, opt = {}) {
     'Pedidos faturados': r.pedidos || 0,
     'Margem de contribuição (R$)': mcRs,
     'Margem de contribuição (%)': fatLiq > 0 && mcRs != null ? frac(mcRs, fatLiq) : null,
+    'CMV (R$)': cmv,
+    'CMV (%)': frac(cmv, fatLiq),
     'Impostos PIS/COFINS (R$)': imp,
+    'Impostos (%)': frac(imp, fatLiq),
     'Meta (R$)': meta,
     '% Meta': meta > 0 ? frac(fatLiq, meta) : null,
+    'Tendência estatística (R$)': tendEst,
+    '% Tendência Meta': meta > 0 && tendEst != null ? frac(tendEst, meta) : null,
+    'Gap Meta (R$)': meta != null ? R2(Math.max(0, meta - fatCart)) : null,
     'Captação (R$)': cap,
     'Meta Ideal captação (R$)': ideal,
     '% Meta Ideal captação': ideal > 0 ? frac(cap, ideal) : null,
     'Captação Dia (R$)': capDia,
     'Necessidade dia captação (R$)': necDia,
+    'Δ Necessidade dia (R$)': necDia != null && idealDia != null ? R2(necDia - idealDia) : null,
     'Carteira pendente (R$)': cart,
     'Pedidos na carteira': r.carteiraPedidos ?? null,
     'Faturado + Carteira (R$)': fatCart,
@@ -344,7 +440,7 @@ function montaDadosComum(r, refs, opt = {}) {
     'Peso líquido em carteira (kg)': r.carteiraKg != null ? R2(r.carteiraKg) : null,
     'Corte comercial (R$)': corteC,
     'Corte logístico (R$)': corteL,
-    'Cortes total (R$)': R2(corteC + corteL),
+    'Cortes total (R$)': cortesTot,
     'Corte comercial (un)': r.corteUnComercial ?? 0,
     'Corte logístico (un)': r.corteUnLogistico ?? 0,
     'Cortes total (un)': (r.corteUnComercial || 0) + (r.corteUnLogistico || 0),
@@ -481,7 +577,7 @@ function extrairHistogramaECurvaNeg(motor, cubo, H, mes, ate, pedMeta) {
     margem_rs: R2(h.mc / 100),
     margem_pct: frac(h.mc, h.b)
   }));
-  return { curvaNeg: curvaNeg.slice(0, 600), hist };
+  return { curvaNeg, hist };
 }
 
 function extrairFefo(cubo, H) {
@@ -544,9 +640,13 @@ function extrairFefo(cubo, H) {
       _crit: fxIdx >= 2 || risco || r.q ? 1 : 0
     };
   });
-  const crit = rows.filter((x) => x._crit);
-  const norm = rows.filter((x) => !x._crit).sort((a, b) => (b.valor || 0) - (a.valor || 0)).slice(0, 1200);
-  return crit.concat(norm);
+  const mapFefo = new Map();
+  for (const x of rows) {
+    const { _crit, ...limpo } = x;
+    const k = `${limpo.filial}|${limpo.sku}|${limpo.lote}`;
+    if (!mapFefo.has(k) || (limpo.valor || 0) > (mapFefo.get(k).valor || 0)) mapFefo.set(k, limpo);
+  }
+  return [...mapFefo.values()];
 }
 
 function extrairEstWinthor(cubo, H) {
@@ -617,13 +717,12 @@ function extrairEstWinthor(cubo, H) {
       x.curva_abc = sh <= 0.80 ? 'A' : sh <= 0.95 ? 'B' : sh <= 0.99 ? 'C' : 'D';
     }
   }
-  const crit = rows
-    .filter((x) => x.ruptura || x.parado_90d || x.curva_abc === 'A')
-    .sort((a, b) => (b.ruptura - a.ruptura) || (b.parado_90d - a.parado_90d) || ((b.valor || 0) - (a.valor || 0)))
-    .slice(0, 4500);
-  const setK = new Set(crit.map((x) => `${x.filial}|${x.sku}`));
-  const top = rows.filter((x) => !setK.has(`${x.filial}|${x.sku}`)).sort((a, b) => (b.valor || 0) - (a.valor || 0)).slice(0, Math.max(0, 5500 - crit.length));
-  return crit.concat(top);
+  const mapEw = new Map();
+  for (const x of rows) {
+    const { _fatAcm, ...limpo } = x;
+    mapEw.set(`${limpo.filial}|${limpo.sku}`, limpo);
+  }
+  return [...mapEw.values()];
 }
 
 function extrairCadastroClientes(cubo, H, mes, ate) {
@@ -810,28 +909,32 @@ function extrairRecorrenciaERfv(cubo, H, mes, ate, supNomes = new Map(), vendNom
     }
   }
 
-  const selecionaEquilibrado = (arr, teto = 7500, minPorRca = 15) => {
-    const picked = new Set();
-    const byRca = new Map();
-    arr.forEach((x, idx) => {
-      const k = `${x.filial}|${x.rca}`;
-      let cnt = byRca.get(k) || 0;
-      if (cnt < minPorRca) { picked.add(idx); byRca.set(k, cnt + 1); }
-    });
-    for (let idx = 0; idx < arr.length && picked.size < teto; idx++) picked.add(idx);
-    return [...picked].slice(0, teto).map((idx) => arr[idx]);
+  const dedupCli = (arr, cmp) => {
+    const m = new Map();
+    for (const x of arr) {
+      const k = `${x.filial}|${x.rca}|${x.cliente}`;
+      if (!m.has(k) || cmp(x, m.get(k)) > 0) m.set(k, x);
+    }
+    return [...m.values()];
   };
-  recClis.sort((a, b) => a.dias_sem_compra - b.dias_sem_compra);
+  const ultCompra = new Map();
+  for (const x of rfvClis) {
+    if (x.ultima_compra) ultCompra.set(`${x.filial}|${x.cnpj}`, x.ultima_compra);
+  }
+  const recFinal = dedupCli(recClis, (a, b) => (b.dias_sem_compra || 999) - (a.dias_sem_compra || 999));
+  const rfvFinal = dedupCli(rfvClis, (a, b) => (a.valor_120d || 0) - (b.valor_120d || 0));
+  recFinal.sort((a, b) => a.dias_sem_compra - b.dias_sem_compra);
   const prioSeg = { 'Em risco, alto valor': 5, 'Campeões': 4, 'Fiéis': 3, 'Esfriando': 2, 'Potenciais fiéis': 1 };
-  rfvClis.sort((a, b) => ((prioSeg[b.segmento] || 0) - (prioSeg[a.segmento] || 0)) || (b.valor_120d - a.valor_120d));
+  rfvFinal.sort((a, b) => ((prioSeg[b.segmento] || 0) - (prioSeg[a.segmento] || 0)) || (b.valor_120d - a.valor_120d));
 
   const recPastaArr = [...recPasta.values()].map((x) => ({ ...x, hash: sha(x) }));
   return {
     faixas: [...fxMap.values()],
-    recClientes: selecionaEquilibrado(recClis, 7500, 15),
+    recClientes: recFinal,
     rfvResumo: [...rfvRes.values()],
-    rfvClientes: selecionaEquilibrado(rfvClis, 7500, 15),
-    recPasta: recPastaArr
+    rfvClientes: rfvFinal,
+    recPasta: recPastaArr,
+    ultCompra
   };
 }
 
@@ -978,21 +1081,23 @@ function detectarFiltros(motor, H, mes, ate, calcBr, eFil, eDia) {
   return { filtroFil, filtroVend, diaFilter, diaMode };
 }
 
-function extrairM3Map(motor, refs, campos, H) {
-  const soma = new Map();
+function extrairM3Stats(motor, refs, campos, H) {
+  const somaPos = new Map(), somaFat = new Map();
   const n = (refs.m3 || []).length;
-  if (!n) return new Map();
+  if (!n) return { pos: new Map(), fat: new Map() };
   for (const rM of refs.m3) {
     try {
       const ex = indexarExtrair(motor.extrair(rM, campos), campos, H).map;
       for (const [k, r] of ex) {
-        soma.set(k, (soma.get(k) || 0) + (r.positivacao || 0));
+        somaPos.set(k, (somaPos.get(k) || 0) + (r.positivacao || 0));
+        somaFat.set(k, (somaFat.get(k) || 0) + ((r.bruto || 0) - (r.devolucao || 0)) / 100);
       }
     } catch {}
   }
-  const med = new Map();
-  for (const [k, tot] of soma) med.set(k, R2(tot / n));
-  return med;
+  const pos = new Map(), fat = new Map();
+  for (const [k, tot] of somaPos) pos.set(k, R2(tot / n));
+  for (const [k, tot] of somaFat) fat.set(k, R2(tot / n));
+  return { pos, fat };
 }
 
 async function processarMes(mes, { cubo, motor, meta }, tiers, posicao, loteId) {
@@ -1003,8 +1108,9 @@ async function processarMes(mes, { cubo, motor, meta }, tiers, posicao, loteId) 
   log(`=== Processando ${mes} (ate ${ate}) tiers=${[...tiers].join(',')} ===`);
 
   const calcBr = motor.calcular({ mes, ate });
-  const pctMes = calcBr && calcBr.pctMesCorrido != null ? calcBr.pctMesCorrido : (calcBr && calcBr.diasUteisTotal > 0 ? calcBr.diasUteisDecorridos / calcBr.diasUteisTotal : 0);
-  const duRest = calcBr && calcBr.diasUteisTotal != null && calcBr.diasUteisDecorridos != null ? Math.max(0, calcBr.diasUteisTotal - calcBr.diasUteisDecorridos) : 0;
+  const duTot = calcBr && calcBr.diasUteisTotal ? calcBr.diasUteisTotal : 0;
+  const pctMes = calcBr && calcBr.pctMesCorrido != null ? calcBr.pctMesCorrido : (duTot > 0 ? calcBr.diasUteisDecorridos / duTot : 0);
+  const duRest = duTot && calcBr.diasUteisDecorridos != null ? Math.max(0, duTot - calcBr.diasUteisDecorridos) : 0;
 
   // Extracoes base Tier 1 (em memoria: ms)
   const eFil = indexarExtrair(motor.extrair({ mes, ate }, ['fi']), ['fi'], H);
@@ -1028,7 +1134,7 @@ async function processarMes(mes, { cubo, motor, meta }, tiers, posicao, loteId) 
   const mpcVen = safeMp(['fi', 'su', 've'], true);
   const mpVnd = safeMp(['fi', 'su', 've', 'fo'], false);
 
-  // Positivacao / captacao do dia
+  // Positivacao / captacao / faturado do dia
   const capDiaFil = new Map(), capDiaSup = new Map(), capDiaVen = new Map(), capDiaVnd = new Map();
   if (diaFilter) {
     for (const [k, r] of indexarExtrair(motor.extrair(diaFilter, ['fi']), ['fi'], H).map) capDiaFil.set(k, r);
@@ -1056,10 +1162,10 @@ async function processarMes(mes, { cubo, motor, meta }, tiers, posicao, loteId) 
   const a1Sup = safeExt(refs.a1, ['fi', 'su']);
   const a1Ven = safeExt(refs.a1, ['fi', 'su', 've']);
   const a1Vnd = safeExt(refs.a1, ['fi', 'su', 've', 'fo']);
-  const m3Fil = extrairM3Map(motor, refs, ['fi'], H);
-  const m3Sup = extrairM3Map(motor, refs, ['fi', 'su'], H);
-  const m3Ven = extrairM3Map(motor, refs, ['fi', 'su', 've'], H);
-  const m3Vnd = extrairM3Map(motor, refs, ['fi', 'su', 've', 'fo'], H);
+  const m3Fil = extrairM3Stats(motor, refs, ['fi'], H);
+  const m3Sup = extrairM3Stats(motor, refs, ['fi', 'su'], H);
+  const m3Ven = extrairM3Stats(motor, refs, ['fi', 'su', 've'], H);
+  const m3Vnd = extrairM3Stats(motor, refs, ['fi', 'su', 've', 'fo'], H);
   const bFil = safeExt(refs.bench, ['fi']);
   const bSup = safeExt(refs.bench, ['fi', 'su']);
   const bVen = safeExt(refs.bench, ['fi', 'su', 've']);
@@ -1075,88 +1181,77 @@ async function processarMes(mes, { cubo, motor, meta }, tiers, posicao, loteId) 
     } catch {}
   }
 
-  // 1) Filiais
+  const fatRef = (rx) => (rx && rx.bruto != null ? R2(((rx.bruto || 0) - (rx.devolucao || 0)) / 100) : null);
+  const extRefs = (rm1, m3s, ra1, rb, k) => {
+    const r1 = rm1.get(k) || {}, rA = ra1.get(k) || {}, rB = rb.get(k) || {};
+    return {
+      posM1: r1.positivacao ?? null, capM1: r1.captacao != null ? R2(r1.captacao / 100) : null, fatM1: fatRef(r1),
+      posA1: rA.positivacao ?? null, fatA1: fatRef(rA),
+      pos3M: m3s.pos.get(k) ?? null, fat3M: m3s.fat.get(k) ?? null,
+      posB: rB.positivacao ?? null, fatB: fatRef(rB)
+    };
+  };
+
+  // Montagem em memoria (Filiais, Supervisores, Vendedores, Vendas) + pre-validacao antes do envio
   const filRows = [];
   for (const [sig, r] of eFil.map) {
     if (!/^[A-Z]{3}$/.test(sig)) continue;
-    const d1 = capDiaFil.get(sig) || {}, rm1 = m1Fil.get(sig) || {}, ra1 = a1Fil.get(sig) || {}, rb = bFil.get(sig) || {};
-    const dados = montaDadosComum(r, {
-      posM1: rm1.positivacao ?? null, capM1: rm1.captacao != null ? R2(rm1.captacao / 100) : null,
-      posA1: ra1.positivacao ?? null, pos3M: m3Fil.get(sig) ?? null, posB: rb.positivacao ?? null
-    }, {
-      pctMesCorrido: pctMes, diasUteisRestantes: duRest, capDia: d1.captacao || 0, posDia: d1.positivacao || 0,
+    const d1 = capDiaFil.get(sig) || {};
+    const dados = montaDadosComum(r, extRefs(m1Fil, m3Fil, a1Fil, bFil, sig), {
+      pctMesCorrido: pctMes, diasUteisRestantes: duRest, duTotal: duTot,
+      capDia: d1.captacao || 0, posDia: d1.positivacao || 0, fatDia: (d1.bruto || 0) - (d1.devolucao || 0), devDia: d1.devolucao || 0,
       mp: mpFil.get(sig), mpc: mpcFil.get(sig), tmf: tmfPorFil.get(sig)
     });
     filRows.push({ mes, filial: sig, dados, hash: sha(dados) });
   }
-  const { hashes: hf } = await api('GET', `?mes=${mes}&filial=1`);
-  const mudouF = filRows.filter((x) => hf[x.filial] !== x.hash);
-  if (mudouF.length) await api('POST', '', { filiais: mudouF });
 
-  // 2) Supervisores (uniao de mes + M-1/3M/A-1/Bench para preservar historico como no Excel)
   const supNomes = new Map();
   (dim.supervisor && dim.supervisor.cod || []).forEach((c, i) => supNomes.set(String(c), String(dim.supervisor.nome[i] || c)));
   const supRows = [];
-  for (const k of todasChaves(eSup.map, m1Sup, a1Sup, m3Sup, bSup)) {
+  for (const k of todasChaves(eSup.map, m1Sup, a1Sup, m3Sup.pos, bSup)) {
     const r = eSup.map.get(k) || {};
     const [filial, cod_sup] = k.split(SEP);
     if (!/^[A-Z]{3}$/.test(filial || '') || !String(cod_sup || '').trim()) continue;
-    const d1 = capDiaSup.get(k) || {}, rm1 = m1Sup.get(k) || {}, ra1 = a1Sup.get(k) || {}, rb = bSup.get(k) || {};
-    const dados = montaDadosComum(r, {
-      posM1: rm1.positivacao ?? null, capM1: rm1.captacao != null ? R2(rm1.captacao / 100) : null,
-      posA1: ra1.positivacao ?? null, pos3M: m3Sup.get(k) ?? null, posB: rb.positivacao ?? null
-    }, {
-      pctMesCorrido: pctMes, diasUteisRestantes: duRest, capDia: d1.captacao || 0, posDia: d1.positivacao || 0,
+    const d1 = capDiaSup.get(k) || {};
+    const dados = montaDadosComum(r, extRefs(m1Sup, m3Sup, a1Sup, bSup, k), {
+      pctMesCorrido: pctMes, diasUteisRestantes: duRest, duTotal: duTot,
+      capDia: d1.captacao || 0, posDia: d1.positivacao || 0, fatDia: (d1.bruto || 0) - (d1.devolucao || 0), devDia: d1.devolucao || 0,
       mp: mpSup.get(k), mpc: mpcSup.get(k), usaClube: true
     });
     supRows.push({ mes, filial, cod_sup, supervisor: supNomes.get(cod_sup) || cod_sup, dados, hash: sha(dados) });
   }
-  const { hashes: hs } = await api('GET', `?mes=${mes}&supervisor=1`);
-  const mudouS = supRows.filter((x) => hs[`${x.filial}|${x.cod_sup}`] !== x.hash);
-  await enviaEmLotes('supervisores', mudouS, 200);
-  if (supRows.length) await api('POST', '', { vigentes_sup: { mes, chaves: supRows.map((x) => `${x.filial}|${x.cod_sup}`) } });
 
-  // 3) Vendedores
   const vendNomes = new Map();
   (dim.vendedor && dim.vendedor.cod || []).forEach((c, i) => vendNomes.set(String(c), String(dim.vendedor.nome[i] || c)));
   const vendRows = [];
-  for (const k of todasChaves(eVen.map, m1Ven, a1Ven, m3Ven, bVen)) {
+  for (const k of todasChaves(eVen.map, m1Ven, a1Ven, m3Ven.pos, bVen)) {
     const r = eVen.map.get(k) || {};
     const [filial, cod_sup, rca] = k.split(SEP);
     if (!/^[A-Z]{3}$/.test(filial || '') || !String(rca || '').trim()) continue;
-    const d1 = capDiaVen.get(k) || {}, rm1 = m1Ven.get(k) || {}, ra1 = a1Ven.get(k) || {}, rb = bVen.get(k) || {};
-    const dados = montaDadosComum(r, {
-      posM1: rm1.positivacao ?? null, capM1: rm1.captacao != null ? R2(rm1.captacao / 100) : null,
-      posA1: ra1.positivacao ?? null, pos3M: m3Ven.get(k) ?? null, posB: rb.positivacao ?? null
-    }, {
-      pctMesCorrido: pctMes, diasUteisRestantes: duRest, capDia: d1.captacao || 0, posDia: d1.positivacao || 0,
+    const d1 = capDiaVen.get(k) || {};
+    const dados = montaDadosComum(r, extRefs(m1Ven, m3Ven, a1Ven, bVen, k), {
+      pctMesCorrido: pctMes, diasUteisRestantes: duRest, duTotal: duTot,
+      capDia: d1.captacao || 0, posDia: d1.positivacao || 0, fatDia: (d1.bruto || 0) - (d1.devolucao || 0), devDia: d1.devolucao || 0,
       mp: mpVen.get(k), mpc: mpcVen.get(k), usaClube: true
     });
     vendRows.push({ mes, filial, rca, cod_sup, supervisor: supNomes.get(cod_sup) || cod_sup, vendedor: vendNomes.get(rca) || rca, dados, hash: sha(dados) });
   }
-  const { hashes: hv } = await api('GET', `?mes=${mes}&vendedor=1`);
-  const mudouV = vendRows.filter((x) => hv[`${x.filial}|${x.rca}|${x.cod_sup}`] !== x.hash);
-  await enviaEmLotes('vendedores', mudouV, 200);
-  if (vendRows.length) await api('POST', '', { vigentes_vend: { mes, chaves: vendRows.map((x) => `${x.filial}|${x.rca}|${x.cod_sup}`) } });
 
-  // 4) Vendas (Filial x Sup x Vend x Fornecedor)
   const fornMetaByChave = new Map();
   (dim.fornecedor && dim.fornecedor.cod || []).forEach((c, i) => {
     const info = H.fornInfo(i);
     fornMetaByChave.set(info.chave, info);
   });
   const vndRows = [];
-  for (const k of todasChaves(eVnd.map, m1Vnd, a1Vnd, m3Vnd, bVnd)) {
+  for (const k of todasChaves(eVnd.map, m1Vnd, a1Vnd, m3Vnd.pos, bVnd)) {
     const r = eVnd.map.get(k) || {};
     const [filial, cod_sup, rca, fornecedor] = k.split(SEP);
     if (!/^[A-Z]{3}$/.test(filial || '') || !String(rca || '').trim() || !String(fornecedor || '').trim()) continue;
     const fInfo = fornMetaByChave.get(fornecedor) || { nome: fornecedor, cnpjRaw: '', codW: '' };
-    const d1 = capDiaVnd.get(k) || {}, rm1 = m1Vnd.get(k) || {}, ra1 = a1Vnd.get(k) || {}, rb = bVnd.get(k) || {};
-    const dados = montaDadosComum(r, {
-      posM1: rm1.positivacao ?? null, capM1: rm1.captacao != null ? R2(rm1.captacao / 100) : null,
-      posA1: ra1.positivacao ?? null, pos3M: m3Vnd.get(k) ?? null, posB: rb.positivacao ?? null
-    }, {
-      pctMesCorrido: pctMes, diasUteisRestantes: duRest, capDia: d1.captacao || 0, posDia: d1.positivacao || 0,
+    const d1 = capDiaVnd.get(k) || {};
+    const dados = montaDadosComum(r, extRefs(m1Vnd, m3Vnd, a1Vnd, bVnd, k), {
+      pctMesCorrido: pctMes, diasUteisRestantes: duRest, duTotal: duTot,
+      capDia: d1.captacao || 0, posDia: d1.positivacao || 0, fatDia: (d1.bruto || 0) - (d1.devolucao || 0), devDia: d1.devolucao || 0,
       mp: mpVnd.get(k), usaClubeInd: true,
       extras: {
         'CNPJ fornecedor': /^\d+$/.test(fInfo.cnpjRaw) ? Number(fInfo.cnpjRaw) : fInfo.cnpjRaw,
@@ -1171,6 +1266,27 @@ async function processarMes(mes, { cubo, motor, meta }, tiers, posicao, loteId) 
       dados, hash: sha(dados)
     });
   }
+
+  preValidaFiliais(filRows, vendRows, vndRows);
+
+  // 1) Filiais
+  const { hashes: hf } = await api('GET', `?mes=${mes}&filial=1`);
+  const mudouF = filRows.filter((x) => hf[x.filial] !== x.hash);
+  if (mudouF.length) await api('POST', '', { filiais: mudouF });
+
+  // 2) Supervisores
+  const { hashes: hs } = await api('GET', `?mes=${mes}&supervisor=1`);
+  const mudouS = supRows.filter((x) => hs[`${x.filial}|${x.cod_sup}`] !== x.hash);
+  await enviaEmLotes('supervisores', mudouS, 200);
+  if (supRows.length) await api('POST', '', { vigentes_sup: { mes, chaves: supRows.map((x) => `${x.filial}|${x.cod_sup}`) } });
+
+  // 3) Vendedores
+  const { hashes: hv } = await api('GET', `?mes=${mes}&vendedor=1`);
+  const mudouV = vendRows.filter((x) => hv[`${x.filial}|${x.rca}|${x.cod_sup}`] !== x.hash);
+  await enviaEmLotes('vendedores', mudouV, 200);
+  if (vendRows.length) await api('POST', '', { vigentes_vend: { mes, chaves: vendRows.map((x) => `${x.filial}|${x.rca}|${x.cod_sup}`) } });
+
+  // 4) Vendas (Filial x Sup x Vend x Fornecedor)
   const { hashes: hvnd } = await api('GET', `?mes=${mes}`);
   const mudouVnd = vndRows.filter((x) => hvnd[`${x.filial}|${x.rca}|${x.fornecedor}|${x.cod_sup}`] !== x.hash);
   const envVnd = await enviaEmLotes('linhas', mudouVnd, 200);
@@ -1192,7 +1308,7 @@ async function processarMes(mes, { cubo, motor, meta }, tiers, posicao, loteId) 
   const eCli = indexarExtrair(motor.extrair({ mes, ate }, ['fi', 've', 'cl']), ['fi', 've', 'cl'], H);
   const m1Cli = safeExt(refs.m1, ['fi', 've', 'cl']);
   const a1Cli = safeExt(refs.a1, ['fi', 've', 'cl']);
-  const m3Cli = extrairM3Map(motor, refs, ['fi', 've', 'cl'], H);
+  const m3Cli = extrairM3Stats(motor, refs, ['fi', 've', 'cl'], H).pos;
   const cliInfoMap = new Map();
   (dim.cliente && dim.cliente.cod || []).forEach((c, i) => cliInfoMap.set(String(c), H.cliInfo(i)));
   const cliRows = [];
@@ -1225,7 +1341,7 @@ async function processarMes(mes, { cubo, motor, meta }, tiers, posicao, loteId) 
   const eCliF = indexarExtrair(motor.extrair({ mes, ate }, ['fi', 've', 'cl', 'fo']), ['fi', 've', 'cl', 'fo'], H);
   const m1CliF = safeExt(refs.m1, ['fi', 've', 'cl', 'fo']);
   const a1CliF = safeExt(refs.a1, ['fi', 've', 'cl', 'fo']);
-  const m3CliF = extrairM3Map(motor, refs, ['fi', 've', 'cl', 'fo'], H);
+  const m3CliF = extrairM3Stats(motor, refs, ['fi', 've', 'cl', 'fo'], H).pos;
   const cfRows = [];
   for (const k of todasChaves(eCliF.map, m1CliF)) {
     const r = eCliF.map.get(k) || {};
@@ -1342,11 +1458,27 @@ async function processarMes(mes, { cubo, motor, meta }, tiers, posicao, loteId) 
   for (const [k, r] of eFC.map) {
     const [filial, cnpj] = k.split(SEP);
     const ci = cliInfoMap.get(cnpj) || H.cliInfo(-1);
-    const cad = (cubo.clivenCad && cubo.clivenCad.c && cubo.clivenCad.c[cnpj]) || null;
+    const cad = (cubo.clivenCad && cubo.clivenCad.c && (cubo.clivenCad.c[cnpj] || cubo.clivenCad.c[nCnpj(cnpj)])) || null;
     if (cad && cad[2]) addGrp('cidade', filial, `${cad[1] || ''}:${cad[2]}`, `${cad[2]}/${cad[1] || ''}`, r);
     else if (ci.mun) addGrp('cidade', filial, ci.mun, ci.mun, r);
+    const redeCad = cad && !Array.isArray(cad) ? cad.rede : (Array.isArray(cad) && typeof cad[6] === 'string' && cad[6].trim() ? cad[6].trim() : '');
+    if (redeCad) addGrp('rede', filial, redeCad.slice(0, 80), redeCad.slice(0, 80), r);
   }
+  let eRedCount = 0;
+  try {
+    const eRed = indexarExtrair(motor.extrair({ mes, ate }, ['fi', 're']), ['fi', 're'], H);
+    const redNomes = new Map();
+    (dim.rede && dim.rede.cod || []).forEach((c, i) => redNomes.set(String(c), String((dim.rede.nome && dim.rede.nome[i]) || c)));
+    for (const [k, r] of eRed.map) {
+      const [filial, rk] = k.split(SEP);
+      if (!/^[A-Z]{3}$/.test(filial) || !rk) continue;
+      const dados = montaDadosComum(r, {}, { pctMesCorrido: pctMes, duTotal: duTot });
+      dimRows.push({ mes, dim: 'rede', filial, chave: rk, nome: redNomes.get(rk) || rk, dados, hash: sha(dados) });
+      eRedCount++;
+    }
+  } catch { /* fallback pelo clivenCad acima se dim.rede nao estiver no motor */ }
   for (const o of grpDim.values()) {
+    if (o.dim === 'rede' && eRedCount > 0) continue;
     const fat = R2((o.bruto - o.dev) / 100) || 0;
     const dados = { 'Faturado líquido (R$)': fat, 'Devolução (R$)': R2(o.dev / 100) || 0, 'Margem de contribuição (R$)': R2(o.mc / 100), 'Carteira pendente (R$)': R2(o.cart / 100) };
     dimRows.push({ mes, dim: o.dim, filial: o.filial, chave: o.chave, nome: o.nome, dados, hash: sha(dados) });
@@ -1479,7 +1611,12 @@ async function processarMes(mes, { cubo, motor, meta }, tiers, posicao, loteId) 
     }
     if (dreRows.length) await enviaEmLotes('dre_mes', dreRows, 300, { dre_limpar_mes: mes });
     const { curvaNeg, hist } = extrairHistogramaECurvaNeg(motor, cubo, H, mes, ate, pedMeta);
-    if (curvaNeg.length) await enviaEmLotes('curva_neg_margem', curvaNeg, 300, { curva_neg_limpar_mes: mes });
+    if (curvaNeg.length) {
+      await enviaDeltaPorFilial({
+        queryParam: 'curva_neg', postCampo: 'curva_neg_margem', removerCampo: 'curva_neg_remover',
+        mes, rows: curvaNeg, keyFn: (x) => `${x.filial}|${x.pedido}|${x.nf}`, tam: 250
+      });
+    }
     if (hist.length) await enviaEmLotes('histograma_margem', hist, 300, { hist_limpar_mes: mes });
     log(`${mes} margem: dre=${dreRows.length} curvaNeg=${curvaNeg.length} hist=${hist.length}`);
   } catch (e) { log(`AVISO dre/margem ${mes}:`, e.message); }
@@ -1497,24 +1634,140 @@ async function processarMes(mes, { cubo, motor, meta }, tiers, posicao, loteId) 
     throw new Error(`Portao contabil bloqueou ${mes}: ${(portao.motivos || []).join(' | ')}`);
   }
 
+  // 13b) Desvio Mes (3/43) e Batalha Naval / Carrinho Ideal (1/43)
+  let eJbp = null;
+  try {
+    const desvioRows = [];
+    const brFat = R2(filRows.reduce((s, x) => s + (x.dados['Faturado líquido (R$)'] || 0), 0)) || 0;
+    const brMeta = R2(filRows.reduce((s, x) => s + (x.dados['Meta (R$)'] || 0), 0)) || 0;
+    const brDelta = R2(brFat - brMeta) || 0;
+    const totAbs = filRows.reduce((s, x) => s + Math.abs((x.dados['Faturado líquido (R$)'] || 0) - (x.dados['Meta (R$)'] || 0)), 0) || 1;
+    desvioRows.push({ mes, nivel: 'brasil', filial: '', pai: '', cod: 'BRASIL', nome: 'Brasil', fat_liq: brFat, meta: brMeta, delta_meta: brDelta, pct_meta: frac(brFat, brMeta), peso_desvio: 1 });
+    for (const r of filRows) {
+      const f = r.dados['Faturado líquido (R$)'] || 0, m = r.dados['Meta (R$)'] || 0, d = R2(f - m) || 0;
+      desvioRows.push({ mes, nivel: 'filial', filial: r.filial, pai: 'BRASIL', cod: r.filial, nome: r.filial, fat_liq: f, meta: m, delta_meta: d, pct_meta: frac(f, m), peso_desvio: R4(d / totAbs) });
+    }
+    const ffAgg = new Map();
+    for (const r of vndRows) {
+      const fk = `${r.filial}|${r.fornecedor}`;
+      const o = ffAgg.get(fk) || { fil: r.filial, fornecedor: r.fornecedor, codW: String(r.dados['Cód. fornecedor'] || r.fornecedor), nome: String(r.dados['Fornecedor'] || r.fornecedor), fat: 0, cart: 0, meta: 0, n: 0 };
+      o.fat += r.dados['Faturado líquido (R$)'] || 0;
+      o.cart += r.dados['Carteira pendente (R$)'] || 0;
+      o.meta += r.dados['Meta (R$)'] || 0;
+      o.n++;
+      ffAgg.set(fk, o);
+    }
+    for (const o of ffAgg.values()) {
+      const f = R2(o.fat) || 0, m = R2(o.meta) || 0, d = R2(f - m) || 0;
+      if (f === 0 && m === 0) continue;
+      desvioRows.push({ mes, nivel: 'fornecedor', filial: o.fil, pai: o.fil, cod: o.codW.slice(0, 60), nome: o.nome, fat_liq: f, meta: m, delta_meta: d, pct_meta: frac(f, m), peso_desvio: R4(d / totAbs) });
+    }
+    for (const r of supRows) {
+      const f = r.dados['Faturado líquido (R$)'] || 0, m = r.dados['Meta (R$)'] || 0, d = R2(f - m) || 0;
+      if (f === 0 && m === 0) continue;
+      desvioRows.push({ mes, nivel: 'supervisor', filial: r.filial, pai: r.filial, cod: r.cod_sup, nome: r.supervisor, fat_liq: f, meta: m, delta_meta: d, pct_meta: frac(f, m), peso_desvio: R4(d / totAbs) });
+    }
+    const vendAgg = new Map();
+    for (const r of vendRows) {
+      const k = `${r.filial}|${r.cod_sup}|${r.rca}`;
+      if (!vendAgg.has(k)) vendAgg.set(k, r);
+    }
+    for (const r of vendAgg.values()) {
+      const f = r.dados['Faturado líquido (R$)'] || 0, m = r.dados['Meta (R$)'] || 0, d = R2(f - m) || 0;
+      if (f === 0 && m === 0) continue;
+      desvioRows.push({ mes, nivel: 'vendedor', filial: r.filial, pai: r.cod_sup, cod: r.rca, nome: r.vendedor, fat_liq: f, meta: m, delta_meta: d, pct_meta: frac(f, m), peso_desvio: R4(d / totAbs) });
+    }
+    await enviaDeltaPorFilial({ queryParam: 'desvio', postCampo: 'desvio_mes', mes, rows: desvioRows, keyFn: (x) => `${x.nivel}|${x.filial}|${x.pai}|${x.cod}`, tam: 250 });
+
+    const bcMap = new Map();
+    for (const o of ffAgg.values()) {
+      if (!(o.meta > 0 || o.fat > 0 || o.cart > 0)) continue;
+      const vlr = R2(o.fat + o.cart) || 0, m = R2(o.meta) || 0, gap = R2(Math.max(0, m - vlr)) || 0;
+      const row = { mes, tipo: 'batalha_naval', filial: o.fil, cod: o.codW.slice(0, 60), nome: o.nome, subcod: 'GERAL', subnome: o.fil, valor: vlr, meta: m, gap, itens: o.n, dados: { fat: R2(o.fat), cart: R2(o.cart) } };
+      bcMap.set(`${row.tipo}|${row.filial}|${row.cod}|${row.subcod}`, row);
+    }
+    eJbp = indexarExtrair(motor.extrair({ mes, ate }, ['fi', 'fo', 'sk']), ['fi', 'fo', 'sk'], H);
+    for (const [k, r] of eJbp.map) {
+      const [filial, fornChave, sku] = k.split(SEP);
+      if (!/^[A-Z]{3}$/.test(filial) || !sku) continue;
+      const fInfo = fornMetaByChave.get(fornChave) || { nome: fornChave, codW: fornChave };
+      const fat = R2(((r.bruto || 0) - (r.devolucao || 0)) / 100) || 0;
+      const m = r.meta != null ? R2(r.meta / 100) : null;
+      if (!(fat > 0 || (m || 0) > 0)) continue;
+      const p = prodW[sku] || [];
+      const row = { mes, tipo: 'carrinho_ideal', filial, cod: String(fInfo.codW || fornChave).slice(0, 60), nome: fInfo.nome, subcod: String(sku).slice(0, 60), subnome: String(p[0] || sku), valor: fat, meta: m, gap: R2(Math.max(0, (m || fat) - fat)), itens: r.positivacao || 0, dados: null };
+      const bk = `${row.tipo}|${row.filial}|${row.cod}|${row.subcod}`;
+      if (!bcMap.has(bk) || (row.valor || 0) > (bcMap.get(bk).valor || 0)) bcMap.set(bk, row);
+    }
+    if (cubo.batalha && Array.isArray(cubo.batalha.linhas)) {
+      for (const l of cubo.batalha.linhas) {
+        const fil = H.paraSigla(l.filial || 'BRASIL');
+        const row = { mes, tipo: 'batalha_naval_cubo', filial: fil, cod: String(l.cod || l.fornecedor || ''), nome: String(l.nome || ''), subcod: String(l.subcod || ''), subnome: String(l.subnome || ''), valor: R2(l.valor), meta: R2(l.meta), gap: R2(l.gap), itens: l.itens ?? null, dados: l };
+        bcMap.set(`${row.tipo}|${row.filial}|${row.cod}|${row.subcod}`, row);
+      }
+    }
+    if (cubo.carrinho && Array.isArray(cubo.carrinho.linhas)) {
+      for (const l of cubo.carrinho.linhas) {
+        const fil = H.paraSigla(l.filial || 'BRASIL');
+        const row = { mes, tipo: 'carrinho_ideal_cubo', filial: fil, cod: String(l.cod || l.sku || ''), nome: String(l.nome || ''), subcod: String(l.subcod || ''), subnome: String(l.subnome || ''), valor: R2(l.valor), meta: R2(l.meta), gap: R2(l.gap), itens: l.itens ?? null, dados: l };
+        bcMap.set(`${row.tipo}|${row.filial}|${row.cod}|${row.subcod}`, row);
+      }
+    }
+    if (bcMap.size) await enviaDeltaPorFilial({ queryParam: 'batalha', postCampo: 'batalha_carrinho', mes, rows: [...bcMap.values()], keyFn: (x) => `${x.tipo}|${x.filial}|${x.cod}|${x.subcod}`, tam: 250 });
+  } catch (e) { log(`AVISO desvio/batalha ${mes}:`, e.message); }
+
+  const rfvData = (tiers.has(2) || tiers.has(3)) ? (() => { try { return extrairRecorrenciaERfv(cubo, H, mes, ate, supNomes, vendNomes, cartPorCli); } catch (e) { log(`AVISO extrairRecRfv ${mes}:`, e.message); return null; } })() : null;
+
   // ==================== TIER 2 ====================
   if (tiers.has(2)) {
-    // Cliven resumo
+    // Cliven resumo + Cliven clientes + Cliven carteira 100%
     try {
       const rot = cubo.clivenCart && cubo.clivenCart.rot && cubo.clivenCart.rot[mes];
       if (rot && rot.fil) {
         const resC = [];
+        const clvCliMap = new Map(), clvCartMap = new Map();
+        const ultC = (rfvData && rfvData.ultCompra) || new Map();
         for (const [sg, clientesObj] of Object.entries(rot.fil)) {
           const fil = H.paraSigla(sg);
+          if (!/^[A-Z]{3}$/.test(fil)) continue;
           const porVend = new Map();
           for (const [cnpj, rcas] of Object.entries(clientesObj || {})) {
-            const cad = H.CAD[cnpj] || H.CAD[nCnpj(cnpj)];
-            if (!cad || (cad[3] !== 'A' && cad[3] !== 'B')) continue;
+            const c14 = nCnpj(cnpj);
+            const cad = H.CAD[cnpj] || H.CAD[c14];
+            const cliId = (cad && cad[4]) ? String(cad[4]) : c14;
+            if (cad && !clvCliMap.has(`${fil}|${cliId}`)) {
+              clvCliMap.set(`${fil}|${cliId}`, {
+                filial: fil, cliente: cliId, cnpj: c14,
+                nome: String(cad[0] || cliId),
+                cep: !Array.isArray(cad) ? String(cad.cep || '') : String(typeof cad[5] === 'string' && /^\d{5}/.test(cad[5]) ? cad[5] : ''),
+                rede: !Array.isArray(cad) ? String(cad.rede || '') : String(typeof cad[6] === 'string' ? cad[6] : ''),
+                uf: String(cad[1] || ''), municipio: String(cad[2] || ''),
+                tipologia: !Array.isArray(cad) ? String(cad.tipologia || '') : String(typeof cad[7] === 'string' ? cad[7] : ''),
+                status: String(cad[3] || ''),
+                motivo_bloqueio: !Array.isArray(cad) ? String(cad.motivoBloq || cad.motivo || '') : String(typeof cad[8] === 'string' ? cad[8] : '')
+              });
+            }
             for (const vCod of rcas || []) {
               const rca = String(vCod);
+              const codSup = String((rot.sup && rot.sup[rca]) || '');
+              const kC = `${fil}${SEP}${rca}${SEP}${cnpj}`;
+              const rCli = eCli.map.get(kC) || {};
+              const rm1C = m1Cli.get(kC) || {};
+              const fatM = R2(((rCli.bruto || 0) - (rCli.devolucao || 0)) / 100) || 0;
+              const fatM1C = R2(((rm1C.bruto || 0) - (rm1C.devolucao || 0)) / 100) || 0;
+              const kCart = `${fil}|${rca}|${cliId}|*`;
+              if (!clvCartMap.has(kCart)) {
+                clvCartMap.set(kCart, {
+                  mes, filial: fil, rca, cod_sup: codSup, perfil: String(cad && cad[3] || ''),
+                  cliente: cliId, forn_cod: '*',
+                  positivado: (rCli.positivacao || 0) > 0 ? 1 : 0,
+                  fat_mes: fatM, m1: fatM1C, media_3m: m3Cli.get(kC) ?? null,
+                  ult_fat: ultC.get(`${fil}|${cnpj}`) || ultC.get(`${fil}|${c14}`) || null
+                });
+              }
+              if (!cad || (cad[3] !== 'A' && cad[3] !== 'B')) continue;
               let o = porVend.get(rca);
               if (!o) {
-                const codSup = String((rot.sup && rot.sup[rca]) || '');
                 o = {
                   mes, filial: fil, cod_sup: codSup, rca,
                   vendedor: vendNomes.get(rca) || (rot.nomes && rot.nomes[rca]) || rca,
@@ -1538,8 +1791,29 @@ async function processarMes(mes, { cubo, motor, meta }, tiers, posicao, loteId) 
             resC.push(o);
           }
         }
+        for (const k of todasChaves(eCliF.map, m1CliF)) {
+          const r = eCliF.map.get(k) || {}, rm1 = m1CliF.get(k) || {};
+          const [filial, rca, cnpj, fornChave] = k.split(SEP);
+          const fatM = R2(((r.bruto || 0) - (r.devolucao || 0)) / 100) || 0;
+          const fatM1C = R2(((rm1.bruto || 0) - (rm1.devolucao || 0)) / 100) || 0;
+          if (fatM === 0 && fatM1C === 0 && !(r.positivacao > 0) && !(rm1.positivacao > 0)) continue;
+          const cInfo = cliInfoMap.get(cnpj) || { cnpj, cliente: cnpj };
+          const fInfo = fornMetaByChave.get(fornChave) || { codW: fornChave };
+          if (!/^[A-Z]{3}$/.test(filial || '') || !String(rca || '').trim() || !String(cInfo.cliente || '').trim()) continue;
+          const fn = String(fInfo.codW || fornChave || '*');
+          const kCart = `${filial}|${rca}|${cInfo.cliente}|${fn}`;
+          clvCartMap.set(kCart, {
+            mes, filial, rca, cod_sup: String((rot.sup && rot.sup[rca]) || ''), perfil: '',
+            cliente: cInfo.cliente, forn_cod: fn,
+            positivado: (r.positivacao || 0) > 0 ? 1 : 0,
+            fat_mes: fatM, m1: fatM1C, media_3m: m3CliF.get(k) ?? null,
+            ult_fat: ultC.get(`${filial}|${cnpj}`) || null
+          });
+        }
         if (resC.length) await enviaEmLotes('cliven_resumo', resC, 300, { cliven_limpar_mes: mes });
-        await api('POST', '', { controle: { lote_id: loteId, mes, etapa: 'cliven', status: 'OK', linhas: resC.length, gravadas: resC.length, posicao } });
+        if (clvCliMap.size) await enviaDeltaPorFilial({ queryParam: 'cliven_cli', postCampo: 'cliven_clientes', removerCampo: 'cliven_cli_remover', rows: [...clvCliMap.values()], keyFn: (x) => `${x.filial}|${x.cliente}`, tam: 250 });
+        if (clvCartMap.size) await enviaDeltaPorFilial({ queryParam: 'cliven_cart', postCampo: 'cliven_carteira', removerCampo: 'cliven_cart_remover', mes, rows: [...clvCartMap.values()], keyFn: (x) => `${x.filial}|${x.rca}|${x.cliente}|${x.forn_cod}`, tam: 250 });
+        await api('POST', '', { controle: { lote_id: loteId, mes, etapa: 'cliven', status: 'OK', linhas: resC.length + clvCliMap.size + clvCartMap.size, gravadas: resC.length, posicao } });
       }
     } catch (e) { log(`AVISO cliven ${mes}:`, e.message); }
 
@@ -1550,31 +1824,31 @@ async function processarMes(mes, { cubo, motor, meta }, tiers, posicao, loteId) 
       await api('POST', '', { controle: { lote_id: loteId, mes, etapa: 'cadastro', status: 'OK', linhas: cadRows.length, gravadas: cadRows.length, posicao } });
     } catch (e) { log(`AVISO cadastro ${mes}:`, e.message); }
 
-    // FEFO & Estoque Winthor (somente 1x por rodada, no primeiro mes)
+    // FEFO & Estoque Winthor 100% Delta-by-Hash (somente 1x por rodada, no primeiro mes)
     if (mes === horaBRT().diaIso.slice(0, 7)) {
       try {
         const fefo = extrairFefo(cubo, H);
         if (fefo.length) {
-          await enviaEmLotes('fefo', fefo, 300, { fefo_limpar: true });
-          await api('POST', '', { controle: { lote_id: loteId, mes, etapa: 'fefo', status: 'OK', linhas: fefo.length, gravadas: fefo.length, posicao } });
+          const resF = await enviaDeltaPorFilial({ queryParam: 'fefo', postCampo: 'fefo', removerCampo: 'fefo_remover', rows: fefo, keyFn: (x) => `${x.filial}|${x.sku}|${x.lote}`, tam: 250 });
+          await api('POST', '', { controle: { lote_id: loteId, mes, etapa: 'fefo', status: 'OK', linhas: resF.total, gravadas: resF.enviadas, removidas: resF.removidas, posicao } });
         }
       } catch (e) { log('AVISO fefo:', e.message); }
       try {
         const ew = extrairEstWinthor(cubo, H);
         if (ew.length) {
-          await enviaEmLotes('est_winthor', ew, 300, { est_winthor_limpar: true });
-          await api('POST', '', { controle: { lote_id: loteId, mes, etapa: 'est_winthor', status: 'OK', linhas: ew.length, gravadas: ew.length, posicao } });
+          const resW = await enviaDeltaPorFilial({ queryParam: 'est_winthor', postCampo: 'est_winthor', removerCampo: 'est_winthor_remover', rows: ew, keyFn: (x) => `${x.filial}|${x.sku}`, tam: 250 });
+          await api('POST', '', { controle: { lote_id: loteId, mes, etapa: 'est_winthor', status: 'OK', linhas: resW.total, gravadas: resW.enviadas, removidas: resW.removidas, posicao } });
         }
       } catch (e) { log('AVISO est_winthor:', e.message); }
     }
 
-    // Visao Campo (se existir no cubo)
+    // Visao Campo (cubo.campo ou cubo.visaoCampo)
     try {
-      const C = cubo.campo;
-      if (C && Array.isArray(C.meses) && C.meses.includes(mes) && Array.isArray(C.linhas) && C.linhas.length) {
-        const cRows = C.linhas
+      const C = cubo.campo || cubo.visaoCampo;
+      const cLinhas = (C && (Array.isArray(C.linhas) ? C.linhas : (Array.isArray(C.dados) ? C.dados : null))) || null;
+      if (C && cLinhas && cLinhas.length && (!Array.isArray(C.meses) || C.meses.includes(mes))) {
+        const cRows = cLinhas
           .filter((l) => String(l.mes || l[0] || mes) === mes)
-          .slice(0, 1200)
           .map((l) => ({
             mes,
             filial: H.paraSigla(l.filial || l[1] || 'BRASIL'),
@@ -1582,20 +1856,20 @@ async function processarMes(mes, { cubo, motor, meta }, tiers, posicao, loteId) 
             cod: String(l.cod || l.rca || l[1] || ''),
             nome: String(l.nome || ''),
             sup_cod: String(l.sup_cod || ''),
-            eficiencia_pct: l.eficiencia ?? null,
-            eficacia_pct: l.eficacia ?? null,
-            hora_checkin: l.horaCkIn || null,
-            hora_checkout: l.horaCkOut || null,
-            min_visita: l.minVisita ?? null,
-            min_rota: l.minRota ?? null,
-            hora_ped1: l.horaPed1 || null,
-            pct_ped18: l.pctPed18 ?? null,
-            venda_captada: l.vendaCaptada ?? null,
-            pedidos_captados: l.pedCaptados ?? null,
-            venda_sem_visita: l.vendaSemVisita ?? null,
-            pct_sem_visita: l.pctSemVisita ?? null,
-            cobertura_pdv_pct: l.coberturaPdv ?? null,
-            carteira_visitada_pct: l.carteiraVisitada ?? null,
+            eficiencia_pct: l.eficiencia ?? l.eficiencia_pct ?? null,
+            eficacia_pct: l.eficacia ?? l.eficacia_pct ?? null,
+            hora_checkin: l.horaCkIn || l.hora_checkin || null,
+            hora_checkout: l.horaCkOut || l.hora_checkout || null,
+            min_visita: l.minVisita ?? l.min_visita ?? null,
+            min_rota: l.minRota ?? l.min_rota ?? null,
+            hora_ped1: l.horaPed1 || l.hora_ped1 || null,
+            pct_ped18: l.pctPed18 ?? l.pct_ped18 ?? null,
+            venda_captada: l.vendaCaptada ?? l.venda_captada ?? null,
+            pedidos_captados: l.pedCaptados ?? l.pedidos_captados ?? null,
+            venda_sem_visita: l.vendaSemVisita ?? l.venda_sem_visita ?? null,
+            pct_sem_visita: l.pctSemVisita ?? l.pct_sem_visita ?? null,
+            cobertura_pdv_pct: l.coberturaPdv ?? l.cobertura_pdv_pct ?? null,
+            carteira_visitada_pct: l.carteiraVisitada ?? l.carteira_visitada_pct ?? null,
             gerado_em: C.geradoEm || ''
           }));
         if (cRows.length) await enviaEmLotes('campo_mes', cRows, 300, { campo_limpar_mes: mes });
@@ -1606,7 +1880,6 @@ async function processarMes(mes, { cubo, motor, meta }, tiers, posicao, loteId) 
   // ==================== TIER 3 ====================
   if (tiers.has(3)) {
     try {
-      const rfvData = extrairRecorrenciaERfv(cubo, H, mes, ate, supNomes, vendNomes, cartPorCli);
       if (rfvData) {
         if (rfvData.recPasta.length) {
           for (let i = 0; i < rfvData.recPasta.length; i += 100) await api('POST', '', { recorrencia: rfvData.recPasta.slice(i, i + 100) });
@@ -1615,37 +1888,38 @@ async function processarMes(mes, { cubo, motor, meta }, tiers, posicao, loteId) 
           await enviaEmLotes('recorrencia_faixas', rfvData.faixas, 300, { rec_fx_limpar_mes: mes });
         }
         if (rfvData.recClientes.length) {
-          await enviaEmLotes('recorrencia_clientes', rfvData.recClientes, 300, { rec_cli_limpar_mes: mes });
+          await enviaDeltaPorFilial({ queryParam: 'rec_cli', postCampo: 'recorrencia_clientes', removerCampo: 'rec_cli_remover', mes, rows: rfvData.recClientes, keyFn: (x) => `${x.filial}|${x.rca}|${x.cliente}`, tam: 250 });
         }
         if (rfvData.rfvResumo.length) {
           await enviaEmLotes('rfv_resumo', rfvData.rfvResumo, 300, { rfv_res_limpar_mes: mes });
         }
         if (rfvData.rfvClientes.length) {
-          await enviaEmLotes('rfv_clientes', rfvData.rfvClientes, 300, { rfv_cli_limpar_mes: mes });
+          await enviaDeltaPorFilial({ queryParam: 'rfv_cli', postCampo: 'rfv_clientes', removerCampo: 'rfv_cli_remover', mes, rows: rfvData.rfvClientes, keyFn: (x) => `${x.filial}|${x.rca}|${x.cliente}`, tam: 250 });
         }
         const pmiRows = extrairPmi(cubo, rfvData, H, mes);
         if (pmiRows.length) {
           await enviaEmLotes('pmi_mes', pmiRows, 300, { pmi_limpar_mes: mes });
         }
-        log(`${mes} rec/rfv/pmi: pasta=${rfvData.recPasta.length} faixas=${rfvData.faixas.length} rfvCli=${rfvData.rfvClientes.length} pmi=${pmiRows.length}`);
+        log(`${mes} rec/rfv/pmi: pasta=${rfvData.recPasta.length} faixas=${rfvData.faixas.length} recCli=${rfvData.recClientes.length} rfvCli=${rfvData.rfvClientes.length} pmi=${pmiRows.length}`);
       }
     } catch (e) { log(`AVISO rec/rfv/pmi ${mes}:`, e.message); }
 
-    // JBP por SKU
+    // JBP por SKU 100% Delta-by-Hash
     try {
-      const eJbp = indexarExtrair(motor.extrair({ mes, ate }, ['fi', 'fo', 'sk']), ['fi', 'fo', 'sk'], H);
+      if (!eJbp) eJbp = indexarExtrair(motor.extrair({ mes, ate }, ['fi', 'fo', 'sk']), ['fi', 'fo', 'sk'], H);
       const m1J = safeExt(refs.m1, ['fi', 'fo', 'sk']);
       const a1J = safeExt(refs.a1, ['fi', 'fo', 'sk']);
       const bJ = safeExt(refs.bench, ['fi', 'fo', 'sk']);
-      const jRows = [];
+      const jMap = new Map();
       for (const [k, r] of eJbp.map) {
         const [filial, fornChave, sku] = k.split(SEP);
+        if (!/^[A-Z]{3}$/.test(filial) || !sku) continue;
         const fat = R2(((r.bruto || 0) - (r.devolucao || 0)) / 100) || 0;
         const rm1 = m1J.get(k), ra1 = a1J.get(k), rb = bJ.get(k);
         const fM1 = rm1 ? R2(((rm1.bruto || 0) - (rm1.devolucao || 0)) / 100) : 0;
         const fInfo = fornMetaByChave.get(fornChave) || { nome: fornChave, codW: '' };
         const p = prodW[sku] || [];
-        jRows.push({
+        const obj = {
           mes, filial, fornecedor: fInfo.nome, forn_cod: fInfo.codW, sku,
           produto: String(p[0] || sku),
           fat_liq: fat, meta: r.meta != null ? R2(r.meta / 100) : null,
@@ -1653,12 +1927,14 @@ async function processarMes(mes, { cubo, motor, meta }, tiers, posicao, loteId) 
           fat_a1: ra1 ? R2(((ra1.bruto || 0) - (ra1.devolucao || 0)) / 100) : null,
           fat_ytd: null, fat_lytd: null, pos: r.positivacao || 0,
           bench: rb ? R2(((rb.bruto || 0) - (rb.devolucao || 0)) / 100) : null
-        });
+        };
+        const jk = `${obj.filial}|${obj.sku}`;
+        if (!jMap.has(jk) || Math.abs(obj.fat_liq) > Math.abs(jMap.get(jk).fat_liq)) jMap.set(jk, obj);
       }
-      jRows.sort((a, b) => Math.max(Math.abs(b.delta_m1 || 0), b.fat_liq || 0) - Math.max(Math.abs(a.delta_m1 || 0), a.fat_liq || 0));
-      const topJ = jRows.slice(0, 4500);
-      if (topJ.length) await enviaEmLotes('jbp_sku', topJ, 300, { jbp_limpar_mes: mes });
-      log(`${mes} jbp_sku: ${topJ.length} de ${jRows.length}`);
+      const jRows = [...jMap.values()];
+      if (jRows.length) {
+        await enviaDeltaPorFilial({ queryParam: 'jbp_sku', postCampo: 'jbp_sku', removerCampo: 'jbp_sku_remover', mes, rows: jRows, keyFn: (x) => `${x.filial}|${x.sku}`, tam: 250 });
+      }
     } catch (e) { log(`AVISO jbp ${mes}:`, e.message); }
   }
 
@@ -1679,14 +1955,19 @@ async function processarMes(mes, { cubo, motor, meta }, tiers, posicao, loteId) 
         pct_fat: frac(fat, metaV), pct_fat_cart: frac(fat + cart, metaV),
         cap, ideal, ritmo: frac(cap, ideal),
         dev, mc_rs: mc, mc_pct: frac(mc, fat),
-        piores_filiais: fil ? undefined : fRows.slice().sort((a, b) => (a.dados['% Meta (Fat + Cart)'] || 0) - (b.dados['% Meta (Fat + Cart)'] || 0)).slice(0, 5).map((x) => ({ f: x.filial, pct: x.dados['% Meta (Fat + Cart)'], gap: R2(Math.max(0, (x.dados['Meta (R$)'] || 0) - (x.dados['Faturado + Carteira (R$)'] || 0))) }))
+        piores_filiais: fil || nivel === 'supervisor' ? undefined : fRows.slice().sort((a, b) => (a.dados['% Meta (Fat + Cart)'] || 0) - (b.dados['% Meta (Fat + Cart)'] || 0)).slice(0, 5).map((x) => ({ f: x.filial, pct: x.dados['% Meta (Fat + Cart)'], gap: R2(Math.max(0, (x.dados['Meta (R$)'] || 0) - (x.dados['Faturado + Carteira (R$)'] || 0))) }))
       };
       const payload_json = JSON.stringify(p);
       cache.push({ chave, mes, carga_id: loteId, nivel, filial: fil || null, payload_json, tokens_est: Math.ceil(payload_json.length / 4), gerado_em: new Date().toISOString() });
     };
     buildSnap('BRASIL', 'brasil', null, filRows);
     for (const r of filRows) buildSnap(r.filial, 'filial', r.filial, [r]);
-    await api('POST', '', { briefing_cache: cache });
+    for (const r of supRows) {
+      if ((r.dados['Meta (R$)'] || 0) > 0 || (r.dados['Faturado líquido (R$)'] || 0) > 0) {
+        buildSnap(`SUP:${r.filial}:${r.cod_sup}`.slice(0, 40), 'supervisor', r.filial, [r]);
+      }
+    }
+    if (cache.length) await enviaEmLotes('briefing_cache', cache, 100);
     log(`${mes} briefing_cache: ${cache.length} chaves gravadas`);
   }
 }
@@ -1712,6 +1993,16 @@ async function main() {
   log('MESES:', meses.join(', '), '| TIERS:', [...tiers].join(','), '| POSICAO:', posicao);
   log('CUBO_KEYS:', Object.keys(cubo || {}).join(','));
   log('MOTOR_KEYS:', Object.keys(motor || {}).join(','));
+  const sampleCad = cubo && cubo.clivenCad && cubo.clivenCad.c ? Object.values(cubo.clivenCad.c)[0] : null;
+  log('STRUCT_OBS:', JSON.stringify({
+    campo: cubo && cubo.campo ? Object.keys(cubo.campo) : null,
+    visaoCampo: cubo && cubo.visaoCampo ? Object.keys(cubo.visaoCampo) : null,
+    clivenCad: cubo && cubo.clivenCad ? { keys: Object.keys(cubo.clivenCad), sampleType: Array.isArray(sampleCad) ? `arr[${sampleCad.length}]` : typeof sampleCad } : null,
+    clivenCart: cubo && cubo.clivenCart ? Object.keys(cubo.clivenCart) : null,
+    batalha: cubo && cubo.batalha ? Object.keys(cubo.batalha) : null,
+    carrinho: cubo && cubo.carrinho ? Object.keys(cubo.carrinho) : null,
+    dimRede: cubo && cubo.dim && cubo.dim.rede ? (cubo.dim.rede.cod || []).length : 0
+  }));
 
   for (const m of meses) {
     await processarMes(m, loaded, tiers, posicao, loteId);

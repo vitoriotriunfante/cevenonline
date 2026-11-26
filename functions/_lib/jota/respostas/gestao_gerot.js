@@ -110,9 +110,10 @@ export async function respCarteiraNivel(B, esc, { papel = 'diretoria', modo = 'b
   const db = B.env && B.env.DB; if (!db) return null;
   const F = esc.filiais && esc.filiais.length ? esc.filiais : FILIAIS, rc = esc.rcas && esc.rcas.length ? esc.rcas.map(String) : null;
   const selForn = forn && forn.length ? ', fornecedores' : '';
+  const soBloqSql = modo === 'bloq' && papel !== 'vendedor' && !(forn && forn.length);
   let R = [];
   try {
-    R = (await db.prepare(`SELECT filial, pedido, rca, vendedor, entrada, situacao, COALESCE(NULLIF(motivo, ''), '') motivo, cliente, cnpj, status_cliente sc, positivado pos, valor${selForn} FROM gerot_carteira WHERE filial IN (${qs(F)})${rc ? ` AND rca IN (${qs(rc)})` : ''}`).bind(...F, ...(rc || [])).all()).results || [];
+    R = (await db.prepare(`SELECT filial, pedido, rca, vendedor, entrada, situacao, COALESCE(NULLIF(motivo, ''), '') motivo, cliente, cnpj, status_cliente sc, positivado pos, valor${selForn} FROM gerot_carteira WHERE filial IN (${qs(F)})${rc ? ` AND rca IN (${qs(rc)})` : ''}${soBloqSql ? " AND situacao LIKE 'Bloqueado%'" : ''}`).bind(...F, ...(rc || [])).all()).results || [];
     // 22/11/2026: so os pedidos que tem a industria pedida (o valor mostrado e o do pedido inteiro)
     if (forn && forn.length) { const nn = (x) => String(x || '').toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/^[A-Z]\s*-\s*/, '').replace(/\b(LTDA|S\.?A\.?|SA|ME)\b\.?/g, '').replace(/\s+/g, ' ').trim(); const alvo = forn.map(nn).filter(Boolean); R = R.filter((r) => { let fs = []; try { fs = JSON.parse(r.fornecedores || '[]'); } catch (e) { fs = []; } return fs.some((f) => alvo.some((a) => nn(f).includes(a) || a.includes(nn(f)))); }); }
   } catch (e) { return null; }
@@ -123,9 +124,16 @@ export async function respCarteiraNivel(B, esc, { papel = 'diretoria', modo = 'b
   const A = R.filter((r) => (modo === 'total' || ehBloq(r.situacao)) && tipoOk(r.situacao));
   const indN = forn && forn.length ? ' · ' + titulo(String(forn[0]).replace(/\b(LTDA|S\.?A\.?|SA)\b\.?/gi, '').toLowerCase()).trim() : '';
   const tag = modo === 'bloq' ? `🚫 *Pedidos bloqueados${indN}${tipo ? (/COMERC/.test(tipo) ? ' (comercial)' : ' (financeiro)') : ''} — ${esc.nome}*` : `💼 *Carteira${indN ? ' em aberto' + indN : ' total'} — ${esc.nome}*`;
-  if (!A.length) { const t0 = R.reduce((a, r) => a + (Number(r.valor) || 0), 0); return `${tag}: nenhum pedido ${modo === 'bloq' ? 'bloqueado ' : ''}na Carteira Total do GEROT agora. ✅` + (modo === 'bloq' && R.length ? `
-Carteira em aberto: *${R$(t0)}* · ${N(R.length)} ped. (nenhum travado)` : '') + `
-_Carteira Total do GEROT · ${await fontesG(db) || 'sem hora'}_`; }
+  if (!A.length) {
+    let n0 = R.length, t0 = R.reduce((a, r) => a + (Number(r.valor) || 0), 0);
+    if (soBloqSql) {
+      const q0 = await db.prepare(`SELECT COUNT(*) n, COALESCE(SUM(valor), 0) v FROM gerot_carteira WHERE filial IN (${qs(F)})${rc ? ` AND rca IN (${qs(rc)})` : ''}`).bind(...F, ...(rc || [])).first().catch(() => null);
+      if (q0) { n0 = Number(q0.n) || 0; t0 = Number(q0.v) || 0; }
+    }
+    return `${tag}: nenhum pedido ${modo === 'bloq' ? 'bloqueado ' : ''}na Carteira Total do GEROT agora. ✅` + (modo === 'bloq' && n0 ? `
+Carteira em aberto: *${R$(t0)}* · ${N(n0)} ped. (nenhum travado)` : '') + `
+_Carteira Total do GEROT · ${await fontesG(db) || 'sem hora'}_`;
+  }
   const soma = (L) => ({ n: L.length, v: L.reduce((a, r) => a + (Number(r.valor) || 0), 0) });
   const fmt = (x) => `*${R$(x.v)}* · ${N(x.n)} ped.`;
   const grp = (L, key) => { const m = new Map(); for (const r of L) { const k = key(r); const o = m.get(k) || []; o.push(r); m.set(k, o); } return [...m].map(([k, L2]) => [k, soma(L2), L2]).sort((a, b) => b[1].v - a[1].v); };

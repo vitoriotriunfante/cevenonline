@@ -82,7 +82,8 @@ function extraiIndustriaTexto(t) {
     'DRE', 'ESTOQUE', 'WINTHOR', 'FEFO', 'RFV', 'PMI', 'CADASTRO', 'CLIENTES', 'CLIVEN', 'CAMPO', 'TMF',
     'FILIAL', 'BRASIL', 'CURVA', 'NEGATIVA', 'QUAL', 'QUAIS', 'COMO', 'ESTA', 'ESTAO', 'HOJE', 'MES',
     'MAIOR', 'MAIORES', 'PIOR', 'PIORES', 'MELHOR', 'MELHORES', 'QUEDA', 'QUEDAS', 'CAIU', 'CAIRAM',
-    'PERDA', 'PERDAS', 'RANKING', 'TOP', 'PRODUTO', 'PRODUTOS', 'ANALISE', 'VENDA', 'VENDAS', ...FILIAIS
+    'PERDA', 'PERDAS', 'RANKING', 'TOP', 'PRODUTO', 'PRODUTOS', 'ANALISE', 'VENDA', 'VENDAS',
+    'DESVIO', 'BATALHA', 'NAVAL', 'CARRINHO', 'IDEAL', 'REDE', 'REDES', 'COM', ...FILIAIS
   ]);
   const toks = String(t || '').split(/[^A-Z0-9]+/).filter((w) => w.length >= 4 && !stops.has(w));
   return toks[0] || '';
@@ -406,17 +407,41 @@ export async function respCadastroClientes(B, E, c) {
   ].join('\n');
 }
 
-// 8) CLIVEN (APROVEITAMENTO DE CARTEIRA)
-export async function respCliven(B, E, c) {
+// 8) CLIVEN (APROVEITAMENTO DE CARTEIRA + TOP CLIENTES SEM COMPRA NO MES)
+function clivenCartScope(E, c, alias = 'c') {
+  const fils = (E && Array.isArray(E.filiais) && E.filiais.length) ? E.filiais : FILIAIS;
+  const w = [], bind = [];
+  if (!E || !E.nacional || fils.length < FILIAIS.length) {
+    w.push(`${alias}.filial IN (${qs(fils)})`);
+    bind.push(...fils);
+  }
+  if (ehVendedor(c, E)) {
+    const rInt = Number((c && c.rca) || (E && E.rca) || 0);
+    w.push(`COALESCE(${alias}.rca_int, CAST(${alias}.rca AS INTEGER)) = ?`);
+    bind.push(rInt);
+  } else if ((E && E.supervisor) || (E && E.grupo)) {
+    const rNums = [...new Set((E.vend || []).map((v) => Number(v.rca)).filter((n) => Number.isFinite(n) && n > 0))];
+    if (rNums.length) w.push(`COALESCE(${alias}.rca_int, CAST(${alias}.rca AS INTEGER)) IN (${rNums.join(',')})`);
+    else w.push('1=0');
+  }
+  return { sql: w.length ? w.join(' AND ') : '1=1', bind, fils };
+}
+
+export async function respCliven(B, E, c, t = '') {
   const db = B && B.env && B.env.DB;
   if (!db) return null;
   const mes = await mesOuUltimo(db, 'gerot_cliven_resumo');
   const esc = escopoWhere(E, c, { temRca: true, temSup: true, supCol: 'cod_sup' });
   const onde = ehVendedor(c, E) ? `${nome2(c.nome)} (RCA ${c.rca})` : (E.nacional ? 'Brasil' : esc.fils.join(', '));
-  let tot = null, rows = [];
+  let tot = null, rows = [], semCompra = [];
+  const querClientes = ehVendedor(c, E) || Boolean(E && E.supervisor) || /CLIENTES?|SEM COMPRA|FALTAM|NAO POSITIV|NAO COMP/.test(String(t || ''));
   try {
     tot = await db.prepare(`SELECT COUNT(DISTINCT filial||'|'||rca) setor, SUM(clientes_carteira) cart, SUM(clientes_ativos) ativos, SUM(clientes_bloq) bloq, SUM(positivados) pos, SUM(fat_mes) fat FROM gerot_cliven_resumo WHERE mes = ? AND ${esc.sql}`).bind(mes, ...esc.bind).first();
     rows = (await db.prepare(`SELECT filial, rca, vendedor, clientes_ativos, positivados, aproveitamento_pct, fat_mes FROM gerot_cliven_resumo WHERE mes = ? AND ${esc.sql} AND clientes_ativos >= 15 ORDER BY aproveitamento_pct ASC LIMIT 5`).bind(mes, ...esc.bind).all()).results || [];
+    if (querClientes) {
+      const sc = clivenCartScope(E, c, 'c');
+      semCompra = (await db.prepare(`SELECT c.filial, c.rca, c.cliente, COALESCE(cl.nome, c.cliente) nome, c.m1, c.media_3m, c.ult_fat FROM gerot_cliven_carteira c LEFT JOIN gerot_cliven_clientes cl ON cl.filial = c.filial AND cl.cliente = c.cliente WHERE c.mes = ? AND c.forn_cod = '*' AND c.positivado = 0 AND (cl.status IS NULL OR cl.status = 'A') AND ${sc.sql} ORDER BY COALESCE(c.m1, c.media_3m, 0) DESC LIMIT 6`).bind(mes, ...sc.bind).all()).results || [];
+    }
   } catch { tot = null; }
   if (!tot || !(Number(tot.cart) > 0)) return `📒 *Cliven (Carteira Oficial) — ${onde} (${mes})*\nAinda sem dados do Cliven gravados no D1 (Tier 2).`;
   return [
@@ -424,8 +449,9 @@ export async function respCliven(B, E, c) {
     `Setores: *${N(tot.setor)}* · Carteira: *${N(tot.cart)}* cli. (Ativos ${N(tot.ativos)} · Bloq. ${N(tot.bloq)})`,
     `Positivados: *${N(tot.pos)}* (${P(tot.pos, tot.ativos)} dos ativos) · Fat. mês: ${R$(tot.fat)}`,
     ...(rows.length && !ehVendedor(c, E) ? ['', '*Menores aproveitamentos (ativos >= 15):*', ...rows.map((x, i) => `${i + 1}. [${x.filial}] *${x.rca} - ${nome2(x.vendedor)}*: ${N(x.positivados)}/${N(x.clientes_ativos)} (*${pct1(x.aproveitamento_pct)}*)`)] : []),
+    ...(semCompra.length ? ['', '*Top clientes ativos sem compra no mês:*', ...semCompra.map((x, i) => `${i + 1}. *${titulo(String(x.nome || x.cliente)).slice(0, 28)}* (#${x.cliente}) · M-1 ${R$(x.m1 || x.media_3m || 0)}${x.ult_fat ? ` · últ. ${x.ult_fat}` : ''}`)] : []),
     '',
-    SUGESTAO + 'cobrar os vendedores com menor aproveitamento da carteira ativa.',
+    SUGESTAO + (ehVendedor(c, E) ? 'atacar os clientes ativos da sua carteira com histórico em M-1 ainda sem compra neste mês.' : 'cobrar os vendedores com menor aproveitamento da carteira ativa.'),
     await posFooter(db, mes)
   ].join('\n');
 }
@@ -508,6 +534,160 @@ export async function respTmf(B, E, c) {
     ...ok.map((x, i) => `${i + 1}. *${x.filial}*: *${Number(x.tmf).toFixed(2).replace('.', ',')} dias* (${N(x.peds)} ped.)`),
     '',
     SUGESTAO + 'investigar bloqueios de crédito/logística na filial com maior TMF.',
+    await posFooter(db, mes)
+  ].join('\n');
+}
+
+// 12) DESVIO DO MÊS (Árvore de decomposição Δ Meta)
+export async function respDesvioMes(B, E, c) {
+  const db = B && B.env && B.env.DB;
+  if (!db) return null;
+  const mes = await mesOuUltimo(db, 'gerot_desvio_mes');
+  const esc = escopoWhere(E, c, { temRca: true, temSup: true });
+  const onde = ehVendedor(c, E) ? `${nome2(c.nome)} (RCA ${c.rca})` : (E.nacional ? 'Brasil' : esc.fils.join(', '));
+  const fDelta = (v) => (Number(v) >= 0 ? `+${R$(v)}` : `−${R$(Math.abs(Number(v) || 0))}`);
+  try {
+    if (ehVendedor(c, E)) {
+      const rcaNum = Number((c && c.rca) || (E && E.rca) || 0);
+      const r = await db.prepare("SELECT cod, nome, fat_liq, meta, delta_meta, pct_meta FROM gerot_desvio_mes WHERE mes = ? AND nivel = 'vendedor' AND filial = ? AND (cod = ? OR CAST(cod AS INTEGER) = ?) LIMIT 1").bind(mes, c.filial, String(c.rca || rcaNum), rcaNum).first();
+      if (!r) return `📉 *Desvio do Mês — ${onde} (${mes})*\nSem dados de desvio do seu RCA gravados no D1 ainda.`;
+      return [
+        `📉 *Desvio do Mês (Δ Meta) — ${onde}* (${mes})`,
+        `Faturado: ${R$(r.fat_liq)} · Meta: ${R$(r.meta)} (${pct1(r.pct_meta)})`,
+        `*Desvio vs Meta: ${fDelta(r.delta_meta)}*`,
+        '',
+        SUGESTAO + 'priorizar os clientes de maior potencial no seu Cliven para fechar a meta.',
+        await posFooter(db, mes)
+      ].join('\n');
+    }
+    if ((E && E.supervisor) || (E && E.grupo && !E.nacional)) {
+      const rNums = [...new Set((E.vend || []).map((v) => Number(v.rca)).filter((n) => Number.isFinite(n) && n > 0))];
+      if (!rNums.length) return `📉 *Desvio do Mês — ${onde} (${mes})*\nSem vendedores mapeados no seu escopo.`;
+      const rows = (await db.prepare(`SELECT filial, pai, cod, nome, fat_liq, meta, delta_meta, pct_meta FROM gerot_desvio_mes WHERE mes = ? AND nivel = 'vendedor' AND filial IN (${qs(esc.fils)}) AND CAST(cod AS INTEGER) IN (${rNums.join(',')}) ORDER BY delta_meta ASC`).bind(mes, ...esc.fils).all()).results || [];
+      if (!rows.length) return `📉 *Desvio do Mês — ${onde} (${mes})*\nAinda sem linhas de desvio no D1.`;
+      const totFat = rows.reduce((s, x) => s + (Number(x.fat_liq) || 0), 0);
+      const totMeta = rows.reduce((s, x) => s + (Number(x.meta) || 0), 0);
+      const totDelta = totFat - totMeta;
+      return [
+        `📉 *Desvio do Mês (Δ Meta) — ${onde}* (${mes})`,
+        `Faturado: ${R$(totFat)} · Meta: ${R$(totMeta)} (${pct1(totMeta > 0 ? totFat / totMeta : 0)})`,
+        `*Desvio total da equipe: ${fDelta(totDelta)}*`,
+        '',
+        '*Maiores desvios negativos (vendedores):*',
+        ...rows.slice(0, 8).map((x, i) => `${i + 1}. *${x.cod} - ${nome2(x.nome)}*: ${fDelta(x.delta_meta)} (${pct1(x.pct_meta)} · meta ${R$(x.meta)})`),
+        '',
+        SUGESTAO + 'cobrar plano diário dos vendedores com maior desvio negativo da equipe.',
+        await posFooter(db, mes)
+      ].join('\n');
+    }
+    let tot = null, subs = [], forns = [];
+    if (E && E.nacional) {
+      tot = await db.prepare("SELECT fat_liq, meta, delta_meta, pct_meta FROM gerot_desvio_mes WHERE mes = ? AND nivel = 'brasil' LIMIT 1").bind(mes).first();
+      subs = (await db.prepare("SELECT cod, nome, fat_liq, meta, delta_meta, pct_meta, peso_desvio FROM gerot_desvio_mes WHERE mes = ? AND nivel = 'filial' ORDER BY delta_meta ASC LIMIT 11").bind(mes).all()).results || [];
+      forns = (await db.prepare("SELECT nome, SUM(fat_liq) fat_liq, SUM(meta) meta, SUM(delta_meta) delta_meta FROM gerot_desvio_mes WHERE mes = ? AND nivel = 'fornecedor' GROUP BY nome ORDER BY delta_meta ASC LIMIT 5").bind(mes).all()).results || [];
+    } else {
+      tot = await db.prepare(`SELECT SUM(fat_liq) fat_liq, SUM(meta) meta, SUM(delta_meta) delta_meta FROM gerot_desvio_mes WHERE mes = ? AND nivel = 'filial' AND filial IN (${qs(esc.fils)})`).bind(mes, ...esc.fils).first();
+      subs = (await db.prepare(`SELECT cod, nome, fat_liq, meta, delta_meta, pct_meta FROM gerot_desvio_mes WHERE mes = ? AND nivel = 'supervisor' AND filial IN (${qs(esc.fils)}) ORDER BY delta_meta ASC LIMIT 6`).bind(mes, ...esc.fils).all()).results || [];
+      forns = (await db.prepare(`SELECT nome, SUM(fat_liq) fat_liq, SUM(meta) meta, SUM(delta_meta) delta_meta FROM gerot_desvio_mes WHERE mes = ? AND nivel = 'fornecedor' AND filial IN (${qs(esc.fils)}) GROUP BY nome ORDER BY delta_meta ASC LIMIT 5`).bind(mes, ...esc.fils).all()).results || [];
+    }
+    if (!tot || !(Number(tot.meta) > 0 || Number(tot.fat_liq) > 0)) return `📉 *Desvio do Mês — ${onde} (${mes})*\nAinda sem dados na tabela \`gerot_desvio_mes\`.`;
+    const pctG = Number(tot.meta) > 0 ? Number(tot.fat_liq) / Number(tot.meta) : Number(tot.pct_meta);
+    return [
+      `📉 *Desvio do Mês (Árvore Δ Meta) — ${onde}* (${mes})`,
+      `Faturado: ${R$(tot.fat_liq)} · Meta: ${R$(tot.meta)} (${pct1(pctG)}) · *Δ Meta: ${fDelta(tot.delta_meta)}*`,
+      ...(subs.length ? ['', E.nacional ? '*Por filial:*' : '*Por supervisor:*', ...subs.map((x, i) => `${i + 1}. *${E.nacional ? x.cod : nome2(x.nome || x.cod)}*: ${fDelta(x.delta_meta)} (${pct1(x.pct_meta)})`)] : []),
+      ...(forns.length ? ['', '*Maiores gaps por fornecedor:*', ...forns.map((x, i) => `${i + 1}. *${titulo(x.nome).slice(0, 26)}*: ${fDelta(x.delta_meta)} (meta ${R$(x.meta)})`)] : []),
+      '',
+      SUGESTAO + 'atacar as filiais/fornecedores que concentram maior peso no desvio negativo.',
+      await posFooter(db, mes)
+    ].join('\n');
+  } catch {
+    return `📉 *Desvio do Mês — ${onde} (${mes})*\nNão foi possível consultar \`gerot_desvio_mes\` agora.`;
+  }
+}
+
+// 13) BATALHA NAVAL & CARRINHO IDEAL
+export async function respBatalhaCarrinho(B, E, c, t = '') {
+  const ehCarrinho = /CARRINHO IDEAL/.test(String(t || ''));
+  if (!ehCarrinho && ehBloqGerencial(c, E)) return bloqueioMsg('Batalha Naval');
+  const db = B && B.env && B.env.DB;
+  if (!db) return null;
+  const mes = await mesOuUltimo(db, 'gerot_batalha_carrinho');
+  const esc = escopoWhere(E, c, { temRca: false });
+  const onde = ehVendedor(c, E) ? `${nome2(c.nome)} (${c.filial})` : (E.nacional ? 'Brasil' : esc.fils.join(', '));
+  const termo = extraiIndustriaTexto(t);
+  const filtro = termo ? ' AND (UPPER(nome) LIKE ? OR UPPER(subnome) LIKE ?)' : '';
+  const bindBase = termo ? [mes, ...esc.bind, `%${termo}%`, `%${termo}%`] : [mes, ...esc.bind];
+  const tipos = ehCarrinho ? "('carrinho_ideal','carrinho_ideal_cubo')" : "('batalha_naval','batalha_naval_cubo')";
+  let rows = [];
+  try {
+    if (E && E.nacional) {
+      const grpCol = ehCarrinho ? 'subcod, subnome, nome' : 'cod, nome';
+      const orderCol = ehCarrinho ? 'valor DESC' : 'gap DESC';
+      rows = (await db.prepare(`SELECT ${ehCarrinho ? 'subcod, subnome,' : 'cod,'} nome, SUM(COALESCE(valor,0)) valor, SUM(COALESCE(meta,0)) meta, SUM(COALESCE(gap,0)) gap, SUM(COALESCE(itens,0)) itens FROM gerot_batalha_carrinho WHERE mes = ? AND tipo IN ${tipos} AND ${esc.sql}${filtro} GROUP BY ${grpCol} ORDER BY ${orderCol} LIMIT 10`).bind(...bindBase).all()).results || [];
+    } else {
+      const orderCol = ehCarrinho ? 'valor DESC' : 'gap DESC';
+      rows = (await db.prepare(`SELECT filial, cod, nome, subcod, subnome, valor, meta, gap, itens FROM gerot_batalha_carrinho WHERE mes = ? AND tipo IN ${tipos} AND ${esc.sql}${filtro} ORDER BY ${orderCol} LIMIT 10`).bind(...bindBase).all()).results || [];
+    }
+  } catch { rows = []; }
+  const tit = ehCarrinho ? '🛒 *Carrinho Ideal (Top SKUs por Indústria)*' : '⚔️ *Batalha Naval (Gap Fornecedores)*';
+  if (!rows.length) return `${tit} — ${onde} (${mes})\nAinda sem linhas gravadas para esta consulta${termo ? ` ("${termo}")` : ''}.`;
+  return [
+    `${tit} — ${onde} (${mes})`,
+    ...rows.map((x, i) => ehCarrinho
+      ? `${i + 1}. *${titulo(String(x.subnome || x.nome || x.subcod)).slice(0, 26)}* (${titulo(String(x.nome || '')).slice(0, 16)}): ${R$(x.valor)}${x.itens ? ` · ${N(x.itens)} cli.` : ''}`
+      : `${i + 1}. ${E.nacional ? '' : `[${x.filial}] `} *${titulo(String(x.nome || x.cod)).slice(0, 26)}*: ${R$(x.valor)} / Meta ${R$(x.meta)} · Gap *${R$(x.gap)}*`),
+    '',
+    SUGESTAO + (ehCarrinho ? 'incluir os SKUs líderes do Carrinho Ideal nos roteiros de positividade.' : 'fechar os maiores gaps por fornecedor da Batalha Naval.'),
+    await posFooter(db, mes)
+  ].join('\n');
+}
+
+// 14) REDES DE CLIENTES (dim='rede' + fallback escopo Cliven)
+export async function respRede(B, E, c) {
+  const db = B && B.env && B.env.DB;
+  if (!db) return null;
+  const mes = await mesOuUltimo(db, 'gerot_dim_agregado');
+  const esc = escopoWhere(E, c, { temRca: true, temSup: true });
+  const onde = ehVendedor(c, E) ? `${nome2(c.nome)} (RCA ${c.rca})` : (E.nacional ? 'Brasil' : esc.fils.join(', '));
+  const restritoEquipe = ehVendedor(c, E) || Boolean(E && (E.supervisor || E.grupo));
+  let lista = [];
+  try {
+    if (!restritoEquipe) {
+      const dimRows = (await db.prepare(`SELECT filial, chave, nome, dados FROM gerot_dim_agregado WHERE mes = ? AND dim = 'rede' AND ${esc.sql}`).bind(mes, ...esc.bind).all()).results || [];
+      if (dimRows.length) {
+        const grp = new Map();
+        for (const r of dimRows) {
+          let d = {}; try { d = JSON.parse(r.dados || '{}'); } catch {}
+          const nome = String(r.nome || r.chave || '').trim();
+          const k = sem(nome || r.chave);
+          if (!k) continue;
+          const o = grp.get(k) || { rede: nome, fat: 0, meta: 0, cart: 0, pos: 0 };
+          o.fat += Number(d['Faturado líquido (R$)']) || 0;
+          o.meta += Number(d['Meta (R$)']) || 0;
+          o.cart += Number(d['Carteira pendente (R$)']) || 0;
+          o.pos += Number(d['Positivação (filial + CNPJ)'] ?? d['Positivação (filial)']) || 0;
+          grp.set(k, o);
+        }
+        lista = [...grp.values()].filter((x) => x.fat > 0 || x.meta > 0 || x.cart > 0).sort((a, b) => b.fat - a.fat);
+      }
+    }
+    if (!lista.length) {
+      const mesC = await mesOuUltimo(db, 'gerot_cliven_carteira');
+      const sc = clivenCartScope(E, c, 'c');
+      const rs = (await db.prepare(`SELECT TRIM(cl.rede) rede, COUNT(DISTINCT c.filial||'|'||c.cliente) cli, SUM(CASE WHEN c.positivado = 1 THEN 1 ELSE 0 END) pos, SUM(COALESCE(c.fat_mes, 0)) fat FROM gerot_cliven_carteira c JOIN gerot_cliven_clientes cl ON cl.filial = c.filial AND cl.cliente = c.cliente WHERE c.mes = ? AND c.forn_cod = '*' AND COALESCE(TRIM(cl.rede), '') <> '' AND ${sc.sql} GROUP BY UPPER(TRIM(cl.rede)) ORDER BY fat DESC LIMIT 12`).bind(mesC, ...sc.bind).all()).results || [];
+      lista = rs.map((r) => ({ rede: r.rede, fat: Number(r.fat) || 0, pos: Number(r.pos) || 0, cli: Number(r.cli) || 0, meta: 0 }));
+    }
+  } catch { lista = []; }
+  if (!lista.length) return `🏬 *Redes de Clientes — ${onde} (${mes})*\nAinda sem dados por rede gravados no D1 para este escopo.`;
+  const totFat = lista.reduce((s, x) => s + (x.fat || 0), 0);
+  return [
+    `🏬 *Redes de Clientes — ${onde}* (${mes})`,
+    `Top ${Math.min(lista.length, 10)} redes · Total: *${R$(totFat)}*`,
+    '',
+    ...lista.slice(0, 10).map((x, i) => `${i + 1}. *${titulo(x.rede).slice(0, 28)}*: ${R$(x.fat)}${x.meta > 0 ? ` / Meta ${R$(x.meta)}` : ''}${x.cli ? ` · ${N(x.pos)}/${N(x.cli)} pos.` : (x.pos ? ` · ${N(x.pos)} pos.` : '')}`),
+    '',
+    SUGESTAO + 'atacar as redes líderes em faturamento com foco em positivação de mix.',
     await posFooter(db, mes)
   ].join('\n');
 }

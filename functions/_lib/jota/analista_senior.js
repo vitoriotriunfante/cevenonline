@@ -97,9 +97,13 @@ async function montarComplemento360(env, escIA) {
 
   const gSups = [];
   const supCodsAlvo = new Set();
+  const supBriefKeys = [];
   for (const r of supList || []) {
     if (soSup && !supMatches(r.supervisor)) continue;
-    if (r.cod_sup) supCodsAlvo.add(String(r.cod_sup));
+    if (r.cod_sup) {
+      supCodsAlvo.add(String(r.cod_sup));
+      if (soSup && r.filial) supBriefKeys.push(`SUP:${r.filial}:${r.cod_sup}`.slice(0, 40));
+    }
     const d = r.d || {};
     const meta = Number(d['Meta (R$)']) || 0, fat = Number(d['Faturado líquido (R$)']) || 0, cart = Number(d['Carteira pendente (R$)']) || 0;
     if (soSup) {
@@ -227,7 +231,11 @@ async function montarComplemento360(env, escIA) {
     ? `=== APRENDIZADOS RECENTES DO CAMPO (CURADOR JOTA) ===\n${aprendizados}`
     : '';
 
-  const briefList = (briefingRows && briefingRows.results) || [];
+  let briefList = (briefingRows && briefingRows.results) || [];
+  if (soSup && supBriefKeys.length && !briefList.length) {
+    const chs = [...new Set(supBriefKeys)].slice(0, 10);
+    briefList = (await db.prepare(`SELECT chave, payload_json, gerado_em FROM fatos_briefing_cache WHERE mes = ? AND chave IN (${chs.map(() => '?').join(',')})`).bind(mes, ...chs).all().catch(() => ({ results: [] }))).results || [];
+  }
   const briefTxt = briefList.length
     ? ('=== BRIEFING ESTRATÉGICO GEROT (CACHE PRÉ-AGREGADO) ===\n' + briefList.map((b) => `${b.chave}: ${String(b.payload_json || '').slice(0, 1200)}`).join('\n')).slice(0, 2500)
     : '';
