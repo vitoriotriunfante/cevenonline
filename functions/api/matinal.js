@@ -3,7 +3,7 @@
 // Painel da Matinal 100% resiliente ao CEVEN (le direto do D1: GEROT + roteiro_dia + pedido_status + prospects_mapa)
 // =========================================================================
 import { ehFeriado, diaSemLance } from '../_lib/feriados.js';
-import { diasUteis as diasUteisFatos, posicaoGerot, filiaisGerot, supervisoresGerot, vendedoresGerot } from '../_lib/fatos/index.js';
+import { diasUteis as diasUteisFatos, posicaoGerot, filiaisGerot, supervisoresGerot, vendedoresGerot, vendasFornecedorGerot } from '../_lib/fatos/index.js';
 import { nomeForn } from '../_lib/jota/respostas/metas_industria.js';
 
 const j = (obj, st = 200) => new Response(JSON.stringify(obj), {
@@ -86,10 +86,7 @@ export async function onRequestGet({ request, env }) {
         ? env.DB.prepare('SELECT filial, rca, SUM(ped_total) qtd, SUM(total_pedido) vlr, NULL pos FROM clube_venda_dia WHERE filial = ? AND dia = ? GROUP BY filial, rca').bind(fil, ultUtil)
         : env.DB.prepare('SELECT filial, rca, SUM(ped_total) qtd, SUM(total_pedido) vlr, NULL pos FROM clube_venda_dia WHERE dia = ? GROUP BY filial, rca').bind(ultUtil)
       ).all().catch(() => ({ results: [] })),
-      (fil
-        ? env.DB.prepare('SELECT filial, cod_sup, supervisor, dados FROM gerot_vendas WHERE mes = ? AND filial = ?').bind(mes, fil)
-        : env.DB.prepare('SELECT filial, cod_sup, supervisor, dados FROM gerot_vendas WHERE mes = ?').bind(mes)
-      ).all().catch(() => ({ results: [] }))
+      vendasFornecedorGerot(env.DB, { mes, filiais: fil ? [fil] : null }).then((results) => ({ results })).catch(() => ({ results: [] }))
     ]);
 
     const rotaMap = new Map();

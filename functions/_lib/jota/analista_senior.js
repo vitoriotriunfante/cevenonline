@@ -12,7 +12,7 @@ import { hojeSP, R$, N, sem, titulo } from './base.js';
 import { confereIA } from './confere_ia.js';
 import { nomeForn } from './respostas/metas_industria.js';
 import { carregarContextoAprendido } from './aprendizado.js';
-import { filiaisGerot, supervisoresGerot, posicaoGerot } from '../fatos/index.js';
+import { filiaisGerot, supervisoresGerot, posicaoGerot, vendasFornecedorGerot } from '../fatos/index.js';
 
 const MODELO_WORKERS_AI = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
 
@@ -47,12 +47,7 @@ async function montarComplemento360(env, escIA) {
     soRca
       ? Promise.resolve([])
       : supervisoresGerot(db, temFil && filiais.length === 1 ? filiais[0] : null, mes).then((rs) => (rs || []).filter((r) => !temFil || filiais.includes(r.filial))).catch(() => []),
-    soRca && filiais[0]
-      ? db.prepare('SELECT filial, rca, cod_sup, supervisor, dados FROM gerot_vendas WHERE mes = ? AND filial = ? AND COALESCE(rca_int, CAST(rca AS INTEGER)) = ?').bind(mes, filiais[0], Number(soRca) || 0).all().catch(() => ({ results: [] }))
-      : (temFil
-        ? db.prepare(`SELECT filial, rca, cod_sup, supervisor, dados FROM gerot_vendas WHERE mes = ? AND filial IN (${qs})`).bind(mes, ...filiais)
-        : db.prepare('SELECT filial, rca, cod_sup, supervisor, dados FROM gerot_vendas WHERE mes = ?').bind(mes)
-      ).all().catch(() => ({ results: [] })),
+    vendasFornecedorGerot(db, { mes, filiais: temFil ? filiais : null, rca: soRca }).then((results) => ({ results })).catch(() => ({ results: [] })),
     soRca && filiais[0]
       ? /* 23/11/2026 (dicionario 3.11, conflito 8): bloqueados = gerot_carteira, nunca pedido_status (esparso) */ db.prepare("SELECT 'BLOQUEADO' status, COUNT(*) qtd, SUM(valor) vlr FROM gerot_carteira WHERE filial = ? AND COALESCE(rca_int, CAST(rca AS INTEGER)) = ? AND situacao LIKE 'Bloqueado%'").bind(filiais[0], Number(soRca)).all().catch(() => ({ results: [] }))
       : (temFil

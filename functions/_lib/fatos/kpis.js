@@ -153,6 +153,22 @@ export async function vendedoresGerot(db, filial = null, mes = hojeBRT().slice(0
   });
 }
 
+export async function vendasFornecedorGerot(db, { mes = hojeBRT().slice(0, 7), filiais = null, rca = null } = {}) {
+  if (!db) return [];
+  const w = ['mes = ?'], b = [mes];
+  const fs = Array.isArray(filiais) ? filiais.filter(Boolean) : [];
+  if (fs.length === 1) { w.push('filial = ?'); b.push(fs[0]); }
+  else if (fs.length > 1) { w.push(`filial IN (${fs.map(() => '?').join(',')})`); b.push(...fs); }
+  if (rca != null && String(rca).trim() !== '') {
+    w.push('COALESCE(rca_int, CAST(rca AS INTEGER)) = ?');
+    b.push(Number(rca) || 0);
+  }
+  try {
+    const r = await db.prepare(`SELECT filial, rca, cod_sup, supervisor, vendedor, fornecedor, dados, fat_liq, meta, carteira, captacao, pos, meta_pos, mc_rs, mc_pct, cortes_rs FROM gerot_vendas WHERE ${w.join(' AND ')}`).bind(...b).all();
+    return r.results || [];
+  } catch { return []; }
+}
+
 // KPIs DO MÊS de um recorte.
 //   nivel: 'brasil' | 'filial' | 'vendedor' | 'equipe' (supervisor pela Gestão de Equipe) | 'grupo' (gerente em MCD/TPH)
 //   filiais: ['MCD'] (brasil: lista ou vazio = todas) · rcas: códigos dos vendedores (vendedor/equipe/grupo) · supCod: código do supervisor (só para a meta de positivação de referência)

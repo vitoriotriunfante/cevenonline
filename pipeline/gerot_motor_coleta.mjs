@@ -2006,6 +2006,31 @@ async function main() {
     dimRede: cubo && cubo.dim && cubo.dim.rede ? (cubo.dim.rede.cod || []).length : 0,
     redes: cubo && cubo.redes ? (Array.isArray(cubo.redes) ? `arr[${cubo.redes.length}]` : Object.keys(cubo.redes).slice(0, 8)) : null
   }));
+  if (cubo && cubo.campo) {
+    const shape = (v) => {
+      if (v == null) return null;
+      if (Array.isArray(v)) return { arrLen: v.length, item: v.length ? (Array.isArray(v[0]) ? `arr[${v[0].length}]:${v[0].slice(0, 8).map((x) => typeof x).join(',')}` : (v[0] && typeof v[0] === 'object' ? Object.keys(v[0]).slice(0, 20) : typeof v[0])) : null };
+      if (typeof v === 'object') {
+        const ks = Object.keys(v);
+        const s0 = ks.length ? v[ks[0]] : null;
+        return { objKeys: ks.length, sampleKeys: ks.slice(0, 5), subShape: s0 && typeof s0 === 'object' ? (Array.isArray(s0) ? { arrLen: s0.length, item: s0[0] && typeof s0[0] === 'object' ? (Array.isArray(s0[0]) ? `arr[${s0[0].length}]:${s0[0].slice(0, 8).map((x) => typeof x).join(',')}` : Object.keys(s0[0]).slice(0, 20)) : typeof s0[0] } : { keys: Object.keys(s0).slice(0, 8), sub2: Object.keys(s0).length ? shapeVal(s0[Object.keys(s0)[0]]) : null }) : typeof s0 };
+      }
+      return typeof v;
+    };
+    const shapeVal = (x) => (Array.isArray(x) ? `arr[${x.length}]->${Array.isArray(x[0]) ? `arr[${x[0].length}]:${x[0].slice(0, 8).map((z) => typeof z).join(',')}` : (x[0] && typeof x[0] === 'object' ? Object.keys(x[0]).join(',') : typeof x[0])}` : (x && typeof x === 'object' ? Object.keys(x).slice(0, 12) : typeof x));
+    log('CAMPO_SCHEMA:', JSON.stringify({
+      campos: cubo.campo.campos || null,
+      meses: cubo.campo.meses || null,
+      dimKeys: cubo.campo.dim ? Object.keys(cubo.campo.dim) : null,
+      dicKeys: cubo.campo.dic ? Object.keys(cubo.campo.dic) : null,
+      arvoreKeys: cubo.campo.arvore ? Object.keys(cubo.campo.arvore).slice(0, 6) : null,
+      empresaShape: shape(cubo.campo.empresa),
+      diarioAcShape: shape(cubo.campo.diarioAc),
+      diarioShape: shape(cubo.campo.diario),
+      tipoVendedorKeys: cubo.campo.tipoVendedor ? Object.keys(cubo.campo.tipoVendedor).slice(0, 5) : null,
+      coberturaKeys: cubo.campo.cobertura ? Object.keys(cubo.campo.cobertura).slice(0, 5) : null
+    }));
+  }
 
   for (const m of meses) {
     await processarMes(m, loaded, tiers, posicao, loteId);

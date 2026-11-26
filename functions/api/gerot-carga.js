@@ -15,7 +15,6 @@ import { chaveEvoValida } from '../_lib/chave_evo.js';
 import R from '../../public/regras.js';
 // 18/11/2026: colunas da Liga (mp, nforn, skus) criadas uma vez por instancia
 let colunasLiga = false;
-let tabelasGarantidas = false;
 const J = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' };
 const r = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: J });
 const MES = /^\d{4}-\d{2}$/;
@@ -39,46 +38,8 @@ const extProm = (d = {}) => [
   nNum(d['Cortes total (R$)']),
 ];
 
-async function tabelas(db) {
-  if (tabelasGarantidas) return;
-  await db.batch([
-    db.prepare('CREATE TABLE IF NOT EXISTS gerot_vendas (mes TEXT NOT NULL, filial TEXT NOT NULL, rca TEXT NOT NULL, fornecedor TEXT NOT NULL, cod_sup TEXT NOT NULL DEFAULT "", supervisor TEXT, vendedor TEXT, dados TEXT NOT NULL, hash TEXT, em TEXT, PRIMARY KEY (mes, filial, rca, fornecedor, cod_sup))'),
-    db.prepare('CREATE INDEX IF NOT EXISTS idx_gerot_vendas_forn ON gerot_vendas (mes, fornecedor, filial)'),
-    // 11/11/2026 (Vitorio: 'temos em filiais pastas diferentes... precisa pensar em primary keys'): o mesmo vendedor aparece em 2 pastas (supervisores);
-    // a chave tem o supervisor (sup = sup_cod; '' para filial e supervisor). A tabela antiga (sem pasta) deixou de ser gravada: a 2a pasta apagava a 1a.
-    db.prepare('CREATE TABLE IF NOT EXISTS gerot_recorrencia_pasta (mes TEXT NOT NULL, filial TEXT NOT NULL, nivel TEXT NOT NULL, cod TEXT NOT NULL, sup TEXT NOT NULL DEFAULT "", nome TEXT, objetivo INTEGER, meta INTEGER, positivados INTEGER, faturado REAL, pdvs_afat INTEGER, vlr_afat REAL, pdvs_vend INTEGER, hash TEXT, em TEXT, PRIMARY KEY (mes, filial, nivel, cod, sup))'),
-    db.prepare('CREATE TABLE IF NOT EXISTS gerot_recorrencia (mes TEXT NOT NULL, filial TEXT NOT NULL, nivel TEXT NOT NULL, cod TEXT NOT NULL, nome TEXT, sup_cod TEXT, objetivo INTEGER, meta INTEGER, positivados INTEGER, faturado REAL, pdvs_afat INTEGER, vlr_afat REAL, pdvs_vend INTEGER, hash TEXT, em TEXT, PRIMARY KEY (mes, filial, nivel, cod))'),
-    db.prepare('CREATE TABLE IF NOT EXISTS gerot_vendedor_mes (mes TEXT NOT NULL, filial TEXT NOT NULL, rca TEXT NOT NULL, cod_sup TEXT NOT NULL DEFAULT "", supervisor TEXT, vendedor TEXT, dados TEXT NOT NULL, hash TEXT, em TEXT, PRIMARY KEY (mes, filial, rca, cod_sup))'),
-    db.prepare('CREATE TABLE IF NOT EXISTS gerot_supervisor_mes (mes TEXT NOT NULL, filial TEXT NOT NULL, cod_sup TEXT NOT NULL, supervisor TEXT, dados TEXT NOT NULL, hash TEXT, em TEXT, PRIMARY KEY (mes, filial, cod_sup))'),
-    db.prepare('CREATE TABLE IF NOT EXISTS gerot_filial_mes (mes TEXT NOT NULL, filial TEXT NOT NULL, dados TEXT NOT NULL, hash TEXT, em TEXT, PRIMARY KEY (mes, filial))'),
-    // 16/11/2026: carteira por cliente (Mes x Filial x Vendedor x Cliente) = fonte da curva negativa e de 'quem nao comprou'
-    db.prepare('CREATE TABLE IF NOT EXISTS gerot_cliente_mes (mes TEXT NOT NULL, filial TEXT NOT NULL, rca TEXT NOT NULL, cliente TEXT NOT NULL, cnpj TEXT, nome TEXT, dados TEXT NOT NULL, hash TEXT, em TEXT, PRIMARY KEY (mes, filial, rca, cliente))'),
-    // 21/11/2026: CLIENTE x INDUSTRIA (curva negativa por industria); so linhas com algum numero; nome/CNPJ ficam em gerot_cliente_mes
-    db.prepare('CREATE TABLE IF NOT EXISTS gerot_cliente_forn_mes (mes TEXT NOT NULL, filial TEXT NOT NULL, rca TEXT NOT NULL, cliente TEXT NOT NULL, forn_cod TEXT NOT NULL, fornecedor TEXT, dados TEXT NOT NULL, hash TEXT, em TEXT, PRIMARY KEY (mes, filial, rca, cliente, forn_cod))'),
-    // 16/11/2026: teste de horario do GEROT (pipeline/gerot_horario.mjs): uma linha por leitura, so as horas que o painel mostra
-    // 17/11/2026 (Vitorio: 'mostrando pedidos do dia 12? ja nao mostrei que tem todos os pedidos no GEROT?'): um pedido por linha (pedido x NF), do 'Extrair dados'
-    db.prepare('CREATE TABLE IF NOT EXISTS gerot_pedido (mes TEXT NOT NULL, filial TEXT NOT NULL, pedido TEXT NOT NULL, nf TEXT NOT NULL DEFAULT "", rca TEXT, cliente TEXT, cnpj TEXT, nome TEXT, data TEXT, dados TEXT NOT NULL, hash TEXT, em TEXT, PRIMARY KEY (mes, filial, pedido, nf))'),
-    db.prepare('CREATE INDEX IF NOT EXISTS ix_gerot_pedido_rca ON gerot_pedido (filial, rca, data)'),
-    // 17/11/2026: CARTEIRA TOTAL por pedido (pipeline/gerot_carteira.mjs): status, situacao, motivo de bloqueio e valor do que esta em aberto
-    db.prepare('CREATE TABLE IF NOT EXISTS gerot_carteira (filial TEXT NOT NULL, pedido TEXT NOT NULL, rca TEXT, vendedor TEXT, sup_cod TEXT, entrada TEXT, origem TEXT, status TEXT, situacao TEXT, motivo TEXT, cliente TEXT, cnpj TEXT, status_cliente TEXT, positivado TEXT, valor REAL, itens INTEGER, qped REAL, qfat REAL, fornecedores TEXT, hash TEXT, em TEXT, PRIMARY KEY (filial, pedido))'),
-    db.prepare('CREATE INDEX IF NOT EXISTS ix_gerot_carteira_rca ON gerot_carteira (filial, rca)'),
-    // 17/11/2026: DATA DO PEDIDO guardada para sempre (a carteira perde o pedido quando ele fatura, e no 'Pedidos' a data vira a do faturamento) = base da Liga sem o CEVEN
-    db.prepare('CREATE TABLE IF NOT EXISTS gerot_pedido_entrada (filial TEXT NOT NULL, pedido TEXT NOT NULL, rca TEXT, cnpj TEXT, entrada TEXT, visto_em TEXT, PRIMARY KEY (filial, pedido))'),
-    db.prepare('CREATE INDEX IF NOT EXISTS ix_gerot_pedido_entrada_dia ON gerot_pedido_entrada (entrada, filial, rca)'),
-    // 18/11/2026: faturado (e todos os calculos) por FILIAL x DIA = 'ate a data' x mes passado
-    db.prepare('CREATE TABLE IF NOT EXISTS gerot_filial_dia (mes TEXT NOT NULL, filial TEXT NOT NULL, data TEXT NOT NULL, dados TEXT NOT NULL, hash TEXT, em TEXT, PRIMARY KEY (filial, data))'),
-    db.prepare('CREATE TABLE IF NOT EXISTS gerot_horario (id INTEGER PRIMARY KEY AUTOINCREMENT, lido_em TEXT, ok INTEGER, ultima TEXT, carga TEXT, posicao TEXT, segundos INTEGER, erro TEXT)'),
-    db.prepare('CREATE TABLE IF NOT EXISTS gerot_coleta_status (id INTEGER PRIMARY KEY AUTOINCREMENT, mes TEXT, linhas INTEGER, enviadas INTEGER, posicao TEXT, colunas TEXT, em TEXT)'),
-    // 24/11/2026: foto diaria do GEROT por vendedor para a Liga AS (substitui varredura_central_rca do CEVEN, parada em 16/11)
-    db.prepare('CREATE TABLE IF NOT EXISTS liga_as_foto_dia (dia TEXT NOT NULL, filial TEXT NOT NULL, rca TEXT NOT NULL, meta REAL, faturado REAL, pendente REAL, em TEXT, PRIMARY KEY (dia, filial, rca))'),
-    db.prepare('CREATE TABLE IF NOT EXISTS gerot_carga_controle (lote_id TEXT NOT NULL, mes TEXT NOT NULL, etapa TEXT NOT NULL, status TEXT NOT NULL, filiais INTEGER NOT NULL DEFAULT 0, linhas INTEGER NOT NULL DEFAULT 0, gravadas INTEGER NOT NULL DEFAULT 0, removidas INTEGER NOT NULL DEFAULT 0, posicao TEXT, detalhe TEXT, iniciado_em TEXT NOT NULL, atualizado_em TEXT NOT NULL, PRIMARY KEY (lote_id, mes, etapa))')
-  ]);
-  tabelasGarantidas = true;
-}
-
 export async function onRequestGet({ request, env }) {
   if (!(await chaveEvoValida(request, env))) return r({ erro: 'nao autorizado' }, 401);
-  await tabelas(env.DB);
   const u = new URL(request.url);
   const fil = /^[A-Z]{3}$/.test(String(u.searchParams.get('filial') || '')) ? String(u.searchParams.get('filial')) : '';
   if (u.searchParams.get('status') === '1') {
@@ -198,7 +159,6 @@ export async function onRequestGet({ request, env }) {
 export async function onRequestPost({ request, env }) {
   if (!(await chaveEvoValida(request, env))) return r({ erro: 'nao autorizado' }, 401);
   let b = {}; try { b = await request.json(); } catch (e) { return r({ erro: 'json invalido' }, 400); }
-  await tabelas(env.DB);
   const agora = new Date().toISOString();
   const L = Array.isArray(b.linhas) ? b.linhas : [];
   if (L.length > 200) return r({ erro: 'no maximo 200 linhas por chamada' }, 400);

@@ -81,8 +81,10 @@ export async function respostaPronta(B, c, texto0, anteriores) {
     try {
       const ec = escopoDoContato(c, sem(texto).match(FRX));
       const escX = ec.rcaV ? null : ec.fil ? { nome: ec.fil, filiais: [ec.fil], grupo: ec.supervisor ? null : ec.grupo, supervisor: ec.supervisor, nacional: false } : { nome: 'Brasil', filiais: FILIAIS, grupo: null, nacional: true };
-      if (escX) { const Ex = await carregaEscopo(B, escX); const vOk = Ex.vend.concat(Ex.ocultos || []).find((v) => v.filial === B._ctxVend.filial && String(v.rca) === String(B._ctxVend.rca));
-        if (vOk && !achaPessoa(Ex, sem(texto))) texto += ` vendedor ${vOk.rca} ${vOk.filial}`; }
+      if (escX) {
+        const Ex = await carregaEscopo(B, escX); const vOk = Ex.vend.concat(Ex.ocultos || []).find((v) => v.filial === B._ctxVend.filial && String(v.rca) === String(B._ctxVend.rca));
+        if (vOk && !achaPessoa(Ex, sem(texto))) texto += ` vendedor ${vOk.rca} ${vOk.filial}`;
+      }
     } catch (e) { /* segue sem */ }
   }
   const fm = sem(texto).match(FRX);
@@ -97,8 +99,10 @@ export async function respostaPronta(B, c, texto0, anteriores) {
   // grava o novo estado da conversa (vendedor = o citado nesta pergunta, ou o da conversa)
   try {
     let up = null;
-    try { const ec = escopoDoContato(c, sem(texto).match(FRX)); const escX = ec.rcaV ? null : ec.fil ? { nome: ec.fil, filiais: [ec.fil], grupo: ec.supervisor ? null : ec.grupo, supervisor: ec.supervisor, nacional: false } : { nome: 'Brasil', filiais: FILIAIS, grupo: null, nacional: true };
-      if (escX) { const Ex = await carregaEscopo(B, escX); const p = achaPessoa(Ex, sem(texto)); if (p && p.tipo === 'vend' && !/^(GERENTE|VAGO|RCA\b|VENDA )/i.test(String(p.alvo.nome || ''))) up = p.alvo; } } catch (e) { up = null; }
+    try {
+      const ec = escopoDoContato(c, sem(texto).match(FRX)); const escX = ec.rcaV ? null : ec.fil ? { nome: ec.fil, filiais: [ec.fil], grupo: ec.supervisor ? null : ec.grupo, supervisor: ec.supervisor, nacional: false } : { nome: 'Brasil', filiais: FILIAIS, grupo: null, nacional: true };
+      if (escX) { const Ex = await carregaEscopo(B, escX); const p = achaPessoa(Ex, sem(texto)); if (p && p.tipo === 'vend' && !/^(GERENTE|VAGO|RCA\b|VENDA )/i.test(String(p.alvo.nome || ''))) up = p.alvo; }
+    } catch (e) { up = null; }
     const listaCli = [];
     if (typeof r0 === 'string') {
       for (const m of r0.matchAll(/^(\d{1,2})\.\s+\*?([^(\n]+?)\*?\s+\(#(\d+)\)/gm)) {
@@ -329,10 +333,14 @@ export async function respostaInterna(B, c, texto, anteriores) {
     let cn = doTexto(texto);
     if (!cn && /\b(ESSE|DESSE|ESTE|DESTE|MESMO|NESSE|NESTE) CLIENTE\b/.test(t) && anteriores && anteriores.length) for (const a of anteriores.slice(0, 3)) { cn = doTexto(a); if (cn) break; }
     const cnpjPuro = /^\s*0?\d{14}\s*$/.test(String(texto || '').replace(/[.\-\/\s]/g, ''));
-    if (cn && B.env && B.env.DB && (cnpjPuro || /CLIENTE|CNPJ|HIST|FICHA|COMPR|VEND/.test(t))) { try {
-      let r = await B.env.DB.prepare('SELECT id_cliente FROM ficha_cliente WHERE json LIKE ? LIMIT 1').bind('%"cnpj":"' + cn + '"%').first();
-      if (!(r && r.id_cliente)) { const g = await B.env.DB.prepare('SELECT cliente FROM gerot_cliente_mes WHERE cnpj = ? ORDER BY mes DESC LIMIT 1').bind(cn).first().catch(() => null); if (g && g.cliente) r = { id_cliente: g.cliente }; }
-      if (r && r.id_cliente) t = 'CLIENTE #' + r.id_cliente; else return `🔎 Não achei nenhum cliente com o CNPJ *${cn}* nas vendas de agosto para cá (GEROT) nem na ficha. Confere os números ou me manda o código do cliente.`; } catch (e) { /* segue */ } } }
+    if (cn && B.env && B.env.DB && (cnpjPuro || /CLIENTE|CNPJ|HIST|FICHA|COMPR|VEND/.test(t))) {
+      try {
+        let r = await B.env.DB.prepare('SELECT id_cliente FROM ficha_cliente WHERE json LIKE ? LIMIT 1').bind('%"cnpj":"' + cn + '"%').first();
+        if (!(r && r.id_cliente)) { const g = await B.env.DB.prepare('SELECT cliente FROM gerot_cliente_mes WHERE cnpj = ? ORDER BY mes DESC LIMIT 1').bind(cn).first().catch(() => null); if (g && g.cliente) r = { id_cliente: g.cliente }; }
+        if (r && r.id_cliente) t = 'CLIENTE #' + r.id_cliente; else return `🔎 Não achei nenhum cliente com o CNPJ *${cn}* nas vendas de agosto para cá (GEROT) nem na ficha. Confere os números ou me manda o código do cliente.`;
+      } catch (e) { /* segue */ }
+    }
+  }
   // "Sugestao" sozinha (27/10/2026, Thiago/Sueli/Rodrigo: a IA inventava uma resposta): pede a sugestao
   if (/^\W*SUGEST(AO|OES|AO DO JOTA)?\W*$/.test(t)) return '💡 Pode mandar! Escreva *"sugestão:"* e o que você quer que eu faça diferente (ex.: "sugestão: mandar a meta de cada vendedor"). Vai direto para o time que me treina.';
   // escopo: gerente = a filial dele; diretoria = a filial citada, senao o Brasil
@@ -424,8 +432,8 @@ export async function respostaInterna(B, c, texto, anteriores) {
             for (const g of G || []) { let d = {}; try { d = JSON.parse(g.dados || '{}'); } catch (e) { continue; } const nm = nomeForn(d.Fornecedor), x = I.get(nm) || { meta: 0, fat: 0, pos: 0 }; x.meta += Number(d['Meta (R$)']) || 0; x.fat += Number(d['Faturado líquido (R$)']) || 0; x.pos += Number(d['Positivação (filial + CNPJ)']) || 0; I.set(nm, x); }
             const com = [...I].filter(([, x]) => x.meta > 0).sort((a, b) => b[1].meta - a[1].meta), sem = [...I].filter(([, x]) => !(x.meta > 0) && x.fat > 0).sort((a, b) => b[1].fat - a[1].fat);
             if (com.length || sem.length) r = String(r) + '\n\n' + [`🏭 *Indústrias em ${['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'][d0.getUTCMonth()]}* (GEROT)`,
-              ...com.map(([nm, x]) => `${x.fat >= x.meta ? '✅' : x.fat >= 0.8 * x.meta ? '🟡' : '🔴'} *${nm}*: ${R$(x.fat)} de ${R$(x.meta)} (${(x.fat / x.meta * 100).toFixed(1).replace('.', ',')}%) · positivação *${N(x.pos)}* clientes`),
-              ...(sem.length ? ['_Sem meta:_ ' + sem.slice(0, 6).map(([nm, x]) => `${nm} ${R$(x.fat)} (${N(x.pos)} cli.)`).join(' · ')] : [])].join('\n');
+            ...com.map(([nm, x]) => `${x.fat >= x.meta ? '✅' : x.fat >= 0.8 * x.meta ? '🟡' : '🔴'} *${nm}*: ${R$(x.fat)} de ${R$(x.meta)} (${(x.fat / x.meta * 100).toFixed(1).replace('.', ',')}%) · positivação *${N(x.pos)}* clientes`),
+            ...(sem.length ? ['_Sem meta:_ ' + sem.slice(0, 6).map(([nm, x]) => `${nm} ${R$(x.fat)} (${N(x.pos)} cli.)`).join(' · ')] : [])].join('\n');
           } catch (e) { /* sem GEROT: fica o fechamento do CEVEN */ }
         }
         else if (chave === '__cortes__') {
@@ -435,8 +443,10 @@ export async function respostaInterna(B, c, texto, anteriores) {
           // 17/11/2026: cortes pelo GEROT (comercial x logistico por pedido e por industria); a linha do tempo do CEVEN so se o GEROT nao responder
           if (v) { const rg = await (await import('./respostas/pedidos_gerot.js')).respCortesGerot(B, v.filial, [v.rca], vn(v)).catch(() => null); if (rg) { r = rg; } }
           let P = [];
-          if (v && B.env && B.env.DB) { const q = (col) => B.env.DB.prepare("SELECT num, id_cliente, data_pedido, valor, valor_winthor, categoria_corte" + col + " FROM pedido_status WHERE filial = ? AND rca = ? AND substr(data_pedido, 1, 7) = ? AND categoria_corte IN ('COMERCIAL', 'LOGISTICA', 'AMBOS') ORDER BY data_pedido DESC").bind(String(v.filial), String(v.rca), mes).all();
-            try { P = (await q(', itens_cortados_json')).results || []; } catch (e) { P = (await q('')).results || []; } }
+          if (v && B.env && B.env.DB) {
+            const q = (col) => B.env.DB.prepare("SELECT num, id_cliente, data_pedido, valor, valor_winthor, categoria_corte" + col + " FROM pedido_status WHERE filial = ? AND rca = ? AND substr(data_pedido, 1, 7) = ? AND categoria_corte IN ('COMERCIAL', 'LOGISTICA', 'AMBOS') ORDER BY data_pedido DESC").bind(String(v.filial), String(v.rca), mes).all();
+            try { P = (await q(', itens_cortados_json')).results || []; } catch (e) { P = (await q('')).results || []; }
+          }
           const tipo = { COMERCIAL: 'Comercial', LOGISTICA: 'Logística', AMBOS: 'Comercial + Logística' };
           const corte = (p) => Math.max(0, (Number(p.valor) || 0) - (Number(p.valor_winthor) || 0));
           const nomeCli = new Map((v && Array.isArray(v.roteiroMes) ? v.roteiroMes : []).map((c) => [String(c.id_cliente), titulo(c.nome_cliente || c.razao_social || '')]));
@@ -459,8 +469,10 @@ export async function respostaInterna(B, c, texto, anteriores) {
               '*Por tipo:*', ...[...porTipo.entries()].sort((a, b) => b[1].v - a[1].v).map(([k, x]) => '• ' + tipo[k] + ': ' + R$(x.v) + ' em ' + N(x.n) + ' pedido(s)'), ''];
             if (prods.length) L.push('*Produtos mais cortados:*', ...prods.slice(0, 8).map((x, i) => (i + 1) + '. ' + titulo(x.d || '') + ' · ' + N(x.q) + ' un' + (x.v > 0 ? ' · ' + R$(x.v) : '') + (x.ped > 1 ? ' · em ' + x.ped + ' pedidos' : '')), '');
             L.push('*Clientes com mais corte:*', ...clis.slice(0, 5).map(([id, x], i) => (i + 1) + '. ' + cli(id) + ' · ' + R$(x.v) + (x.n > 1 ? ' em ' + x.n + ' pedidos' : '')), '');
-            L.push('*Pedidos:*', ...P.slice(0, 10).map((p) => { const d = String(p.data_pedido); let it = []; try { it = JSON.parse(p.itens_cortados_json || '[]'); } catch (e) { /* */ }
-              return '• ' + d.slice(8, 10) + '/' + d.slice(5, 7) + ' · nº ' + p.num + ' · ' + cli(p.id_cliente) + ' · ' + tipo[p.categoria_corte] + ' · ' + R$(Number(p.valor) || 0) + ' → *' + R$(Number(p.valor_winthor) || 0) + '* (−' + R$(corte(p)) + ')' + (it.length ? '\n   ✂️ ' + it.slice(0, 6).map((x) => titulo(x.d || x.c) + ' ' + N(Number(x.q) || 0) + 'un').join(' · ') + (it.length > 6 ? ' …' : '') : ''); }),
+            L.push('*Pedidos:*', ...P.slice(0, 10).map((p) => {
+              const d = String(p.data_pedido); let it = []; try { it = JSON.parse(p.itens_cortados_json || '[]'); } catch (e) { /* */ }
+              return '• ' + d.slice(8, 10) + '/' + d.slice(5, 7) + ' · nº ' + p.num + ' · ' + cli(p.id_cliente) + ' · ' + tipo[p.categoria_corte] + ' · ' + R$(Number(p.valor) || 0) + ' → *' + R$(Number(p.valor_winthor) || 0) + '* (−' + R$(corte(p)) + ')' + (it.length ? '\n   ✂️ ' + it.slice(0, 6).map((x) => titulo(x.d || x.c) + ' ' + N(Number(x.q) || 0) + 'un').join(' · ') + (it.length > 6 ? ' …' : '') : '');
+            }),
               ...(P.length > 10 ? ['_… e mais ' + (P.length - 10) + ' pedido(s)._'] : []));
             if (comItens < P.length) L.push('', '_Produtos cortados lidos em ' + comItens + ' de ' + P.length + ' pedidos._');
             const lg = (porTipo.get('LOGISTICA') || { v: 0 }).v + (porTipo.get('AMBOS') || { v: 0 }).v / 2, cm = tot - lg;
@@ -474,11 +486,13 @@ export async function respostaInterna(B, c, texto, anteriores) {
           if (!v) r = 'Não achei os seus dados na base agora.';
           else if (!/AS/i.test(v.canal || '')) r = `📐 *Faseamento — ${vn(v)}*: o faseamento (60% da meta até o dia 20) é regra do *AS*. No varejo, veja o *1.2* (quanto falta por dia útil).`;
           else if (!(v.meta > 0)) r = `📐 *Faseamento — ${vn(v)}*: sem meta do mês na base agora.`;
-          else { const [y, m, d] = hojeSP().split('-').map(Number); let du = 0; for (let i = d; i <= 20; i++) { const w = new Date(Date.UTC(y, m - 1, i)).getUTCDay(); if (w > 0 && w < 6 && !ehFeriadoJ(`${y}-${String(m).padStart(2, '0')}-${String(i).padStart(2, '0')}`)) du++; }
+          else {
+            const [y, m, d] = hojeSP().split('-').map(Number); let du = 0; for (let i = d; i <= 20; i++) { const w = new Date(Date.UTC(y, m - 1, i)).getUTCDay(); if (w > 0 && w < 6 && !ehFeriadoJ(`${y}-${String(m).padStart(2, '0')}-${String(i).padStart(2, '0')}`)) du++; }
             const alvo = v.meta * 0.6, fat = v.fat || 0, comPend = fat + (v.pend || 0), falta = Math.max(0, alvo - fat), pc = (x) => (x / v.meta * 100).toFixed(1).replace('.', ',');
             r = [`📐 *Faseamento — ${vn(v)}*`, `🎯 Meta do mês: ${R$(v.meta)} · alvo até dia 20 (60%): *${R$(alvo)}*`,
-              `💰 Faturado: *${R$(fat)}* (${pc(fat)}%) · com pendente: ${R$(comPend)} (${pc(comPend)}%)`,
-              d > 20 ? (fat >= alvo ? '✅ Faseamento do dia 20 batido.' : `🔴 Faseamento do dia 20 não batido: faltaram ${R$(falta)}.`) : fat >= alvo ? '✅ Faseamento já batido.' : `⏳ Falta *${R$(falta)}* até o dia 20 · *${R$(falta / Math.max(1, du))}* por dia útil (${du} dias, feriado não descontado)`].join('\n'); }
+            `💰 Faturado: *${R$(fat)}* (${pc(fat)}%) · com pendente: ${R$(comPend)} (${pc(comPend)}%)`,
+            d > 20 ? (fat >= alvo ? '✅ Faseamento do dia 20 batido.' : `🔴 Faseamento do dia 20 não batido: faltaram ${R$(falta)}.`) : fat >= alvo ? '✅ Faseamento já batido.' : `⏳ Falta *${R$(falta)}* até o dia 20 · *${R$(falta / Math.max(1, du))}* por dia útil (${du} dias, feriado não descontado)`].join('\n');
+          }
         }
         else if (chave === '__prospect__') { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; const { respProspectsPorCnae } = await import('./respostas/segmentos_pastas.js'); r = v ? await respProspectsPorCnae(B, v, null) : 'Não achei os seus dados na base agora.'; }
         else if (chave === '__liga__') { const Ev = await carregaEscopo(B, esc), v = Ev.vend[0]; r = v ? await respLiga(B, Ev, v) : 'Não achei os seus dados na base agora.'; }
@@ -490,11 +504,13 @@ export async function respostaInterna(B, c, texto, anteriores) {
           r = !v ? 'Não achei os seus dados na base agora.' : chave === '__carteira__' ? await respCarteiraVendedor(B, v) : chave === '__campanhas__' ? await respCampanhasVendedor(B, v) : chave === '__mixrota__' ? await respMixRotaHoje(B, v) : await respMinhaRota(B, v);
         } else r = await interno(chave.replace('VENDEDOR', eu));
         // META DE RECORRENCIA = GEROT (Vitorio, 10/11/2026: 'a meta de recorrencia tem no GEROT'): lista do dia 1 (recuperacao), meta 80%; a lista da TAG abaixo mostra quem falta
-        if (/recorrencia/i.test(chave) && B.env && B.env.DB) { try {
-          const g = await B.env.DB.prepare(/* 23/11/2026 (conflito 13): so a pasta atual */ "SELECT r.objetivo, r.meta, r.positivados, r.faturado, r.em, 1 pastas FROM gerot_recorrencia_pasta r WHERE r.mes = ? AND r.filial = ? AND r.nivel = 'vendedor' AND r.cod = ? ORDER BY (r.sup = (SELECT g.cod_sup FROM gerot_vendedor_mes g WHERE g.mes = r.mes AND g.filial = r.filial AND CAST(g.rca AS INTEGER) = CAST(r.cod AS INTEGER) ORDER BY coalesce(json_extract(g.dados, '$.\"Faturado líquido (R$)\"'), 0) DESC LIMIT 1)) DESC, r.em DESC LIMIT 1").bind(hojeSP().slice(0, 7), String(c.filial || ''), String(rcaV)).first();
-          if (g && g.objetivo != null) r = [`🎯 *Meta de recorrência (GEROT)*: objetivo *${N(g.objetivo)}* clientes · meta 80% = *${N(g.meta || 0)}* · positivados *${N(g.positivados || 0)}*` + (g.meta ? ` (${(g.positivados / g.meta * 100).toFixed(1).replace('.', ',')}% da meta · faltam *${N(Math.max(0, g.meta - g.positivados))}*)` : '') + (g.faturado != null ? ` · ${R$(g.faturado)}` : ''),
-            '_Lista do dia 1º do GEROT (meta 80% da premiação): clientes com compra de 31 a 90 dias e nenhuma nos 30 dias antes do dia 1º. Abaixo ficam os clientes com a *TAG Recorrência* no roteiro/CEVEN._', '', String(r)].join('\n');
-        } catch (e) { /* sem GEROT: fica a TAG do CEVEN */ } }
+        if (/recorrencia/i.test(chave) && B.env && B.env.DB) {
+          try {
+            const g = await B.env.DB.prepare(/* 23/11/2026 (conflito 13): so a pasta atual */ "SELECT r.objetivo, r.meta, r.positivados, r.faturado, r.em, 1 pastas FROM gerot_recorrencia_pasta r WHERE r.mes = ? AND r.filial = ? AND r.nivel = 'vendedor' AND r.cod = ? ORDER BY (r.sup = (SELECT g.cod_sup FROM gerot_vendedor_mes g WHERE g.mes = r.mes AND g.filial = r.filial AND CAST(g.rca AS INTEGER) = CAST(r.cod AS INTEGER) ORDER BY coalesce(json_extract(g.dados, '$.\"Faturado líquido (R$)\"'), 0) DESC LIMIT 1)) DESC, r.em DESC LIMIT 1").bind(hojeSP().slice(0, 7), String(c.filial || ''), String(rcaV)).first();
+            if (g && g.objetivo != null) r = [`🎯 *Meta de recorrência (GEROT)*: objetivo *${N(g.objetivo)}* clientes · meta 80% = *${N(g.meta || 0)}* · positivados *${N(g.positivados || 0)}*` + (g.meta ? ` (${(g.positivados / g.meta * 100).toFixed(1).replace('.', ',')}% da meta · faltam *${N(Math.max(0, g.meta - g.positivados))}*)` : '') + (g.faturado != null ? ` · ${R$(g.faturado)}` : ''),
+              '_Lista do dia 1º do GEROT (meta 80% da premiação): clientes com compra de 31 a 90 dias e nenhuma nos 30 dias antes do dia 1º. Abaixo ficam os clientes com a *TAG Recorrência* no roteiro/CEVEN._', '', String(r)].join('\n');
+          } catch (e) { /* sem GEROT: fica a TAG do CEVEN */ }
+        }
         // vendedor nao tem equipe: tira os blocos de equipe vazios (auditoria 10/11/2026, devolucoes)
         r = String(r == null ? 'Sem dado agora.' : r).split('\n').filter((l, i, a) => !(/^\*(Por supervisor|Vendedores com mais devolu[cç][aã]o):\*$/.test(l) && !/^(•|\d)/.test(a[i + 1] || '')) && !/^_Fonte: painel do CEVEN, só vendedores ativos/.test(l)).join('\n');
         return r + '\n' + rodape(k);
@@ -547,13 +563,15 @@ export async function respostaInterna(B, c, texto, anteriores) {
       }
       if (!passa) {
         // 22/11/2026 (bateria real): mensagem com 2 ou 3 assuntos do menu ('meta, positivacao, mix e recorrencia') = cada item do menu, em sequencia
-        { const { temasDoTexto } = await import('./respostas/liga_mix.js'); const ks = temasDoTexto(t).filter((x) => x !== 6 || /OFERECER|SUGEST|QUE VENDER/.test(t));
+        {
+          const { temasDoTexto } = await import('./respostas/liga_mix.js'); const ks = temasDoTexto(t).filter((x) => x !== 6 || /OFERECER|SUGEST|QUE VENDER/.test(t));
           const querMix = /\bMIX\b/.test(t) && !/OFERECER|SUGEST|QUE VENDER/.test(t);
           if (ks.length + (querMix ? 1 : 0) >= 2 && ks.length <= 3) {
             const partes = []; for (const k2 of ks) { const r2 = await abre(k2, null); if (r2) partes.push(String(r2).replace(/\n*📌 \*Quer detalhar\?\*[\s\S]*$/, '').replace(/\n*\*0\* Voltar ao menu.*$/s, '')); }
             if (querMix) { try { const { respMixGerot } = await import('./respostas/gestao_gerot.js'); const r3 = await respMixGerot(B, { filiais: [String(c.filial)], rca: String(rcaV), nome: `${rcaV} - ${nome2(c.nome || '')}` }, null, /\bMETA\b/.test(t)); if (r3) partes.push(r3); } catch (e) { /* sem mix */ } }
             if (partes.length >= 2) return partes.join('\n\n━━━━━━━━━━\n\n') + '\n\n*0* Voltar ao menu';
-          } }
+          }
+        }
         const k = temaDoTexto(t);
         if (k) return abre(k, null);
         if (!t || /^\W*(MENUS?|OPCOES|OPCAO|AJUDA|HELP|OI|OLA|BOM DIA+|BOA TA?RDE+|BOA RA+RDE+|BOA NOITE+|E AI|FALA+(?: PRA MIM)?)\W*(JOTA)?\W*$/.test(tOrig)) return respMenuVendedor(c);
@@ -581,10 +599,12 @@ export async function respostaInterna(B, c, texto, anteriores) {
       const mg = ultG.match(/〔MG:(\w+)〕/);
       if (mg && nmG) {
         const Eg = await carregaEscopo(B, esc), S = MO.supervisoresDaEquipe((Eg.vend || []).filter((v) => v.ehVendedorReal !== false)), sel = S[Number(nmG[1]) - 1];
-        if (sel) { const s = sel[0], cs = { nome: s, papel: 'supervisor', filial: String(c.filial), supervisor: s };
+        if (sel) {
+          const s = sel[0], cs = { nome: s, papel: 'supervisor', filial: String(c.filial), supervisor: s };
           const Es = await carregaEscopo(B, { nome: 'Equipe ' + titulo(s.split(' ').slice(0, 2).join(' ')) + ' (' + c.filial + ')', filiais: [String(c.filial)], grupo: null, supervisor: s, nacional: false });
           const m = await MO.respMomentoSupervisor(B, cs, Es, mg[1] === 'abertura' ? 'abertura' : mg[1]);
-          if (m) return m.texto.replace(/^[^\n]*\n/, `👥 *Equipe ${titulo(s.split(' ').slice(0, 2).join(' '))}* (como o supervisor vê)\n`); }
+          if (m) return m.texto.replace(/^[^\n]*\n/, `👥 *Equipe ${titulo(s.split(' ').slice(0, 2).join(' '))}* (como o supervisor vê)\n`);
+        }
       }
       if (/〔M[GS]:/.test(ultG) && /^\W*(ESCREVA |VER |QUERO )?MAIS\W*$/.test(tOrig)) return LMg.respAjuda(c);
     }
@@ -614,8 +634,10 @@ export async function respostaInterna(B, c, texto, anteriores) {
       const ultD = String(B.ultOut || ''), mg = ultD.match(/〔G:([^〕]*)〕/), nmD = t.match(/^\W*(\d{1,2})\W*$/);
       const PI0 = await import('./respostas/painel_industrias.js');
       const trava = (cam) => (ehGerP ? { ...cam, fil: String(c.filial) } : cam);
-      const PI = { respPainelIndustrias: (env, b, cam) => PI0.respPainelIndustrias(env, b, trava(cam)),
-        respPainelNumero: async (env, b, m, k) => { const p = m.split('|'); if (ehGerP && p[1] && p[1] !== String(c.filial)) return null; const r = await PI0.respPainelNumero(env, b, m, k); if (ehGerP && r && /〔G:[^|]*\|\|/.test(r)) return PI0.respPainelIndustrias(env, b, { mes: p[0], fil: String(c.filial) }); return r; } };
+      const PI = {
+        respPainelIndustrias: (env, b, cam) => PI0.respPainelIndustrias(env, b, trava(cam)),
+        respPainelNumero: async (env, b, m, k) => { const p = m.split('|'); if (ehGerP && p[1] && p[1] !== String(c.filial)) return null; const r = await PI0.respPainelNumero(env, b, m, k); if (ehGerP && r && /〔G:[^|]*\|\|/.test(r)) return PI0.respPainelIndustrias(env, b, { mes: p[0], fil: String(c.filial) }); return r; }
+      };
       if (mg && nmD) { const r = await PI.respPainelNumero(B.env, B, mg[1], Number(nmD[1])); if (r) return r; }
       const MESES_P = ['JANEIRO', 'FEVEREIRO', 'MARCO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'];
       const ws = t.split(/[^A-Z0-9]+/).filter(Boolean), LIVRE = new Set(['PAINEL', 'DAS', 'DA', 'DE', 'DO', 'DOS', 'AS', 'A', 'O', 'OS', 'E', 'INDUSTRIA', 'INDUSTRIAS', 'PERFORMANCE', 'FILIAL', 'FILIAIS', 'TODAS', 'BRASIL', 'POR', 'COMO', 'ESTA', 'ESTAO', 'MES', 'PASSADO', 'ANTERIOR', 'VENDA', 'VENDAS', 'RESULTADO', 'GEROT', 'JOTA', 'ME', 'MANDA', 'MOSTRA', 'QUERO', 'VER', 'NO', 'NA', 'EM', ...MESES_P, ...FILIAIS]);
@@ -626,15 +648,17 @@ export async function respostaInterna(B, c, texto, anteriores) {
         const r = await PI.respPainelIndustrias(B.env, B, { mes: mesP, fil: filP }); if (r) return r;
       }
       // INDUSTRIA CITADA (Condor, Condor da API, Condor de outubro...): mesmo entendimento do GEROT (palavra inteira), aberta no painel
-      if (B.env && B.env.DB) { try {
-        const { entendeGerot } = await import('./respostas/gerot_industria.js'), { nomeForn } = await import('./respostas/metas_industria.js');
-        const { results: NF } = await B.env.DB.prepare("SELECT DISTINCT json_extract(dados,'$.Fornecedor') n FROM gerot_vendas WHERE mes >= ?").bind(hojeSP().slice(0, 4) + '-01').all();
-        const nomesNF = (NF || []).map((x) => x.n).filter(Boolean);
-        // so o nome da industria ('condor', 'mars choco') = a industria no painel (11/11/2026)
-        const q = entendeGerot(texto, nomesNF) || (t.split(/\s+/).filter(Boolean).length <= 3 ? entendeGerot('venda ' + texto, nomesNF) : null);
-        // 11/11/2026 (Rudinei): qualquer jeito de pedir industria ('me fale da venda por industria de TCV', varias industrias de uma vez) vai para o painel
-        if (q && (q.industrias.length || q.porIndustria)) { const inds = [...new Set(q.industrias.map((x) => nomeForn(x)))]; const r = await PI.respPainelIndustrias(B.env, B, { mes: q.mes, fil: q.filiais.length === 1 ? q.filiais[0] : null, ind: inds.length === 1 ? inds[0] : null, inds: inds.length > 1 ? inds : null }); if (r) return r; }
-      } catch (e) { /* segue a cadeia normal */ } }
+      if (B.env && B.env.DB) {
+        try {
+          const { entendeGerot } = await import('./respostas/gerot_industria.js'), { nomeForn } = await import('./respostas/metas_industria.js');
+          const { results: NF } = await B.env.DB.prepare("SELECT DISTINCT json_extract(dados,'$.Fornecedor') n FROM gerot_vendas WHERE mes >= ?").bind(hojeSP().slice(0, 4) + '-01').all();
+          const nomesNF = (NF || []).map((x) => x.n).filter(Boolean);
+          // so o nome da industria ('condor', 'mars choco') = a industria no painel (11/11/2026)
+          const q = entendeGerot(texto, nomesNF) || (t.split(/\s+/).filter(Boolean).length <= 3 ? entendeGerot('venda ' + texto, nomesNF) : null);
+          // 11/11/2026 (Rudinei): qualquer jeito de pedir industria ('me fale da venda por industria de TCV', varias industrias de uma vez) vai para o painel
+          if (q && (q.industrias.length || q.porIndustria)) { const inds = [...new Set(q.industrias.map((x) => nomeForn(x)))]; const r = await PI.respPainelIndustrias(B.env, B, { mes: q.mes, fil: q.filiais.length === 1 ? q.filiais[0] : null, ind: inds.length === 1 ? inds[0] : null, inds: inds.length > 1 ? inds : null }); if (r) return r; }
+        } catch (e) { /* segue a cadeia normal */ }
+      }
     }
     // INDICE DO SUPERVISOR (Vitorio, 10/11/2026: 'para os supervisores tambem vamos liberar um menu... focado na equipe dele e com indices para acessar detalhes').
     // Igual ao do vendedor: o numero abre a resposta pronta; texto livre vira o indice com o assunto sugerido. Passam direto: cliente/CNPJ, 'tem <produto>',
@@ -694,10 +718,12 @@ export async function respostaInterna(B, c, texto, anteriores) {
         else if (chave === '__prospeq__') { const { respProspectsEquipe } = await import('./respostas/segmentos_pastas.js'); r = await respProspectsEquipe(B, await carregaEscopo(B, esc)); }
         else r = await internoS(chave);
         // META DE RECORRENCIA DO GEROT da equipe do supervisor (o vendedor ve a dele no 8)
-        if (/recorrencia/i.test(chave) && B.env && B.env.DB) { try {
-          const g = await B.env.DB.prepare("SELECT objetivo, meta, positivados FROM gerot_recorrencia_pasta WHERE mes = ? AND filial = ? AND nivel = 'supervisor' AND upper(nome) LIKE ? ORDER BY em DESC LIMIT 1").bind(hojeSP().slice(0, 7), String(fil || ''), '%' + sem(String(supervisor)).toUpperCase() + '%').first();
-          if (g && g.objetivo != null) r = `🎯 *Meta de recorrência da equipe (GEROT)*: objetivo *${N(g.objetivo)}* · meta 80% = *${N(g.meta || 0)}* · positivados *${N(g.positivados || 0)}*` + (g.meta ? ` (${(g.positivados / g.meta * 100).toFixed(1).replace('.', ',')}% · faltam *${N(Math.max(0, g.meta - g.positivados))}*)` : '') + '\n\n' + String(r);
-        } catch (e) { /* sem GEROT */ } }
+        if (/recorrencia/i.test(chave) && B.env && B.env.DB) {
+          try {
+            const g = await B.env.DB.prepare("SELECT objetivo, meta, positivados FROM gerot_recorrencia_pasta WHERE mes = ? AND filial = ? AND nivel = 'supervisor' AND upper(nome) LIKE ? ORDER BY em DESC LIMIT 1").bind(hojeSP().slice(0, 7), String(fil || ''), '%' + sem(String(supervisor)).toUpperCase() + '%').first();
+            if (g && g.objetivo != null) r = `🎯 *Meta de recorrência da equipe (GEROT)*: objetivo *${N(g.objetivo)}* · meta 80% = *${N(g.meta || 0)}* · positivados *${N(g.positivados || 0)}*` + (g.meta ? ` (${(g.positivados / g.meta * 100).toFixed(1).replace('.', ',')}% · faltam *${N(Math.max(0, g.meta - g.positivados))}*)` : '') + '\n\n' + String(r);
+          } catch (e) { /* sem GEROT */ }
+        }
         return String(r == null ? 'Sem dado agora.' : r) + '\n' + rodapeS(k);
       };
       if (nmS) {
@@ -712,9 +738,13 @@ export async function respostaInterna(B, c, texto, anteriores) {
         if (s == null && mk && [5, 6].includes(Number(mk[1]))) {
           const emo = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'], marca = emo[k - 1] || `${k}.`;
           const lin = ult.split('\n').find((l) => l.startsWith(marca + ' *')), rcaL = lin && (lin.match(/^\S+ \*(\d+) - /) || [])[1];
-          if (rcaL) { const v = (await equipe()).find((x) => String(x.rca) === rcaL);
-            if (v) { const cv = { nome: v.nome, papel: 'vendedor', filial: v.filial, rca: String(v.rca), celular: c.celular }; const o = B.ultOut; B.ultOut = ''; let rr; try { rr = await respostaPronta(B, cv, Number(mk[1]) === 5 ? '5' : '8', []); } finally { B.ultOut = o; }
-              return String(rr) + `\n_👤 Menu do vendedor ${vn(v)} · mande *menu* para voltar ao seu 〔V:${v.filial}:${v.rca}〕_`; } }
+          if (rcaL) {
+            const v = (await equipe()).find((x) => String(x.rca) === rcaL);
+            if (v) {
+              const cv = { nome: v.nome, papel: 'vendedor', filial: v.filial, rca: String(v.rca), celular: c.celular }; const o = B.ultOut; B.ultOut = ''; let rr; try { rr = await respostaPronta(B, cv, Number(mk[1]) === 5 ? '5' : '8', []); } finally { B.ultOut = o; }
+              return String(rr) + `\n_👤 Menu do vendedor ${vn(v)} · mande *menu* para voltar ao seu 〔V:${v.filial}:${v.rca}〕_`;
+            }
+          }
         }
         // 12: numero da campanha = a TAG por vendedor; 13: numero do vendedor = os prospects dele por tipo (entra no menu do vendedor, item 10)
         if (s == null && mk && Number(mk[1]) === 12 && /Digite o número da campanha/.test(ult)) { const tg = (ult.match(new RegExp('^' + k + '\\. \\*(.+?)\\*', 'm')) || [])[1]; if (tg) { const { respCampanhasEquipe } = await import('./respostas/rota.js'); return (await respCampanhasEquipe(B, await carregaEscopo(B, esc), tg)) + '\n\n👉 Digite *12* para voltar às campanhas.\n' + rodapeS(12); } }
@@ -741,32 +771,36 @@ export async function respostaInterna(B, c, texto, anteriores) {
     if (!rcaV && c && c.papel && c.papel !== 'vendedor' && !B.semIndice && /\b(VENDEDORA?|RCA|SETOR|COD)\b|\b\d{2,5}\b|[A-Z]{3,} [A-Z]{3,}/.test(t)) {
       const E0 = await carregaEscopo(B, esc), pessoa = achaPessoa(E0, t);
       if (pessoa && pessoa.tipo === 'vend' && !(pessoa.outroSupervisor && c.papel === 'supervisor')) {
-      const { temaDoTexto, MENU_VENDEDOR } = await import('./respostas/liga_mix.js');
-      const sT = String(t).replace(new RegExp('\\b(' + sem(String(pessoa.alvo.nome || '')).split(/\s+/).filter((w) => w.length > 2).join('|') + ')\\b', 'g'), ' ');
-      if (/\b(MENUS?|INDICE|OPCOES)\b/.test(sT) && !/POSITIV|META|ROTA|DEVOLU|CURVA|LIGA|PROSPEC|CAMPANHA|PEDIDO|MIX|CORTES|CARTEIRA|FASEAMENTO/.test(sT)) return abreVendedorComoEle(B, c, pessoa.alvo);
-      // 16/11/2026 (Vitorio: 'Venda Tamara TCV hoje' / 'Quanto a Tamara vendeu hoje' -> caia no item 1 = ficha do MES): pergunta do DIA = o dia cliente a cliente
-      if (/\b(HOJE|HJ)\b/.test(sT) && /VEND|DIGIT|PEDID|POSITIV|FEZ|FOI O DIA/.test(sT) && !/\bMES\b|SEMANA|CURVA|ROTA DE HOJE|QUAIS CLIENTES|LIGA|CHAMPI/.test(sT)) return respDiaVendedor(B, E0, pessoa.alvo);
-      const k = temaDoTexto(sT);
-      if (k && MENU_VENDEDOR[k - 1]) {
-        const v = pessoa.alvo, cv = { nome: v.nome, papel: 'vendedor', filial: v.filial, rca: String(v.rca), celular: c.celular };
-        const o = B.ultOut; B.ultOut = '';
-        let r; try { r = await respostaPronta(B, cv, MENU_VENDEDOR[k - 1][1] === '__curva__' ? `curva negativa do VENDEDOR ${v.rca}` : String(k), []); } finally { B.ultOut = o; }   // 16/11/2026: o '5' solto caia na ficha
-        if (r) return String(r) + `\n_👤 Igual ao que ${vn(v)} vê no item ${k} do menu dele · mande *menu* para voltar ao seu 〔V:${v.filial}:${v.rca}〕_`;
-      }
+        const { temaDoTexto, MENU_VENDEDOR } = await import('./respostas/liga_mix.js');
+        const sT = String(t).replace(new RegExp('\\b(' + sem(String(pessoa.alvo.nome || '')).split(/\s+/).filter((w) => w.length > 2).join('|') + ')\\b', 'g'), ' ');
+        if (/\b(MENUS?|INDICE|OPCOES)\b/.test(sT) && !/POSITIV|META|ROTA|DEVOLU|CURVA|LIGA|PROSPEC|CAMPANHA|PEDIDO|MIX|CORTES|CARTEIRA|FASEAMENTO/.test(sT)) return abreVendedorComoEle(B, c, pessoa.alvo);
+        // 16/11/2026 (Vitorio: 'Venda Tamara TCV hoje' / 'Quanto a Tamara vendeu hoje' -> caia no item 1 = ficha do MES): pergunta do DIA = o dia cliente a cliente
+        if (/\b(HOJE|HJ)\b/.test(sT) && /VEND|DIGIT|PEDID|POSITIV|FEZ|FOI O DIA/.test(sT) && !/\bMES\b|SEMANA|CURVA|ROTA DE HOJE|QUAIS CLIENTES|LIGA|CHAMPI/.test(sT)) return respDiaVendedor(B, E0, pessoa.alvo);
+        const k = temaDoTexto(sT);
+        if (k && MENU_VENDEDOR[k - 1]) {
+          const v = pessoa.alvo, cv = { nome: v.nome, papel: 'vendedor', filial: v.filial, rca: String(v.rca), celular: c.celular };
+          const o = B.ultOut; B.ultOut = '';
+          let r; try { r = await respostaPronta(B, cv, MENU_VENDEDOR[k - 1][1] === '__curva__' ? `curva negativa do VENDEDOR ${v.rca}` : String(k), []); } finally { B.ultOut = o; }   // 16/11/2026: o '5' solto caia na ficha
+          if (r) return String(r) + `\n_👤 Igual ao que ${vn(v)} vê no item ${k} do menu dele · mande *menu* para voltar ao seu 〔V:${v.filial}:${v.rca}〕_`;
+        }
       }
     }
     // RV / COMISSAO / SALARIO DO VENDEDOR (Vitorio, 09/11/2026): 'quando perguntar sobre o RV responde que nao tem os dados, mas da as metas e como esta ate agora'.
     // Antes da regra do mes passado: 'meu RMV do mes passado' recebe o fechamento + o aviso.
-    if (rcaV && /COMISS|SALARI|\bRMV\b|\bRV\b|\bGANHOS?\b|REMUNERA|HOLERITE|PREMIACAO DE VENDAS|MINHA PREMIACAO\b/.test(t)) { const euV = `VENDEDOR ${rcaV}`, passado = /MES PASSADO|MES ANTERIOR|OUTUBRO|SETEMBRO/.test(t);
+    if (rcaV && /COMISS|SALARI|\bRMV\b|\bRV\b|\bGANHOS?\b|REMUNERA|HOLERITE|PREMIACAO DE VENDAS|MINHA PREMIACAO\b/.test(t)) {
+      const euV = `VENDEDOR ${rcaV}`, passado = /MES PASSADO|MES ANTERIOR|OUTUBRO|SETEMBRO/.test(t);
       const [comoEsta, metas] = await Promise.all([reenvia(passado ? 'fechamento do mes passado' : `como esta o ${euV}`), reenvia('metas da premiacao')]);
-      return `💰 *Não tenho os dados do RV (premiação em R$) aqui no Jota.* Seguem as suas metas e como você está ${passado ? 'no fechamento do mês passado' : 'até agora'}:\n\n${comoEsta}\n\n${metas}`; }
+      return `💰 *Não tenho os dados do RV (premiação em R$) aqui no Jota.* Seguem as suas metas e como você está ${passado ? 'no fechamento do mês passado' : 'até agora'}:\n\n${comoEsta}\n\n${metas}`;
+    }
     if (/\bBALLY\b/.test(t)) return reenvia(t.replace(/\bBALLY\b/g, 'BALY'));   // o catalogo escreve BALY (energetico da Bebidas Grassi); o time escreve Bally
     // MES QUE JA FECHOU, em qualquer jeito de perguntar ("como foi outubro", "bati a meta em outubro?", "quanto vendi mes passado", "fechei a meta?"): o fechamento gravado, nunca o mes que comecou (02/11/2026)
-    { const mMes = t.match(/\b(JANEIRO|FEVEREIRO|MARCO|ABRIL|MAIO|JUNHO|JULHO|AGOSTO|SETEMBRO|OUTUBRO|NOVEMBRO|DEZEMBRO)\b|\bMES (PASSADO|ANTERIOR)\b/), mesesN = ['JANEIRO', 'FEVEREIRO', 'MARCO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'];
+    {
+      const mMes = t.match(/\b(JANEIRO|FEVEREIRO|MARCO|ABRIL|MAIO|JUNHO|JULHO|AGOSTO|SETEMBRO|OUTUBRO|NOVEMBRO|DEZEMBRO)\b|\bMES (PASSADO|ANTERIOR)\b/), mesesN = ['JANEIRO', 'FEVEREIRO', 'MARCO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'];
       const hjM = Number(hojeSP().slice(5, 7)), nomeMes = mMes && mMes[1], jaFechou = mMes && (!nomeMes || mesesN.indexOf(nomeMes) + 1 < hjM);
       const geral = !/CLIENTE|INDUSTRIA|FORNECEDOR|PRODUTO|MARCA|LIGA|CHAMPI|COMPARA|RELACAO|\bX\b/.test(t) && (rcaV || !/VENDEDOR/.test(t));
       if (jaFechou && geral && (/COMO FOI|BATI|BATEU|BATEMOS|VENDI|VENDEMOS|\bFIZ\b|FIZEMOS|POSITIV|\bMETA\b/.test(t) || new RegExp('^\\W*(E )?(' + nomeMes + ')\\W*$').test(t))) return reenvia(nomeMes ? `fechamento de ${nomeMes}` : 'fechamento do mes passado');
-      if (/^\W*(FECHEI|FECHAMOS|BATI|BATEMOS) A META\W*$/.test(t) && Number(hojeSP().slice(8)) <= 5) return reenvia('fechamento do mes passado'); }
+      if (/^\W*(FECHEI|FECHAMOS|BATI|BATEMOS) A META\W*$/.test(t) && Number(hojeSP().slice(8)) <= 5) return reenvia('fechamento do mes passado');
+    }
     if (rcaV) {
       const eu = `VENDEDOR ${rcaV}`;
       // PEDIDOS REAIS DOS VENDEDORES (cadastro, 01/11/2026): varios assuntos na mesma mensagem nao podem virar um so; comissao + clientes sem compra responde os dois
@@ -820,42 +854,49 @@ export async function respostaInterna(B, c, texto, anteriores) {
     }
     if (/BRASILEIRAO|\bLIGA\b/.test(t) && /CONTABIL/.test(t)) return respGlossario('LIGA') || null;
     if (/\bCHAMPIONS?\b|\bLIGA\b|BRASILEIRAO|DIFERENCA.*PONTOS?.*CONCORRENT|PONTOS.*CONCORRENT/.test(t) && !/CLIENTE|CONTABIL|REGRA|COMO FUNCIONA|O QUE E|\bAS\b|ATACADO/.test(t)) return respLiga(B, await carregaEscopo(B, esc), null, t);
-  { const mPed = t.match(/\bPEDIDO\s*(?:N[UOº°.]?|NUMERO)?\s*#?\s*(\d{5,12})\b/);
-    if (mPed && B.env && B.env.DB) {
-      const Ep = await carregaEscopo(B, esc), fil = (Ep.filiais || []).length ? Ep.filiais : FILIAIS, qs = fil.map(() => '?').join(',');
-      // 17/11/2026 (auditoria por papel: "pedido 352001310" dava 'nao achei'): a mesma resposta do pedido pelo numero = GEROT (Carteira Total + Pedidos)
-      { const r = await (await import('./respostas/pedidos_gerot.js')).respPedidoGerot(B, Ep, mPed[1]).catch(() => null); if (r) return r; }
-      let sql = `SELECT filial, rca, num, id_cliente, data_pedido, status, valor, confirmado_em FROM pedido_status WHERE num = ? AND filial IN (${qs})`;
-      const bind = [mPed[1], ...fil];
-      if (Ep.rca) { sql += ' AND rca = ?'; bind.push(String(Ep.rca)); }
-      const p = await B.env.DB.prepare(sql + ' LIMIT 1').bind(...bind).first().catch(() => null);
-      if (p) {
-        const ic = /FATURAD/.test(String(p.status)) ? '✅' : /BLOQUEAD/.test(String(p.status)) ? '🚫' : /LIBERAD/.test(String(p.status)) ? '🟢' : /CANCELAD/.test(String(p.status)) ? '❌' : '⏳';
-        return `${ic} *Pedido ${p.num}* (${p.filial} · RCA ${p.rca} · cli. #${p.id_cliente})\n• Status: *${titulo(String(p.status || '').replace(/_/g, ' '))}*\n• Data do pedido: ${String(p.data_pedido).split('-').reverse().join('/')}\n• Valor: *${R$(p.valor || 0)}*\n${p.confirmado_em ? `• Última conferência: ${p.confirmado_em}` : ''}\n\n_Status da última conferência registrada._`;
+    {
+      const mPed = t.match(/\bPEDIDO\s*(?:N[UOº°.]?|NUMERO)?\s*#?\s*(\d{5,12})\b/);
+      if (mPed && B.env && B.env.DB) {
+        const Ep = await carregaEscopo(B, esc), fil = (Ep.filiais || []).length ? Ep.filiais : FILIAIS, qs = fil.map(() => '?').join(',');
+        // 17/11/2026 (auditoria por papel: "pedido 352001310" dava 'nao achei'): a mesma resposta do pedido pelo numero = GEROT (Carteira Total + Pedidos)
+        { const r = await (await import('./respostas/pedidos_gerot.js')).respPedidoGerot(B, Ep, mPed[1]).catch(() => null); if (r) return r; }
+        let sql = `SELECT filial, rca, num, id_cliente, data_pedido, status, valor, confirmado_em FROM pedido_status WHERE num = ? AND filial IN (${qs})`;
+        const bind = [mPed[1], ...fil];
+        if (Ep.rca) { sql += ' AND rca = ?'; bind.push(String(Ep.rca)); }
+        const p = await B.env.DB.prepare(sql + ' LIMIT 1').bind(...bind).first().catch(() => null);
+        if (p) {
+          const ic = /FATURAD/.test(String(p.status)) ? '✅' : /BLOQUEAD/.test(String(p.status)) ? '🚫' : /LIBERAD/.test(String(p.status)) ? '🟢' : /CANCELAD/.test(String(p.status)) ? '❌' : '⏳';
+          return `${ic} *Pedido ${p.num}* (${p.filial} · RCA ${p.rca} · cli. #${p.id_cliente})\n• Status: *${titulo(String(p.status || '').replace(/_/g, ' '))}*\n• Data do pedido: ${String(p.data_pedido).split('-').reverse().join('/')}\n• Valor: *${R$(p.valor || 0)}*\n${p.confirmado_em ? `• Última conferência: ${p.confirmado_em}` : ''}\n\n_Status da última conferência registrada._`;
+        }
+        return (await import('./respostas/pedidos_gerot.js')).msgPedidoNaoEncontrado(B, mPed[1]);
       }
-      return (await import('./respostas/pedidos_gerot.js')).msgPedidoNaoEncontrado(B, mPed[1]);
     }
-  }
-  if (/MAIOR ATRASO|MAIS ATRASAD[OA]S?|PIOR(ES)? ATRASO|ATRASO PARA A META|ATRASADOS? NA META/.test(t)) { const r = await respMaiorAtrasoMeta(B, await carregaEscopo(B, esc)); if (r) return r; }
-  if (/BLOQUEIO COMERCIAL|BLOQUEAD[OA]S? COMERCIAL|QUANTO.*BLOQUEIO/.test(t)) { const r = await respBloqueioComercial(B, await carregaEscopo(B, esc)); if (r) return r; }
-  if (/FASEAMENTO.*SEMANA|SEMANA.*FASEAMENTO|\b[1-4][OA°º]?\s*SEMANA\b/.test(t)) return respFaseamentoSemana(B, await carregaEscopo(B, esc), t);
+    if (/MAIOR ATRASO|MAIS ATRASAD[OA]S?|PIOR(ES)? ATRASO|ATRASO PARA A META|ATRASADOS? NA META/.test(t)) { const r = await respMaiorAtrasoMeta(B, await carregaEscopo(B, esc)); if (r) return r; }
+    if (/BLOQUEIO COMERCIAL|BLOQUEAD[OA]S? COMERCIAL|QUANTO.*BLOQUEIO/.test(t)) { const r = await respBloqueioComercial(B, await carregaEscopo(B, esc)); if (r) return r; }
+    if (/FASEAMENTO.*SEMANA|SEMANA.*FASEAMENTO|\b[1-4][OA°º]?\s*SEMANA\b/.test(t)) return respFaseamentoSemana(B, await carregaEscopo(B, esc), t);
     // SABATINA 01/11/2026 (perguntas reais, respostas de outro assunto): sem "hoje", "nao vendeu" e a carteira do mes, nunca a rota do dia
-    { const mNv = t.match(/^\W*(?:QUAIS )?(?:CLIENTES?|LOJAS?)(?: QUE)?(.*?)\b(?:AINDA NAO (?:FORAM )?POSITIVAD\w*|NAO VENDEU|NAO TEM VENDA|SEM VENDA|SEM COMPRA)\b(.*)$/);
-      if (mNv && !/\bHOJE\b|\bHJ\b|\bROTA\b/.test(t)) { const quem = (mNv[1] + ' ' + mNv[2]).replace(/\b(DA|DO|DE|VENDEDORA?|NO|ESSE|ESTE|MES)\b/g, ' ').replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim(); if (quem) return reenvia('curva negativa do vendedor ' + quem); if (rcaV) return reenvia('curva negativa do vendedor ' + rcaV); } }
+    {
+      const mNv = t.match(/^\W*(?:QUAIS )?(?:CLIENTES?|LOJAS?)(?: QUE)?(.*?)\b(?:AINDA NAO (?:FORAM )?POSITIVAD\w*|NAO VENDEU|NAO TEM VENDA|SEM VENDA|SEM COMPRA)\b(.*)$/);
+      if (mNv && !/\bHOJE\b|\bHJ\b|\bROTA\b/.test(t)) { const quem = (mNv[1] + ' ' + mNv[2]).replace(/\b(DA|DO|DE|VENDEDORA?|NO|ESSE|ESTE|MES)\b/g, ' ').replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim(); if (quem) return reenvia('curva negativa do vendedor ' + quem); if (rcaV) return reenvia('curva negativa do vendedor ' + rcaV); }
+    }
     // CONTINUACAO DA CONVERSA (sabatina 01/11/2026): "Do mes", "Mes todo" repetem a ultima pergunta no mes; "Mas so da Josiane?" abre a pessoa citada
-    { const ultQ = (anteriores || []).length ? sem(String(anteriores[0] || '')).replace(/\b(HOJE|HJ|ONTEM)\b/g, ' ').trim() : '';
+    {
+      const ultQ = (anteriores || []).length ? sem(String(anteriores[0] || '')).replace(/\b(HOJE|HJ|ONTEM)\b/g, ' ').trim() : '';
       // "Mes passado" sozinho (Sueli/API, 01/11/2026): e o fechamento gravado, aberto por vendedor se a conversa vinha nos vendedores; nunca a comparacao com o mes que acabou de comecar
       if (/^\W*(E )?((O|DO|NO) )?MES (PASSADO|ANTERIOR)\W*$/.test(t)) return reenvia((anteriores || []).slice(0, 2).some((a) => /VENDEDOR|RANKING/.test(sem(String(a)))) ? 'fechamento do mes passado por vendedores' : 'fechamento do mes passado');
       if (/^\W*(DO MES|MES TODO|NO MES)\W*$/.test(t)) return ultQ && ultQ !== t.trim() ? respostaPronta(B, c, ultQ + ' no mes', []) : respResumo(B, await carregaEscopo(B, esc));
       // "sim, gostaria de saber se faturou o pedido": continua pedindo o numero; "desses clientes, algum na rota de hoje?" usa a ultima pergunta
       if (/^\W*(SIM\W+)?.*(FATUROU|FATURADO) O PEDIDO\W*$/.test(t)) return rcaV ? reenvia('status dos pedidos') : 'Me passa o número do pedido que eu confiro. Exemplo: *pedido 59000514*.';
       if (/^\W*DESSES? CLIENTES\b.*ROTA/.test(t) && ultQ) return respostaPronta(B, c, ultQ + ' na rota de hoje', []);
-      const mSo = t.match(/^\W*(?:MAS )?(?:E )?(?:SO|APENAS) D[AOE] (?:VENDEDORA? )?([A-Z0-9 ]{3,40}?)\W*$/); if (mSo) { const Es = await carregaEscopo(B, esc); if (!achaPessoa(Es, mSo[1])) return `Não achei *${titulo(mSo[1])}* entre os vendedores de ${Es.nome}. Me passa o código ou a filial.`; return reenvia('como esta o vendedor ' + mSo[1]); } }
+      const mSo = t.match(/^\W*(?:MAS )?(?:E )?(?:SO|APENAS) D[AOE] (?:VENDEDORA? )?([A-Z0-9 ]{3,40}?)\W*$/); if (mSo) { const Es = await carregaEscopo(B, esc); if (!achaPessoa(Es, mSo[1])) return `Não achei *${titulo(mSo[1])}* entre os vendedores de ${Es.nome}. Me passa o código ou a filial.`; return reenvia('como esta o vendedor ' + mSo[1]); }
+    }
     // EQUIPE CITADA + POSITIVACAO: o indicador da pergunta manda (Priscila/TPH recebia o digitado do dia)
     { const mEq = t.match(/EQUIPE D[AOE] ([A-Z]{3,})/); if (mEq && /POSITIVA/.test(t)) { const Eq = await carregaEscopo(B, esc), L = Eq.vend.filter((v) => sem(v.supervisor || '').includes(mEq[1])); if (L.length) { const r = L.reduce((a, v) => ({ p: a.p + (Number(v.pos) || 0), m: a.m + (Number(v.metaPos) || 0) }), { p: 0, m: 0 }); return [`👥 *Positivação — Equipe ${titulo(mEq[1])}* (${[...new Set(L.map((v) => v.filial))].join(', ')})`, `*${N(r.p)} de ${N(Math.round(r.m))}*${r.m > 0 ? ` (${pctTxt(r.p / r.m * 100)})` : ''} · faltam ${N(Math.max(0, Math.round(r.m - r.p)))}`, ...L.slice().sort((x, y) => (Number(x.pos) || 0) / (Number(x.metaPos) || 1) - (Number(y.pos) || 0) / (Number(y.metaPos) || 1)).slice(0, 15).map((v) => `• ${vn(v)}: ${N(v.pos || 0)} de ${N(Math.round(v.metaPos || 0))}`)].join('\n'); } } }
     // MARCA NA META: "meta da colgate", "meta condor do setor 18" vao para as metas por industria, nunca para a meta geral
-    { const mMt = t.match(/\bMETA (?:DA |DE |DO )?([A-Z]{4,})\b/), ger = /^(DIARIAMENTE|DIARIA|DIARIO|SEMANAL|FILIAL|EQUIPE|GERAL|FATURAMENTO|POSITIVACAO|RECORRENCIA|PREMIACAO|MENSAL|TOTAL|VENDEDOR|SUPERVISOR|BRASIL|HOJE|ESTA|ESSA|DESTE|CADA|PARA|AINDA|NOVEMBRO|OUTUBRO|ESTE|ESSE|DESSE|DESTA|DESSA|NESTE|NESSE|NESTA|NESSA|ATUAL|ATUALIZAD[AO]S?|MINHA|MINHAS|NOSSA|SUA|DELE|DELA|PROXIMO|PASSADO|ANTERIOR|JANEIRO|FEVEREIRO|MARCO|ABRIL|MAIO|JUNHO|JULHO|AGOSTO|SETEMBRO|DEZEMBRO|SEMANA|SEMANAL|DIAS|QUANTO|QUAL|COMO|AGORA|FATURADA|BATIDA|BATEU|ATINGIDA|ESTOU|ESTAMOS)$/;   /* 09/11/2026: 'minha meta este mes' leu ESTE como industria */
-      if (mMt && !/TENDENCIA|PROJE|PREVISAO/.test(t) && !ger.test(mMt[1]) && !FILIAIS.includes(mMt[1])) { const Em = await carregaEscopo(B, esc), rm = await respMetasIndustria(B, Em, t, achaPessoa(Em, t)); if (rm && !/Nenhuma meta/.test(rm) && sem(rm).includes(mMt[1])) return rm; return `Não tenho meta de *${titulo(mMt[1])}* cadastrada na Premiação para ${Em.nome} neste mês.`; } }
+    {
+      const mMt = t.match(/\bMETA (?:DA |DE |DO )?([A-Z]{4,})\b/), ger = /^(DIARIAMENTE|DIARIA|DIARIO|SEMANAL|FILIAL|EQUIPE|GERAL|FATURAMENTO|POSITIVACAO|RECORRENCIA|PREMIACAO|MENSAL|TOTAL|VENDEDOR|SUPERVISOR|BRASIL|HOJE|ESTA|ESSA|DESTE|CADA|PARA|AINDA|NOVEMBRO|OUTUBRO|ESTE|ESSE|DESSE|DESTA|DESSA|NESTE|NESSE|NESTA|NESSA|ATUAL|ATUALIZAD[AO]S?|MINHA|MINHAS|NOSSA|SUA|DELE|DELA|PROXIMO|PASSADO|ANTERIOR|JANEIRO|FEVEREIRO|MARCO|ABRIL|MAIO|JUNHO|JULHO|AGOSTO|SETEMBRO|DEZEMBRO|SEMANA|SEMANAL|DIAS|QUANTO|QUAL|COMO|AGORA|FATURADA|BATIDA|BATEU|ATINGIDA|ESTOU|ESTAMOS)$/;   /* 09/11/2026: 'minha meta este mes' leu ESTE como industria */
+      if (mMt && !/TENDENCIA|PROJE|PREVISAO/.test(t) && !ger.test(mMt[1]) && !FILIAIS.includes(mMt[1])) { const Em = await carregaEscopo(B, esc), rm = await respMetasIndustria(B, Em, t, achaPessoa(Em, t)); if (rm && !/Nenhuma meta/.test(rm) && sem(rm).includes(mMt[1])) return rm; return `Não tenho meta de *${titulo(mMt[1])}* cadastrada na Premiação para ${Em.nome} neste mês.`; }
+    }
     // POSITIVOU COM MARCA: quantos clientes do vendedor compraram a marca
     { const mPc = t.match(/POSITIVOU COM ([A-Z]{3,})/); if (mPc) { const Ep = await carregaEscopo(B, esc), r = await respIndustria(B, Ep, mPc[1] + ' POR VENDEDOR ' + t, achaPessoa(Ep, t)); if (r) return r; } }
     // SABATINA 01/11/2026: reclamacao sobre a resposta anterior nao recebe outro numero; pedido sem o nome de quem pede o nome; origem da meta tem resposta propria
@@ -866,8 +907,10 @@ export async function respostaInterna(B, c, texto, anteriores) {
     // +MIX com vendedor ou equipe: o relatorio do +MIX, nunca as metas da Premiacao
     if (/\bMIX\b/.test(t) && /DESEMPENHO/.test(t)) { const Ex = await carregaEscopo(B, esc), mx = await respMix(B, Ex, t); if (mx) return mx; }
     // MARCA: "quem nao comprou Mars" e recuperacao; "item mais vendido de Mondelez" e a venda da marca, nunca a meta
-    { const mN = t.match(/QUEM NAO COMPROU ([A-Z0-9]{3,})/); if (mN) { const Er = await carregaEscopo(B, esc), rr = await respRecuperacao(B, Er, t); if (rr) return rr; }
-      const mI = t.match(/(?:ITEM|ITENS|PRODUTOS?) MAIS VENDID\w* (?:DE|DA|DO) ([A-Z0-9]{3,})/); if (mI) { const Ei = await carregaEscopo(B, esc), ri = await respIndustria(B, Ei, t, null); if (ri) return ri; const rp = await respProduto(B, Ei, t, null); if (rp) return rp; } }
+    {
+      const mN = t.match(/QUEM NAO COMPROU ([A-Z0-9]{3,})/); if (mN) { const Er = await carregaEscopo(B, esc), rr = await respRecuperacao(B, Er, t); if (rr) return rr; }
+      const mI = t.match(/(?:ITEM|ITENS|PRODUTOS?) MAIS VENDID\w* (?:DE|DA|DO) ([A-Z0-9]{3,})/); if (mI) { const Ei = await carregaEscopo(B, esc), ri = await respIndustria(B, Ei, t, null); if (ri) return ri; const rp = await respProduto(B, Ei, t, null); if (rp) return rp; }
+    }
     // DEVOLUCAO "CLIENTE NAO PEDIU": so as notas com esse motivo oficial lido do CEVEN (devolucao_nota_motivo). Nota sem motivo lido fica de fora e a resposta avisa.
     if (/DEVOLU/.test(t) && /NAO PEDIU/.test(t) && B.env && B.env.DB) {
       const Ed = await carregaEscopo(B, esc), { results: Mo } = await B.env.DB.prepare('SELECT rca, nota, nao_pediu FROM devolucao_nota_motivo').all(), mot = new Map((Mo || []).map((x) => [x.rca + '|' + x.nota, x.nao_pediu]));
@@ -891,22 +934,46 @@ export async function respostaInterna(B, c, texto, anteriores) {
       // vendas/rendimento de um mes fechado = o fechamento oficial, um numero so (Laura e Alex, cadastro 02/11/2026)
       const pedeMes = /VEND[AI]|RENDIMENTO|DESEMPENHO/.test(t) && !/COMPARA|\bX\b|RELACAO|ESTE MES|ESSE MES/.test(t) && !/\b(DE|DA|DO) [A-Z]{4,}/.test(semMes) && (rcaV || !/VENDEDOR/.test(t));
       if (ym && ym >= '2026-08' && ym < hj.slice(0, 7) && (/FECH|RESULTADO|FATUR|ACUMUL|\bMETAS?\b/.test(t) || porVend || pedeMes) && !/INDUSTRIA|FORNECEDOR|PRODUTO|CLIENTE/.test(t) && B.env && B.env.DB) {
-        const Em = await carregaEscopo(B, esc), chaves = new Set(Em.vend.concat(Em.ocultos || []).map((v) => v.filial + '|' + v.rca));
+        const Em = await carregaEscopo(B, esc), chaves = new Set(Em.vend.concat(Em.ocultos || []).flatMap((v) => { const rn = /^\d+$/.test(String(v.rca)) ? String(Number(v.rca)) : String(v.rca); return [v.filial + '|' + v.rca, v.filial + '|' + rn]; }));
         // 21/11/2026 (auditoria dos analistas: a positivacao de outubro saia com 3 numeros): fechamento do mes = GEROT do mes fechado (antes: foto do CEVEN)
         const u = { d: ym + '-' + String(new Date(Date.UTC(Number(ym.slice(0, 4)), Number(ym.slice(5)), 0)).getUTCDate()).padStart(2, '0') };
         if (u && u.d) {
-        const J0 = (k) => `SUM(json_extract(dados, '$."${k}"'))`;
-        const JM = (k) => `MAX(json_extract(dados, '$."${k}"'))`;
-        const { results: fm2 } = await B.env.DB.prepare(`SELECT filial f, rca r, ${J0('Faturado bruto (R$)')} b, ${J0('Devolução (R$)')} dv, ${J0('Carteira pendente (R$)')} p, ${J0('Meta (R$)')} m, ${JM('Positivação (filial + CNPJ)')} pr, ${JM('Meta de positivação')} pm FROM gerot_vendedor_mes WHERE mes = ? AND rca NOT LIKE '%|%' GROUP BY filial, rca`).bind(ym).all();
-          const L = (fm2 || []).filter((x) => esc.nacional || chaves.has(x.f + '|' + x.r)), s = (k) => L.reduce((a, x) => a + (Number(x[k]) || 0), 0);
+          const { CAMPO, vendedoresGerot, filiaisGerot } = await import('../fatos/index.js');
+          const vgRows = await vendedoresGerot(B.env.DB, null, ym).catch(() => []);
+          const agrVend = new Map();
+          for (const x of vgRows || []) {
+            if (x.rcaRaw && String(x.rcaRaw).includes('|')) continue;
+            const kv = x.filial + '|' + x.rca;
+            const cur = agrVend.get(kv) || { f: x.filial, r: x.rca, b: 0, dv: 0, p: 0, m: 0, pr: 0, pm: 0 };
+            cur.b += Number(x.d && x.d[CAMPO.bruto]) || 0;
+            cur.dv += Number(x.d && x.d[CAMPO.dev]) || 0;
+            cur.p += Number(x.cart != null ? x.cart : (x.d && x.d[CAMPO.cart])) || 0;
+            cur.m += Number(x.meta != null ? x.meta : (x.d && x.d[CAMPO.meta])) || 0;
+            cur.pr = Math.max(cur.pr, Number(x.pos != null ? x.pos : (x.d && x.d[CAMPO.pos])) || 0);
+            cur.pm = Math.max(cur.pm, Number(x.metaPos != null ? x.metaPos : (x.d && x.d[CAMPO.metaPos])) || 0);
+            agrVend.set(kv, cur);
+          }
+          const fm2 = [...agrVend.values()];
+          const L = fm2.filter((x) => esc.nacional || chaves.has(x.f + '|' + x.r)), s = (k) => L.reduce((a, x) => a + (Number(x[k]) || 0), 0);
           let liq = s('b') - s('dv'), meta = s('m'), pos = s('pr'), mp = s('pm'), brT = s('b'), dvT = s('dv');
           // 23/11/2026 (dicionario 3.9/3.26, conflito 7): equipe/grupo = clientes distintos com faturado > 0 no mes fechado (regra 4), nunca a soma dos vendedores
           if (!esc.nacional && !esc.rca && (esc.supervisor || esc.grupo) && L.length) { try { const { positivacaoRegra4 } = await import('../fatos/index.js'); const r4 = await positivacaoRegra4(B.env.DB, L[0].f, L.map((x) => x.r), ym); if (r4 && r4.pos != null) { pos = r4.pos; mp = 0; } } catch (e) { /* fica a do GEROT */ } }
           // 22/11/2026 (Vitorio: TBE setembro em 189%): a FILIAL INTEIRA usa o total da filial no GEROT (a meta de setembro por vendedor esta incompleta no GEROT;
           //   a da filial bate com o PNA). Equipe/vendedor continua pela soma dos vendedores.
+          const filRows = await filiaisGerot(B.env.DB, ym).catch(() => []);
           if (esc.nacional || (/^(gerente|diretoria|ceo)$/i.test(String(c && c.papel || '')) && !(c && c.grupo) && !esc.supervisor && !esc.rca && !esc.grupo)) {
-            const Fs = esc.nacional ? null : [...new Set((Em.vend || []).map((v) => String(v.filial)))];
-            try { const { results: FF } = await B.env.DB.prepare(`SELECT ${J0('Faturado líquido (R$)')} l, ${J0('Faturado bruto (R$)')} b, ${J0('Devolução (R$)')} dv, ${J0('Meta (R$)')} m, ${J0('Positivação (filial + CNPJ)')} pr, ${J0('Meta de positivação')} pm FROM gerot_filial_mes WHERE mes = ?${Fs ? ` AND filial IN (${Fs.map(() => '?').join(',')})` : ''}`).bind(ym, ...(Fs || [])).all(); const f0 = FF && FF[0]; if (f0 && Number(f0.m) > 0) { liq = Number(f0.l) || liq; meta = Number(f0.m); brT = Number(f0.b) || brT; dvT = Number(f0.dv) || 0; pos = Number(f0.pr) || pos; mp = Number(f0.pm) || mp; } } catch (e) { /* fica a soma */ }
+            const Fs = esc.nacional ? null : new Set((Em.vend || []).map((v) => String(v.filial)));
+            const subF = (filRows || []).filter((x) => !Fs || Fs.has(x.filial));
+            const sumF = (fn) => subF.reduce((a, x) => a + (Number(fn(x)) || 0), 0);
+            const mf = sumF((x) => x.meta != null ? x.meta : x.d && x.d[CAMPO.meta]);
+            if (mf > 0) {
+              liq = sumF((x) => x.fat != null ? x.fat : x.d && x.d[CAMPO.fat]) || liq;
+              meta = mf;
+              brT = sumF((x) => x.d && x.d[CAMPO.bruto]) || brT;
+              dvT = sumF((x) => x.d && x.d[CAMPO.dev]) || 0;
+              pos = sumF((x) => x.pos != null ? x.pos : x.d && x.d[CAMPO.pos]) || pos;
+              mp = sumF((x) => x.metaPos != null ? x.metaPos : x.d && x.d[CAMPO.metaPos]) || mp;
+            }
           }
           const liqV = (x) => (Number(x.b) || 0) - (Number(x.dv) || 0);
           const cab = [`🏁 *Fechamento de ${titulo(NM[Number(ym.slice(5)) - 1])} — ${esc.nome}* (foto de ${u.d.split('-').reverse().join('/')})`, `💰 Faturado líquido: *${R$(liq)}* de ${R$(meta)}${meta > 0 ? ` → *${pctTxt(liq / meta * 100)}*` : ''}`, `(bruto ${R$(brT)} − devolução ${R$(dvT)})`, `⏳ Ficou pendente: ${R$(s('p'))}`, `👥 Positivação: *${Math.round(pos)}*${mp > 0 ? ` de ${Math.round(mp)} (${pctTxt(pos / mp * 100)})` : ' clientes (distintos, sem repetir)'}`];
@@ -917,7 +984,10 @@ export async function respostaInterna(B, c, texto, anteriores) {
           }
           if (L.length && s('b') > 0) {
             // 23/11/2026 (dicionario 3.26, total = linhas): Brasil abre por filial (gerot_filial_mes do mes fechado, a mesma base do total) + rodape com a fonte
-            if (esc.nacional) { try { const { results: PF } = await B.env.DB.prepare(`SELECT filial f, ${J0('Faturado líquido (R$)')} l, ${J0('Meta (R$)')} m FROM gerot_filial_mes WHERE mes = ? GROUP BY filial ORDER BY l DESC`).bind(ym).all(); if (PF && PF.length > 1) cab.push('', '*Por filial:*', ...PF.map((x) => `• *${x.f}*: ${R$(Number(x.l) || 0)} de ${R$(Number(x.m) || 0)}${Number(x.m) > 0 ? ` (${pctTxt(Number(x.l) / Number(x.m) * 100)})` : ''}`)); } catch (e) { /* sem filial */ } }
+            if (esc.nacional && filRows && filRows.length > 1) {
+              const PF = filRows.map((x) => ({ f: x.filial, l: Number(x.fat != null ? x.fat : x.d && x.d[CAMPO.fat]) || 0, m: Number(x.meta != null ? x.meta : x.d && x.d[CAMPO.meta]) || 0 })).sort((a, b) => b.l - a.l);
+              cab.push('', '*Por filial:*', ...PF.map((x) => `• *${x.f}*: ${R$(x.l)} de ${R$(x.m)}${x.m > 0 ? ` (${pctTxt(x.l / x.m * 100)})` : ''}`));
+            }
             cab.push('', `_GEROT · mês fechado ${ym.slice(5)}/${ym.slice(0, 4)} (foto de ${u.d.split('-').reverse().join('/')})_`);
             return cab.join('\n');
           }
@@ -965,21 +1035,32 @@ export async function respostaInterna(B, c, texto, anteriores) {
   // LISTA de pedidos por status do escopo (bloqueados, liberados sem faturar, com corte): antes da Operacao, que so da o total (26/10/2026)
   // + pendentes/nao faturados (Jefferson: "pedidos pendentes do vendedor 128, de quais clientes"; Andrey COD 103: "quais sao os clientes que estao no pendente?")
   // MESES ANTERIORES (31/10/2026: "fechamento de setembro", "venda do mes anterior"): totais dos pedidos do Data Lake por vendedor, 1 linha por vendedor
-  { const nomesMes = { JANEIRO: '01', FEVEREIRO: '02', MARCO: '03', ABRIL: '04', MAIO: '05', JUNHO: '06', JULHO: '07', AGOSTO: '08', SETEMBRO: '09', OUTUBRO: '10', NOVEMBRO: '11', DEZEMBRO: '12' };
+  {
+    const nomesMes = { JANEIRO: '01', FEVEREIRO: '02', MARCO: '03', ABRIL: '04', MAIO: '05', JUNHO: '06', JULHO: '07', AGOSTO: '08', SETEMBRO: '09', OUTUBRO: '10', NOVEMBRO: '11', DEZEMBRO: '12' };
     const mN = (t.match(/\b(JANEIRO|FEVEREIRO|MARCO|ABRIL|MAIO|JUNHO|JULHO|AGOSTO|SETEMBRO|OUTUBRO|NOVEMBRO|DEZEMBRO)\b/) || [])[1], antes = /MES (ANTERIOR|PASSADO)/.test(t), hj = hojeSP();
     if ((mN || antes) && /FECHAMENTO|VENDA|VENDI|VENDEU|FATUR|RESULTADO|TOTAL/.test(t) && !/INDUSTRIA|FORNECEDOR|PRODUTO|CLIENTE/.test(t) && B.env && B.env.DB) {
       const ant = new Date(Date.parse(hj.slice(0, 7) + '-15T12:00:00Z') - 30 * 864e5).toISOString().slice(0, 7);
       const alvoM = antes ? ant : hj.slice(0, 4) + '-' + nomesMes[mN];
-      if (alvoM < hj.slice(0, 7)) { const Eh = await carregaEscopo(B, esc), ph = achaPessoa(Eh, t), Vh = ph && ph.tipo === 'vend' ? [ph.alvo] : Eh.vend;
+      if (alvoM < hj.slice(0, 7)) {
+        const Eh = await carregaEscopo(B, esc), ph = achaPessoa(Eh, t), Vh = ph && ph.tipo === 'vend' ? [ph.alvo] : Eh.vend;
         const Lh = (await Promise.all(Vh.slice(0, 150).map((v) => B.env.DB.prepare('SELECT json FROM ficha_cliente WHERE filial = ? AND id_cliente = ?').bind(String(v.filial), '_VEND_' + v.rca).first().then((r) => { const x = r && JSON.parse(r.json).hist_meses; return x && x[alvoM] ? { v, ...x[alvoM] } : null; }).catch(() => null)))).filter(Boolean).sort((a, b) => b.valor - a.valor);
-        if (Lh.length) { const soma = (k) => Lh.reduce((a, x) => a + x[k], 0); const nm = Vh.length === 1 ? vn(Vh[0]) : Eh.nome;
-          return [`📅 *${alvoM.slice(5)}/${alvoM.slice(0, 4)} — ${nm}*`, `Pedidos: *${R$(soma('valor'))}* em *${N(soma('pedidos'))}* · faturado ${R$(soma('faturado'))}`, ...(Lh.length > 1 ? ['', ...Lh.slice(0, 25).map((x) => `• ${vn(x.v)}: ${R$(x.valor)} · ${x.pedidos} ped. · ${x.clientes} cli.`)] : [`Clientes: ${N(Lh[0].clientes)}`]), '', '_Soma dos pedidos do histórico do CEVEN, não é o fechamento oficial da meta._'].join('\n'); } } } }
+        if (Lh.length) {
+          const soma = (k) => Lh.reduce((a, x) => a + x[k], 0); const nm = Vh.length === 1 ? vn(Vh[0]) : Eh.nome;
+          return [`📅 *${alvoM.slice(5)}/${alvoM.slice(0, 4)} — ${nm}*`, `Pedidos: *${R$(soma('valor'))}* em *${N(soma('pedidos'))}* · faturado ${R$(soma('faturado'))}`, ...(Lh.length > 1 ? ['', ...Lh.slice(0, 25).map((x) => `• ${vn(x.v)}: ${R$(x.valor)} · ${x.pedidos} ped. · ${x.clientes} cli.`)] : [`Clientes: ${N(Lh[0].clientes)}`]), '', '_Soma dos pedidos do histórico do CEVEN, não é o fechamento oficial da meta._'].join('\n');
+        }
+      }
+    }
+  }
   // CORTES E GAP POR CLIENTE (31/10/2026): vem dos pedidos do Data Lake, 1 linha por vendedor em ficha_cliente (id _VEND_<rca>). Jorge/TCV "corte do setor 363"; Rudinei/diretoria "clientes com maior gap x media dos ultimos 3 meses"
-  { const ehCorte = /\bCORTES?\b|CORTAD/.test(t) && !/\d{7,}|DEVOL/.test(t) && !/\bHOJE\b|\bHJ\b/.test(t);
+  {
+    const ehCorte = /\bCORTES?\b|CORTAD/.test(t) && !/\d{7,}|DEVOL/.test(t) && !/\bHOJE\b|\bHJ\b/.test(t);
     const ehGapCli = /\bGAPS?\b|MAIOR(ES)? QUEDAS?|CAIU MAIS|CAIRAM MAIS/.test(t) && /CLIENTE|MEDIA|\d MESES/.test(t);
-    if (ehCorte || ehGapCli) { const Ec = await carregaEscopo(B, esc); let pc = achaPessoa(Ec, t);
+    if (ehCorte || ehGapCli) {
+      const Ec = await carregaEscopo(B, esc); let pc = achaPessoa(Ec, t);
       if (!pc && ehGapCli) for (const a of anteriores || []) { pc = achaPessoa(Ec, sem(String(a))); if (pc) break; }
-      const r = await respResumoVendedores(B, Ec, pc && pc.tipo === 'vend' ? [pc.alvo] : Ec.vend, ehGapCli ? 'gap' : 'corte', t); if (r) return r; } }
+      const r = await respResumoVendedores(B, Ec, pc && pc.tipo === 'vend' ? [pc.alvo] : Ec.vend, ehGapCli ? 'gap' : 'corte', t); if (r) return r;
+    }
+  }
   if (/PEDIDOS? CANCELAD/.test(t) && !/[0-9]{7,}/.test(t) && B.env && B.env.DB) {
     const Ep = await carregaEscopo(B, esc), pp = achaPessoa(Ep, t);
     const alvos = pp && pp.tipo === 'vend' ? [pp.alvo] : (Ep.vend || []);
@@ -993,13 +1074,13 @@ export async function respostaInterna(B, c, texto, anteriores) {
       if (!meus.length) return `❌ *Pedidos cancelados (últimos 30 dias) — ${nmEsc}*: nenhum pedido cancelado na base.`;
       const tot = meus.reduce((s, p) => s + (Number(p.valor) || 0), 0);
       return [`❌ *Pedidos cancelados (últimos 30 dias) — ${nmEsc}*`, `Total: *${meus.length} pedido(s)* · *${R$(tot)}*`, '',
-        ...meus.slice(0, 25).map((p) => `• ${String(p.data_pedido).slice(8, 10)}/${String(p.data_pedido).slice(5, 7)} · nº ${p.num} · ${R$(p.valor || 0)}${alvos.length > 1 ? ' · ' + (vnMap.get(p.filial + '|' + p.rca) || p.rca) : ''}`),
-        ...(meus.length > 25 ? [`_… e mais ${meus.length - 25} pedido(s)._`] : [])].join('\n');
+      ...meus.slice(0, 25).map((p) => `• ${String(p.data_pedido).slice(8, 10)}/${String(p.data_pedido).slice(5, 7)} · nº ${p.num} · ${R$(p.valor || 0)}${alvos.length > 1 ? ' · ' + (vnMap.get(p.filial + '|' + p.rca) || p.rca) : ''}`),
+      ...(meus.length > 25 ? [`_… e mais ${meus.length - 25} pedido(s)._`] : [])].join('\n');
     }
   }
   if (/\bBLOQUEIO\b|\bBLOQUEAD/.test(t) && !/PEDIDO/.test(t)) t = t + ' PEDIDOS BLOQUEADOS';   // 'quanto com bloqueio comercial?' (Marcelo/API, 10/11/2026)
-  const ehPerguntaStatusPedidos =((/PEDIDOS?/.test(t) && /BLOQUEAD|LIBERAD|CORTAD|COM CORTE|SEM FATURAR|NAO FATUR|PENDENTE/.test(t))
-    || /(DETALHE|QUAIS|LISTA).{0,25}CORTE/.test(t)    || /CLIENTES? (QUE ESTAO |NO |EM |COM )?PENDENTES?|QUAIS (SAO OS )?CLIENTES?.*PENDENTE|CLIENTES PENDENTES|QUEM (ESTA|TA) NO PENDENTE|QUEM (ESTA|TA) PENDENTE/i.test(t)
+  const ehPerguntaStatusPedidos = ((/PEDIDOS?/.test(t) && /BLOQUEAD|LIBERAD|CORTAD|COM CORTE|SEM FATURAR|NAO FATUR|PENDENTE/.test(t))
+    || /(DETALHE|QUAIS|LISTA).{0,25}CORTE/.test(t) || /CLIENTES? (QUE ESTAO |NO |EM |COM )?PENDENTES?|QUAIS (SAO OS )?CLIENTES?.*PENDENTE|CLIENTES PENDENTES|QUEM (ESTA|TA) NO PENDENTE|QUEM (ESTA|TA) PENDENTE/i.test(t)
     || (/QUAIS (SAO )?(OS )?(PEDIDOS|CLIENTES)/.test(t) && /PENDENTE|LIBERAD|BLOQUEAD/.test(t))) && !/[0-9]{7,}/.test(t);
 
   if (ehPerguntaStatusPedidos) {
@@ -1217,8 +1298,10 @@ export async function respostaInterna(B, c, texto, anteriores) {
   }
   // "MEUS ULTIMOS PEDIDOS" do vendedor: pedido_status (indice por filial) so com o codigo dele
   if (E.rca && E.vend[0] && /\bMEUS?\b.{0,20}PEDIDOS?|^(ULTIMOS? )?PEDIDOS\W*$/.test(t) && !/PENDENT|BLOQUEAD|LIBERAD|HOJE|CORT/.test(t) && B.env && B.env.DB) {
-    try { const { results: mp } = await B.env.DB.prepare('SELECT num, data_pedido, status, valor FROM pedido_status WHERE filial = ? AND rca = ? ORDER BY data_pedido DESC LIMIT 10').bind(String(E.vend[0].filial), String(E.rca)).all();
-      if (mp && mp.length) return ['📦 *Seus últimos pedidos*', ...mp.map((p) => `• ${String(p.data_pedido).slice(8, 10)}/${String(p.data_pedido).slice(5, 7)} · nº ${p.num} · ${p.valor != null ? R$(p.valor) : 'sem valor'} · ${titulo(String(p.status || ''))}`)].join('\n'); } catch (e) { /* segue */ }
+    try {
+      const { results: mp } = await B.env.DB.prepare('SELECT num, data_pedido, status, valor FROM pedido_status WHERE filial = ? AND rca = ? ORDER BY data_pedido DESC LIMIT 10').bind(String(E.vend[0].filial), String(E.rca)).all();
+      if (mp && mp.length) return ['📦 *Seus últimos pedidos*', ...mp.map((p) => `• ${String(p.data_pedido).slice(8, 10)}/${String(p.data_pedido).slice(5, 7)} · nº ${p.num} · ${p.valor != null ? R$(p.valor) : 'sem valor'} · ${titulo(String(p.status || ''))}`)].join('\n');
+    } catch (e) { /* segue */ }
   }
   // CLIENTE CITADO OU DA CONVERSA: nome/codigo na carteira de quem pergunta; "o que comprou", "o que oferecer", "ultimos pedidos" seguem com ele. "Meus pedidos" e do proprio vendedor.
   if (!/\bMEUS?\b|\bMINHAS?\b/.test(t)) {
@@ -1239,11 +1322,11 @@ export async function respostaInterna(B, c, texto, anteriores) {
       try {
         const rf = await B.env.DB.prepare('SELECT filial, json FROM ficha_cliente WHERE id_cliente = ? AND (? = "" OR filial = ?) LIMIT 1').bind(String(idDir), fil, fil).first();
         if (rf) {
-          let j = {}; try { j = JSON.parse(rf.json || '{}'); } catch {}
+          let j = {}; try { j = JSON.parse(rf.json || '{}'); } catch { }
           const vCli = (E.vend || []).find((x) => x.filial === rf.filial) || (E.vend && E.vend[0]) || { filial: rf.filial, rca: '', nome: E.nome };
           fichaCli = { v: vCli, c: { id_cliente: String(idDir), nome_cliente: j.nome || ('Cliente #' + idDir), cnpj: j.cnpj || '' } };
         }
-      } catch {}
+      } catch { }
     }
     if (fichaCli) return respFichaCliente(B, E, t, fichaCli);
   }
@@ -1253,7 +1336,7 @@ export async function respostaInterna(B, c, texto, anteriores) {
   // PERGUNTA DIRETA SOBRE FILIAL OU BRASIL HOJE (Vitório, 29/10/2026: "venda brasil atualizada agora", "Venda Brasil Hoje", "TBe hoje"):
   // Se perguntar por filial específica ou Brasil de forma direta, responde o resumo do dia daquele escopo
   const mFilialOuBrasil = t.match(/^\W*(?:VENDAS?|DIGITAD[OA]|PEDIDOS?)?\s*(?:DO |NO |EM |NA )?(ABC|API|MCD|TBE|TBL|TCA|TCG|TCV|TPA|TPH|TSJ|BRASIL|NACIONAL)\s*(?:VENDAS?|DIGITAD[OA]|PEDIDOS?)?\s*(?:HOJE|HJ|DO DIA|AGORA|ATUALIZAD[OA]|DE AGORA)?\s*(?:HOJE|HJ|AGORA|ATUALIZAD[OA])?\W*$/i) ||
-                          t.match(/^\W*(?:COMO (?:ESTA|TA|FOI|VAI)|STATUS|RESUMO|SITUACAO)\s+(?:A\s+|DA\s+|NA\s+|NO\s+|O\s+)?(ABC|API|MCD|TBE|TBL|TCA|TCG|TCV|TPA|TPH|TSJ|BRASIL|NACIONAL)\s*(?:HOJE|HJ|DO DIA|AGORA|ATUALIZAD[OA])?\W*$/i);
+    t.match(/^\W*(?:COMO (?:ESTA|TA|FOI|VAI)|STATUS|RESUMO|SITUACAO)\s+(?:A\s+|DA\s+|NA\s+|NO\s+|O\s+)?(ABC|API|MCD|TBE|TBL|TCA|TCG|TCV|TPA|TPH|TSJ|BRASIL|NACIONAL)\s*(?:HOJE|HJ|DO DIA|AGORA|ATUALIZAD[OA])?\W*$/i);
   if (mFilialOuBrasil) {
     const siglaAlvo = mFilialOuBrasil[1].toUpperCase();
     if (siglaAlvo === 'BRASIL' || siglaAlvo === 'NACIONAL') {
@@ -1285,9 +1368,9 @@ export async function respostaInterna(B, c, texto, anteriores) {
   if (/ROTA/.test(t) && /\bHOJE\b|\bHJ\b/.test(t) && /\d{1,3}\s*DIAS|VISITOU E NAO VENDEU|VISITADO E NAO VENDEU|JA VISITOU/.test(t) && !/VENDEDORA?\s+\d|VENDEDORA?\s+[A-Z]{3,}/.test(t)) return respRotaFiltro(B, E, t);
   // RESULTADO / RESUMO DA EQUIPE (Sueli API, 29/10/2026: "Resultado da equipe")
   if ((/(RESULTADO|RESUMO|FATURAMENTO|FATURADO|SITUACAO|STATUS|NUMEROS?)\s+(D[OA]\s+)?(MINHA\s+)?(EQUIPE|TIME)\b/i.test(t) ||
-      /(EM RELACAO|SOBRE|SABER)\s+(A |DA )?(MINHA )?(EQUIPE|TIME)/i.test(t) ||
-      /^(MINHA |A )?EQUIPE( AGORA| JA)?\W*$/i.test(t) ||
-      /^(E )?(A )?(MINHA )?(EQUIPE|TIME)\W*$/i.test(t)) && !/POR VENDEDOR|CADA UM|VENDEDOR POR VENDEDOR|UM POR UM/i.test(t)) {
+    /(EM RELACAO|SOBRE|SABER)\s+(A |DA )?(MINHA )?(EQUIPE|TIME)/i.test(t) ||
+    /^(MINHA |A )?EQUIPE( AGORA| JA)?\W*$/i.test(t) ||
+    /^(E )?(A )?(MINHA )?(EQUIPE|TIME)\W*$/i.test(t)) && !/POR VENDEDOR|CADA UM|VENDEDOR POR VENDEDOR|UM POR UM/i.test(t)) {
     return respResumo(B, E);
   }
   // EQUIPE HOJE (Alex Sandro TBE, 28/10/2026: "Oi , como está o meu time hoje?"): o que a equipe fez HOJE (rota, visitas, digitado)
@@ -1312,12 +1395,12 @@ export async function respostaInterna(B, c, texto, anteriores) {
   }
   // "NAO BATE / DIVERGENTE DO CEVEN" (27/10/2026, Andrey e Leandro: a IA pedia desculpas e dizia que nao tem o CEVEN): de onde vem cada numero + registra para auditoria
   if (/DIVERGENTE|DIFERENTE(S)? D[OA] (CEVEN|ANALISTA|ACOMPANHAMENTO)|NAO BATE|NAO ESTA BATENDO|NUMEROS? ERRAD|ESTA ERRAD/.test(t)) {
-    try { await B.registraPedido('divergencia', texto, c.nome, c); } catch (e) {}
+    try { await B.registraPedido('divergencia', texto, c.nome, c); } catch (e) { }
     const x = await totaisOficiais(B, E);
     return [`🔎 *Anotei a divergência para conferir hoje, ${titulo(String(c.nome || '').split(' ')[0])}.* De onde vêm os meus números (${E.nome}):`,
-      `• *Faturado e pendente:* GEROT (carga a cada ~2 h): ${R$(x.fat)} + ${R$(x.pend)}`,
-      `• *Meta:* a cadastrada no GEROT para cada vendedor (a mesma do supervisor e do gerente): ${R$(x.meta)}`,
-      `• *Positivação:* clientes com faturamento no mês, do GEROT: ${N(x.pos)} de ${N(x.metaPos)}`,
+    `• *Faturado e pendente:* GEROT (carga a cada ~2 h): ${R$(x.fat)} + ${R$(x.pend)}`,
+    `• *Meta:* a cadastrada no GEROT para cada vendedor (a mesma do supervisor e do gerente): ${R$(x.meta)}`,
+    `• *Positivação:* clientes com faturamento no mês, do GEROT: ${N(x.pos)} de ${N(x.metaPos)}`,
       '', 'Me diga *qual número* e *qual valor* você vê (ou mande o print) que eu comparo vendedor a vendedor.'].join('\n');
   }
   // EQUIPE (Vitorio, 27/10/2026): "como esta o dia da minha equipe" = 1 mensagem, 1 linha por vendedor (rota) + sugestao do que pedir; "panorama da minha equipe" =
@@ -1351,22 +1434,30 @@ export async function respostaInterna(B, c, texto, anteriores) {
     if (r) return r;
   }
   if (/DEVOL/.test(t)) {
-    if (/MOTIVO|POR QUE|PORQUE/.test(t) && !/DEVOLU\w*\s+(DE\s+)?(HOJE|HJ)\b/.test(t)) { const m = await respDevMotivos(B); if (m) { const tot = E.vend.reduce((s, v) => s + (v.dev || 0), 0); return m + `
-_Devolução do mês no GEROT (${E.nome}): *${R$(tot)}*. Os motivos acima cobrem só as notas cujo motivo já foi lido; o resto ainda não tem motivo na base._`; } }
+    if (/MOTIVO|POR QUE|PORQUE/.test(t) && !/DEVOLU\w*\s+(DE\s+)?(HOJE|HJ)\b/.test(t)) {
+      const m = await respDevMotivos(B); if (m) {
+        const tot = E.vend.reduce((s, v) => s + (v.dev || 0), 0); return m + `
+_Devolução do mês no GEROT (${E.nome}): *${R$(tot)}*. Os motivos acima cobrem só as notas cujo motivo já foi lido; o resto ainda não tem motivo na base._`;
+      }
+    }
     // devolucao do VENDEDOR citado (ou da conversa) e do GERENTE citado (grupo) (27/10/2026: "devolucao do vendedor 1067", "apenas da MCD do gerente Adriano" -> Brasil)
     const gd = (t.match(/GERENTE\s+([A-Z]{3,})/) || [])[1], pd = gd ? null : achaPessoa(E, t) || (/\b(ELA|ELE|DELA|DELE)\b/.test(t) ? pessoaVendedoraAnterior(E, anteriores) : null);   // gerente citado nao vira o vendedor de mesmo nome
     if (pd && pd.tipo === 'vend') return respDevolucao({ ...E, nome: vn(pd.alvo), vend: [pd.alvo], nacional: false, filiais: [pd.alvo.filial] }, t);
     if (gd && E.vend.some((v) => sem(v.grupo || '') === gd)) return respDevolucao({ ...E, nome: `${E.vend.find((v) => sem(v.grupo || '') === gd).filial} · ${titulo(gd)}`, vend: E.vend.filter((v) => sem(v.grupo || '') === gd), nacional: false }, t);
     // TOTAL INCLUI QUEM NAO E MONITORADO (31/10/2026): codigo 2 sai da lista de vendedores (a linha dele na base mistura filiais) e entra pela tabela com filial certa
-    { const Em = { ...E, vend: E.vend.filter((v) => String(v.rca) !== '2') }; const base = respDevolucao(Em, t); let extra = '';
-      if (!E.supervisor && !E.rca && B.env && B.env.DB) { try {
-        const mes = hojeSP().slice(0, 7), hoje = hojeSP(), { results: mf } = await B.env.DB.prepare('SELECT filial, rca, dev_mes, notas_json FROM macro_fora_arvore WHERE mes = ?').bind(mes).all();
-        const X = (mf || []).filter((x) => E.filiais.includes(x.filial) && !Em.vend.some((v) => v.filial === x.filial && String(v.rca) === String(x.rca))); const devH = X.reduce((a, x) => a + JSON.parse(x.notas_json || '[]').filter((n) => n.d === hoje).reduce((s, n) => s + (Number(n.v) || 0), 0), 0), devM = X.reduce((a, x) => a + (Number(x.dev_mes) || 0), 0);
-        const ehHoje = /HOJE|\bHJ\b/.test(t), v = ehHoje ? devH : devM;
-        const vs = Em.vend.reduce((a, x) => a + (Number(ehHoje ? x.devHoje : x.dev) || 0), 0);
-        if (v > 0) extra = `\n\n🧮 *TOTAL ${ehHoje ? 'de hoje' : 'do mês'}: ${R$(vs + v)}* (vendedores ${R$(vs)} + códigos não monitorados, ex.: código 2 de cada filial, ${R$(v)}).`;
-      } catch (e) { /* tabela ainda sem dado */ } }
-      return base + extra; }
+    {
+      const Em = { ...E, vend: E.vend.filter((v) => String(v.rca) !== '2') }; const base = respDevolucao(Em, t); let extra = '';
+      if (!E.supervisor && !E.rca && B.env && B.env.DB) {
+        try {
+          const mes = hojeSP().slice(0, 7), hoje = hojeSP(), { results: mf } = await B.env.DB.prepare('SELECT filial, rca, dev_mes, notas_json FROM macro_fora_arvore WHERE mes = ?').bind(mes).all();
+          const X = (mf || []).filter((x) => E.filiais.includes(x.filial) && !Em.vend.some((v) => v.filial === x.filial && String(v.rca) === String(x.rca))); const devH = X.reduce((a, x) => a + JSON.parse(x.notas_json || '[]').filter((n) => n.d === hoje).reduce((s, n) => s + (Number(n.v) || 0), 0), 0), devM = X.reduce((a, x) => a + (Number(x.dev_mes) || 0), 0);
+          const ehHoje = /HOJE|\bHJ\b/.test(t), v = ehHoje ? devH : devM;
+          const vs = Em.vend.reduce((a, x) => a + (Number(ehHoje ? x.devHoje : x.dev) || 0), 0);
+          if (v > 0) extra = `\n\n🧮 *TOTAL ${ehHoje ? 'de hoje' : 'do mês'}: ${R$(vs + v)}* (vendedores ${R$(vs)} + códigos não monitorados, ex.: código 2 de cada filial, ${R$(v)}).`;
+        } catch (e) { /* tabela ainda sem dado */ }
+      }
+      return base + extra;
+    }
   }
   // VENDEDORES BATENDO A META DE POSITIVACAO (26/10/2026: listava filiais)
   if (/POSITIVA/.test(t) && /VENDEDOR|QUEM|QUAIS/.test(t) && /BAT|ATING|ACIMA DA META|CUMPRI/.test(t)) {
@@ -1374,7 +1465,7 @@ _Devolução do mês no GEROT (${E.nome}): *${R$(tot)}*. Os motivos acima cobrem
     const V = E.vend.filter((v) => (v.metaPos || 0) > 0 && (v.pos || 0) >= v.metaPos).sort((a, b) => b.pos / b.metaPos - a.pos / a.metaPos);
     if (!V.length) return `👥 *Positivação — ${E.nome}*: nenhum vendedor bateu a meta de positivação ainda.`;
     return [`👥 *Vendedores que já bateram a meta de positivação — ${E.nome}*: *${V.length}*`, `_Mostrando ${Math.min(n, V.length)} (ordem: % da meta)._`, '',
-      ...V.slice(0, n).map((v, i) => `${i + 1}. ${nome2(v.nome)} (${v.rca}) ${E.nacional ? v.filial : ''} — *${Math.round(v.pos / v.metaPos * 100)}%* · ${v.pos} de ${Math.round(v.metaPos)} clientes`)].join('\n');
+    ...V.slice(0, n).map((v, i) => `${i + 1}. ${nome2(v.nome)} (${v.rca}) ${E.nacional ? v.filial : ''} — *${Math.round(v.pos / v.metaPos * 100)}%* · ${v.pos} de ${Math.round(v.metaPos)} clientes`)].join('\n');
   }
   // PROJECAO (regra do Vitorio: nunca estimar/projetar): diz que nao projeta e mostra quanto precisa por dia
   // TENDENCIA liberada (Vitorio, 26/10/2026: "e matematica pura... so deixa claro que isso e tendencia"): ritmo de faturado+pendente x dias uteis, sempre rotulado
@@ -1450,9 +1541,11 @@ _Devolução do mês no GEROT (${E.nome}): *${R$(tot)}*. Os motivos acima cobrem
   }
   // ROTA DE HOJE x MES (27/10/2026, Marcio/ABC: "dos clientes que a Nilva vai visitar HOJE, quais ainda nao positivou esse mes" ia para a curva do mes inteiro;
   // Vitorio: "misturando mes com dia"). Hoje/visitar/rota + nao comprou = so a rota de hoje; "quais clientes vai visitar hoje" = rota completa com compra e tags.
-  { const hojeRota = /(VISITAR|VISITA|ROTA|PASSAR).{0,30}\b(HOJE|HJ)\b|\b(HOJE|HJ)\b.{0,40}(VISITAR|ROTA)|VAI VISITAR|IRA VISITAR|VAO SER VISITAD|^CLIENTES? .{0,40}\b(HOJE|HJ)\b|^\W*(ROTA|CLIENTES DA ROTA)\b/i.test(t);   /* "cliente da Luciana de API hoje" (27/10/2026) */
+  {
+    const hojeRota = /(VISITAR|VISITA|ROTA|PASSAR).{0,30}\b(HOJE|HJ)\b|\b(HOJE|HJ)\b.{0,40}(VISITAR|ROTA)|VAI VISITAR|IRA VISITAR|VAO SER VISITAD|^CLIENTES? .{0,40}\b(HOJE|HJ)\b|^\W*(ROTA|CLIENTES DA ROTA)\b/i.test(t);   /* "cliente da Luciana de API hoje" (27/10/2026) */
     if (pessoa && pessoa.tipo === 'vend' && hojeRota && /NAO (COMPR|POSITIV|VEND)|SEM COMPRA|AINDA NAO/.test(t)) return respRotaHojeCompleta(B, pessoa.alvo, true);
-    if (pessoa && pessoa.tipo === 'vend' && hojeRota && (/QUA(L|IS)|QUE CLIENTES|LISTA|^CLIENTES?\b|^(A )?ROTA\b|COMO (ESTA|TA|ANDA|VAI).{0,30}\bROTA\b/.test(t)) && !/VISITOU|VISITADOS|JUSTIF|CHE?C?K|HORARIO|MOTIVO/.test(t)) return respRotaHojeCompleta(B, pessoa.alvo, false); }
+    if (pessoa && pessoa.tipo === 'vend' && hojeRota && (/QUA(L|IS)|QUE CLIENTES|LISTA|^CLIENTES?\b|^(A )?ROTA\b|COMO (ESTA|TA|ANDA|VAI).{0,30}\bROTA\b/.test(t)) && !/VISITOU|VISITADOS|JUSTIF|CHE?C?K|HORARIO|MOTIVO/.test(t)) return respRotaHojeCompleta(B, pessoa.alvo, false);
+  }
   // DIA x MES DO VENDEDOR (27/10/2026): "como foi o dia do X" = so hoje; "e o mes?" / "como foi o mes" = resumo do mes dele (respVendedor)
   if (pessoa && pessoa.tipo === 'vend' && /\bE (O |NO )?MES\W*$|^(E )?(O |NO |DO )?MES\W*$|COMO (FOI|ESTA|TA|VAI) O MES/.test(t) && !/NAO VEND|NAO COMPR|CURVA|SEM VENDA/.test(t)) return respVendedor(B, E, pessoa.alvo);
   // 16/11/2026 (Vitorio: 'Quanto a Tamara de TCV vendeu hoje' -> veio a ficha do MES): pergunta do dia de um vendedor = so o dia, cliente a cliente
@@ -1525,17 +1618,19 @@ _Devolução do mês no GEROT (${E.nome}): *${R$(tot)}*. Os motivos acima cobrem
             const ord = L0.filter((x) => x.nao.length).sort((a, b) => b.nao.length - a.nao.length);
             const tot = L0.reduce((a, x) => a + x.tot, 0), falta = L0.reduce((a, x) => a + x.nao.length, 0), voltaM1 = L0.reduce((a, x) => a + x.nao.filter((c) => c.m1 > 0).length, 0);
             return [`👥 *Quem falta positivar — ${E.nome}*`, `Carteira: *${N(tot)}* clientes · *sem compra e sem pedido no mês: ${N(falta)}*` + (voltaM1 ? ` · ${N(voltaM1)} deles compraram no mês passado (mês inteiro) 🔁` : ''), '',
-              ...ord.slice(0, 15).map((x, i) => `${numL(i)} *${vn(x.v)}*: *${x.nao.length}* de ${x.tot}` + (x.nao[0] && x.nao[0].m1 > 0 ? ` · ex.: ${x.nao.filter((c) => c.m1 > 0).slice(0, 2).map((c) => c.nome).join(', ')}` : '')),
-              ord.length > 15 ? `… e mais ${ord.length - 15} vendedores` : '',
-              // 17/11/2026 (auditoria ampla: supervisor pediu "quem falta positivar" e nao veio nenhum cliente): os clientes a recuperar primeiro, da equipe toda
-              ...(() => { const R = ord.flatMap((x) => x.nao.filter((c) => c.m1 > 0).map((c) => ({ c, v: x.v }))).slice(0, 8); return R.length ? ['', '🔁 *Recuperar primeiro (compraram no mês passado):*', ...R.map((y) => `• ${y.c.nome} (#${y.c.id}) · ${vn(y.v)}`)] : []; })(),
+            ...ord.slice(0, 15).map((x, i) => `${numL(i)} *${vn(x.v)}*: *${x.nao.length}* de ${x.tot}` + (x.nao[0] && x.nao[0].m1 > 0 ? ` · ex.: ${x.nao.filter((c) => c.m1 > 0).slice(0, 2).map((c) => c.nome).join(', ')}` : '')),
+            ord.length > 15 ? `… e mais ${ord.length - 15} vendedores` : '',
+            // 17/11/2026 (auditoria ampla: supervisor pediu "quem falta positivar" e nao veio nenhum cliente): os clientes a recuperar primeiro, da equipe toda
+            ...(() => { const R = ord.flatMap((x) => x.nao.filter((c) => c.m1 > 0).map((c) => ({ c, v: x.v }))).slice(0, 8); return R.length ? ['', '🔁 *Recuperar primeiro (compraram no mês passado):*', ...R.map((y) => `• ${y.c.nome} (#${y.c.id}) · ${vn(y.v)}`)] : []; })(),
               '', SUGESTAO + `digite o número (ex: *1*) para ver a lista daquele vendedor; comece pelos 🔁 (compraram no mês passado).`].filter((x, i, a) => x !== '' || (a[i + 1] && /^🔁|^🎯/.test(a[i + 1]))).join('\n');
           }
         }
       } catch (e) { /* sem GEROT por cliente: segue o roteiro */ }
     }
-    const compEq = new Map(); try { const { vendasEscopo } = await import('./respostas/vendas.js'); const VM = await vendasEscopo(B, E).catch(() => null); for (const l of (VM && VM.linhas) || []) { const k = l.f + '|' + l.r; if (!compEq.has(k)) compEq.set(k, new Set()); compEq.get(k).add(String(l.c)); }
-      const { clientesComPedidoNoMes } = await import('./respostas/rota.js'); for (const fl of new Set(E.vend.map((x) => x.filial))) for (const v of E.vend.filter((x) => x.filial === fl)) for (const k of await clientesComPedidoNoMes(B, [fl], v.rca)) { const kk = fl + '|' + v.rca; if (!compEq.has(kk)) compEq.set(kk, new Set()); compEq.get(kk).add(k.split('|')[1]); } } catch (e) { /* sem vendas: fica a data do roteiro */ }
+    const compEq = new Map(); try {
+      const { vendasEscopo } = await import('./respostas/vendas.js'); const VM = await vendasEscopo(B, E).catch(() => null); for (const l of (VM && VM.linhas) || []) { const k = l.f + '|' + l.r; if (!compEq.has(k)) compEq.set(k, new Set()); compEq.get(k).add(String(l.c)); }
+      const { clientesComPedidoNoMes } = await import('./respostas/rota.js'); for (const fl of new Set(E.vend.map((x) => x.filial))) for (const v of E.vend.filter((x) => x.filial === fl)) for (const k of await clientesComPedidoNoMes(B, [fl], v.rca)) { const kk = fl + '|' + v.rca; if (!compEq.has(kk)) compEq.set(kk, new Set()); compEq.get(kk).add(k.split('|')[1]); }
+    } catch (e) { /* sem vendas: fica a data do roteiro */ }
     const V = E.vend.filter((v) => Array.isArray(v.roteiroMes) && v.roteiroMes.length && (!pessoa || (v.supervisor === pessoa.alvo.nome && v.filial === pessoa.alvo.filial))).map((v) => {
       const cli = new Map(); for (const c of v.roteiroMes) { const k = String(c.id_cliente); const s = String(c.data_ultima_compra || '').slice(0, 10); const u = (/^\d{4}-\d{2}-\d{2}$/.test(s) && s >= '2020-01-01' && s !== '2025-12-05' && s <= hojeSP()) ? s : ''; if (!cli.has(k) || u > cli.get(k)) cli.set(k, u); }
       // MESMA CONTA DA CURVA DO VENDEDOR (auditoria Victor Hugo 10/11/2026: Monica 185 na equipe x 158 na curva dela): faturado dele, pedido do mes e status positivado tambem contam
@@ -1544,7 +1639,7 @@ _Devolução do mês no GEROT (${E.nome}): *${R$(tot)}*. Os motivos acima cobrem
     }).filter((x) => x.falta > 0).sort((a, b) => b.falta - a.falta);
     if (!V.length) return `👥 *Quem falta positivar — ${E.nome}*: a carteira do mês ainda não está completa na base (ela é lida vendedor a vendedor ao longo do dia). Tente de novo mais tarde ou cite o vendedor.`;
     return [`👥 *Quem falta positivar — ${E.nome}* (clientes da carteira do mês sem compra no mês)`, `Total: *${V.reduce((a, x) => a + x.falta, 0)}* clientes · ${V.length} vendedor(es)`, '',
-      ...V.slice(0, 25).map((x, i) => `${numL(i)} *${vn(x.v)}*: *${x.falta}* de ${x.tot} clientes`), '', SUGESTAO + `digite o número (ex: *1* ou *2*) para ver a curva negativa daquele vendedor.`].join('\n');
+    ...V.slice(0, 25).map((x, i) => `${numL(i)} *${vn(x.v)}*: *${x.falta}* de ${x.tot} clientes`), '', SUGESTAO + `digite o número (ex: *1* ou *2*) para ver a curva negativa daquele vendedor.`].join('\n');
   }
   const ehCurvaOuInativoVend = (
     (pessoa && pessoa.tipo === 'vend' && /^(E )?(O |NO |DO |E NO )?MES\W*$|COMO (FOI|ESTA|TA|VAI) O MES|^E NO MES|\bE (O |NO )?MES\W*$/.test(t)) ||
@@ -1591,11 +1686,11 @@ _Devolução do mês no GEROT (${E.nome}): *${R$(tot)}*. Os motivos acima cobrem
           const ini = ehMaisG ? 25 : 0, fim = ehMaisG ? nao.length : Math.min(25, nao.length), lista = nao.slice(ini, fim);
           const dd = (s) => `${s.slice(8, 10)}/${s.slice(5, 7)}`, dias = (s) => Math.round((Date.parse(hojeSP()) - Date.parse(s)) / 864e5);
           return [`📉 *Curva negativa — ${v.rca} - ${titulo(v.nome)}* (${v.filial})` + (ini ? ` _(continuação)_` : ''),
-            `Carteira: *${C.length} clientes* · compraram no mês: *${comp}* · com pedido a faturar: *${soCart}* · *sem compra e sem pedido: ${nao.length}*`, '',
-            ...(lista.length ? ['_Cliente · na rota hoje? · comprou no mês passado? · última compra_'] : ['✅ Todos os clientes da carteira compraram ou têm pedido a faturar.']),
-            ...lista.map((x, i) => { const u = ult.get(x.id), uOk = u && u < hojeSP().slice(0, 7) + '-01'; /* data da ficha so se for antes do mes (o GEROT manda) */ return `${ini + i + 1}. ${x.nome} (#${x.id})${naRota.has(x.id) ? ' · 📍 na rota hoje' : ''}${x.m1 > 0 ? ` · 🔁 comprou em ${['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'][(Number(hojeSP().slice(5, 7)) + 10) % 12]}` : x.m3 > 0 ? ' · comprou nos últimos 3 meses' : ''}${uOk ? ` · ${dd(u)} (${dias(u)} dias)` : ''}${notaSemVenda.has(x.id) ? ` · 🧾 nota ${dd(notaSemVenda.get(x.id).d)} (NF ${notaSemVenda.get(x.id).nf}) sem valor de venda no GEROT` : ''}`; }),
-            !ehMaisG && nao.length > fim ? `… e mais ${nao.length - fim} (peça "ver mais")` : '', '',
-            SUGESTAO + (nao.some((x) => naRota.has(x.id)) ? 'começar pelos que estão 📍 *na rota hoje* e compraram no mês passado (🔁).' : nao.some((x) => x.m1 > 0) ? `começar pelos que compraram no mês passado (🔁): é o cliente mais fácil de recuperar.` : 'começar por quem comprou há menos tempo.')].filter((x) => x !== '').join('\n');
+          `Carteira: *${C.length} clientes* · compraram no mês: *${comp}* · com pedido a faturar: *${soCart}* · *sem compra e sem pedido: ${nao.length}*`, '',
+          ...(lista.length ? ['_Cliente · na rota hoje? · comprou no mês passado? · última compra_'] : ['✅ Todos os clientes da carteira compraram ou têm pedido a faturar.']),
+          ...lista.map((x, i) => { const u = ult.get(x.id), uOk = u && u < hojeSP().slice(0, 7) + '-01'; /* data da ficha so se for antes do mes (o GEROT manda) */ return `${ini + i + 1}. ${x.nome} (#${x.id})${naRota.has(x.id) ? ' · 📍 na rota hoje' : ''}${x.m1 > 0 ? ` · 🔁 comprou em ${['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'][(Number(hojeSP().slice(5, 7)) + 10) % 12]}` : x.m3 > 0 ? ' · comprou nos últimos 3 meses' : ''}${uOk ? ` · ${dd(u)} (${dias(u)} dias)` : ''}${notaSemVenda.has(x.id) ? ` · 🧾 nota ${dd(notaSemVenda.get(x.id).d)} (NF ${notaSemVenda.get(x.id).nf}) sem valor de venda no GEROT` : ''}`; }),
+          !ehMaisG && nao.length > fim ? `… e mais ${nao.length - fim} (peça "ver mais")` : '', '',
+          SUGESTAO + (nao.some((x) => naRota.has(x.id)) ? 'começar pelos que estão 📍 *na rota hoje* e compraram no mês passado (🔁).' : nao.some((x) => x.m1 > 0) ? `começar pelos que compraram no mês passado (🔁): é o cliente mais fácil de recuperar.` : 'começar por quem comprou há menos tempo.')].filter((x) => x !== '').join('\n');
         }
       } catch (e) { /* sem GEROT por cliente: segue o roteiro gravado */ }
     }
@@ -1655,21 +1750,21 @@ _Devolução do mês no GEROT (${E.nome}): *${R$(tot)}*. Os motivos acima cobrem
       // ULTIMA COMPRA VEM DOS PEDIDOS (31/10/2026: a data do roteiro mostrava compra que o historico do CEVEN nao tem): 1 linha da ficha por cliente listado
       if (B.env && B.env.DB) await Promise.all(lista.map(async (y) => { try { const r = await B.env.DB.prepare("SELECT json_extract(json, '$.ult') u FROM ficha_cliente WHERE filial = ? AND id_cliente = ?").bind(String(v.filial), String(y.c.id_cliente)).first(); y.u = r && r.u ? String(r.u).slice(0, 10) : null; try { const { ultimaCompraGerot } = await import('./respostas/rota.js'); const mm = await ultimaCompraGerot(B, v.filial, [String(y.c.id_cliente)], new Map(y.u ? [[String(y.c.id_cliente), y.u]] : [])); y.u = mm.get(String(y.c.id_cliente)) || y.u; } catch (e2) { /* so a ficha */ } y.d = y.u ? Math.round((Date.parse(hojeSP()) - Date.parse(y.u)) / 864e5) : null; y.semPed = !y.u; } catch (e) { /* fica a data do roteiro */ } }));
       return [`📉 *Curva negativa — ${v.rca} - ${titulo(v.nome)}* (${v.filial})` + (ini > 0 ? ` _(continuação: ${ini + 1}º ao ${Math.min(fim, nao.length)}º)_` : ''),
-        `Carteira do mês: *${cli.size} clientes* · já compraram: *${cli.size - nao.length}* · *ainda não compraram: ${nao.length}*`,
+      `Carteira do mês: *${cli.size} clientes* · já compraram: *${cli.size - nao.length}* · *ainda não compraram: ${nao.length}*`,
         // duas bases do CEVEN com contas diferentes (Igor/TBL, 31/10/2026: 49 de 51 no roteiro x 31 de 44 no painel): mostra as duas, nunca uma so
         '', // 16/11/2026 (Vitorio): nada de nota tecnica de fonte na resposta ao time
-        ...(lista.length ? ['_Cliente · Última compra · Dias sem compra_'] : []),
-        ...lista.map((x, i) => `${i + 1}. ${titulo(x.c.nome_cliente || x.c.razao_social || 'cliente')} (#${x.c.id_cliente}) · ${x.u ? x.u.slice(8, 10) + '/' + x.u.slice(5, 7) + ' · ' + x.d + ' dias' : x.semPed ? 'sem pedido no histórico' : '— · +60 dias'}`),
-        sobra > 0 ? `… e mais ${sobra} (peça "ver mais")` : '',
+      ...(lista.length ? ['_Cliente · Última compra · Dias sem compra_'] : []),
+      ...lista.map((x, i) => `${i + 1}. ${titulo(x.c.nome_cliente || x.c.razao_social || 'cliente')} (#${x.c.id_cliente}) · ${x.u ? x.u.slice(8, 10) + '/' + x.u.slice(5, 7) + ' · ' + x.d + ' dias' : x.semPed ? 'sem pedido no histórico' : '— · +60 dias'}`),
+      sobra > 0 ? `… e mais ${sobra} (peça "ver mais")` : '',
         '',
-        SUGESTAO + (sobra > 0 ? 'começar por quem comprou há menos tempo: é mais fácil de recuperar.' : (ini > 0 ? 'lista completa entregue.' : 'começar por quem comprou há menos tempo: é mais fácil de recuperar.'))].filter((x) => x !== '').join('\n');
+      SUGESTAO + (sobra > 0 ? 'começar por quem comprou há menos tempo: é mais fácil de recuperar.' : (ini > 0 ? 'lista completa entregue.' : 'começar por quem comprou há menos tempo: é mais fácil de recuperar.'))].filter((x) => x !== '').join('\n');
     }
     if (m.plan == null) return `${v.rca} - ${titulo(v.nome)} (${v.filial}): sem a produtividade do mês na base agora.`;
     const semVenda = m.real != null && m.pedRota != null ? Math.max(0, m.real - m.pedRota) : null;
     return [`📅 *${v.rca} - ${titulo(v.nome)}* (${v.filial} · sup. ${sn(v.supervisor, v.supCod)}) — *mês até hoje*`,
-      `Visitas planejadas: *${m.plan}* · realizadas: *${m.real}*` + (m.efic != null ? ` (eficiência ${String(m.efic).replace('.', ',')}%)` : ''),
-      `Pedidos na rota: *${m.pedRota}*` + (semVenda != null ? ` → *${semVenda} visitas sem venda* no mês` : ''),
-      `Positivação do mês: ${v.pos ?? 'sem dado'} de ${v.metaPos != null ? Math.round(v.metaPos) : 'sem meta'} clientes`,
+    `Visitas planejadas: *${m.plan}* · realizadas: *${m.real}*` + (m.efic != null ? ` (eficiência ${String(m.efic).replace('.', ',')}%)` : ''),
+    `Pedidos na rota: *${m.pedRota}*` + (semVenda != null ? ` → *${semVenda} visitas sem venda* no mês` : ''),
+    `Positivação do mês: ${v.pos ?? 'sem dado'} de ${v.metaPos != null ? Math.round(v.metaPos) : 'sem meta'} clientes`,
       '',
       '', SUGESTAO + (semVenda ? `rever com ${nome2(v.nome)} as ${semVenda} visitas sem venda do mês.` : 'manter o ritmo.')].join('\n');
   }
@@ -1704,7 +1799,7 @@ _Devolução do mês no GEROT (${E.nome}): *${R$(tot)}*. Os motivos acima cobrem
       if (gSt) L.push(`• *GEROT (faturamento, carteira, meta):* ${fmtHora(gSt.em)} (${gSt.linhas || 0} linhas · ${gSt.posicao || ''})`);
       if (cSt) L.push(`• *Clube da Venda (pedidos e visitas hoje):* ${fmtHora(cSt.lido_em)} (${cSt.vendedores || 0} vendedores · dia ${cSt.dia || ''})`);
       return L.join('\n');
-    } catch {}
+    } catch { }
   }
   const temCitacaoIndustria = /POR (INDUSTRIA|FORNECEDOR)|INDUSTRIAS\b|DESEMPENHO DAS INDUSTRIAS|PERFORMANCE (DAS |DE )?(VENDAS )?(POR |DAS )?INDUSTRIA|REFERENTE (A|AO)?\s*(A\s+)?(INDUSTRIA|FORNECEDOR)\b|DA INDUSTRIA|NA INDUSTRIA|\b(DURACELL|AMPARO|HEINZ|MARS|ARCOR|MARILAN|MONDELEZ|NESTLE|GAROTO|COLGATE|RED\s*BULL|MAURI|MAGUARY|EBBA|AJINOMOTO|CONDOR|BR\s*SPICE|LEAO|MEDIX|LINDT|FANTONI|STOLFI|SUPER SAUDE)\b/i.test(t);
   const ehPerguntaProdutoOuRecuperacao = /COMPRAVA|PAROU|PARARAM|DEIXOU DE COMPRAR|DEIXARAM DE COMPRAR|QUEM NAO (COMPRA|COMPROU|COMPRARAM)|NAO (COMPROU|COMPRA|COMPRARAM).*EM |PRODUTOS? (QUE )?MAIS VEND|TOP \d* ?PRODUTOS|MAIS VENDIDOS|COMPAR(E|AR)|OPORTUNIDADES?/.test(t);
@@ -1789,7 +1884,7 @@ _Devolução do mês no GEROT (${E.nome}): *${R$(tot)}*. Os motivos acima cobrem
   // PEDIDO POR NUMERO (Ivayr/TCA, 26/10/2026: "ja faturou o pedido 1190000030" -> recebeu o resumo da equipe). O numero/status do pedido ainda NAO esta na base (D1);
   // fica no banco do Data Lake, que esta sendo levado para o D1. Ate la: diz a verdade e registra o pedido para a diretoria.
   // 16/11/2026: numero sozinho (ex.: '530001089') = o pedido
-  if (/PEDIDO\D{0,12}\d{7,}|\b\d{9,11}\b.{0,20}(FATUROU|FATURADO|STATUS)|^\W*\d{9,11}\W*$/.test(t)) { const rp = await respPedidoNumero(B, E, t); if (rp && rp.includes('não está na base')) { try { await B.registraPedido('pedido_por_numero', texto, c.nome, c); } catch (e) {} } if (rp) return rp; }
+  if (/PEDIDO\D{0,12}\d{7,}|\b\d{9,11}\b.{0,20}(FATUROU|FATURADO|STATUS)|^\W*\d{9,11}\W*$/.test(t)) { const rp = await respPedidoNumero(B, E, t); if (rp && rp.includes('não está na base')) { try { await B.registraPedido('pedido_por_numero', texto, c.nome, c); } catch (e) { } } if (rp) return rp; }
   // CEO, 26/10/2026: "quantos clientes a Triunfante ja vendeu esse mes de outubro" caiu no "hoje" -> clientes que compraram no mes = positivacao do mes
   if (/QUANTOS CLIENTES|CLIENTES (JA )?(COMPRARAM|POSITIVAD|ATENDID)|CLIENTES? (QUE )?(A \w+ )?(JA )?(VENDEU|VENDEMOS|VENDERAM)/.test(t) && !/PRODUTO|SKU|INDUSTRIA|PAROU|NAO COMPR|SEM COMPR/.test(t)) return respPositivacao(B, E);
   if (/QUANTO FALTA|FALTA (PARA|PRA|BATER)|\bFALTA\b|POR DIA UTIL|\bMN\b|PRECISA (VENDER|FATURAR)|POR DIA PRA|COMO BATER|BATER A META/.test(t)) return respFalta(B, E);
@@ -1830,15 +1925,15 @@ export async function respondeIA(env, B, c, texto, historico) {
 
   const fonteIA = (base) => [base, texto, ...(historico || []).map((h) => h.content), hojeSP().split('-').reverse().join('/').slice(0, 5)].join('\n');
   let escopoCarregado = null;
-  try { escopoCarregado = await carregaEscopo(B, escIA); } catch (e) {}
+  try { escopoCarregado = await carregaEscopo(B, escIA); } catch (e) { }
 
   let baseResumo = 'sem dado', baseHoje = '', baseFalta = '', baseSup = '', baseLiga = '';
   if (escopoCarregado) {
-    try { baseResumo = await respResumo(B, escopoCarregado); } catch (e) {}
-    try { baseHoje = await respHoje(B, escopoCarregado, 'HOJE'); } catch (e) {}
-    try { baseFalta = await respFalta(B, escopoCarregado); } catch (e) {}
-    try { baseSup = await respPorSupervisor(escopoCarregado); } catch (e) {}
-    try { baseLiga = await respLiga(B, escopoCarregado, null, 'LIGA'); } catch (e) {}
+    try { baseResumo = await respResumo(B, escopoCarregado); } catch (e) { }
+    try { baseHoje = await respHoje(B, escopoCarregado, 'HOJE'); } catch (e) { }
+    try { baseFalta = await respFalta(B, escopoCarregado); } catch (e) { }
+    try { baseSup = await respPorSupervisor(escopoCarregado); } catch (e) { }
+    try { baseLiga = await respLiga(B, escopoCarregado, null, 'LIGA'); } catch (e) { }
   }
 
   const ehExecutivo = c.papel === 'diretoria' || c.papel === 'ceo' || c.papel === 'gerente' || c.papel === 'admin';
@@ -1846,7 +1941,7 @@ export async function respondeIA(env, B, c, texto, historico) {
   // Analista Sênior (Multi-IA) plugado para todos os cargos, sempre restrito ao escopo (escIA) de quem perguntou
   {
     let baseFaltaPos = '';
-    if (ehExecutivo && ec.fil) try { baseFaltaPos = String(await Promise.race([respostaPronta(B, c, `quem falta positivar em ${ec.fil}`, []), new Promise((ok) => setTimeout(() => ok(''), 8000))]) || ''); } catch (e) {}
+    if (ehExecutivo && ec.fil) try { baseFaltaPos = String(await Promise.race([respostaPronta(B, c, `quem falta positivar em ${ec.fil}`, []), new Promise((ok) => setTimeout(() => ok(''), 8000))]) || ''); } catch (e) { }
     const dossieBase = [
       baseFaltaPos ? `=== CLIENTES DA CARTEIRA SEM COMPRA NO MÊS, POR VENDEDOR (roteiro do mês; é outra conta, não é a positivação do painel) ===\n${baseFaltaPos}` : '',
       `=== RESUMO DO MÊS (${escIA.nome}) ===\n${baseResumo}`,
@@ -1867,12 +1962,12 @@ export async function respondeIA(env, B, c, texto, historico) {
         env, B, c, texto, historico, escIA, dossieBase, dossieComplementar, fonteIA
       });
       if (senior && senior.texto) return senior.texto;
-    } catch (e) {}
+    } catch (e) { }
   }
 
   if (ehExecutivo) {
     let baseFaltaPos = '';
-    if (ec.fil) try { baseFaltaPos = String(await Promise.race([respostaPronta(B, c, `quem falta positivar em ${ec.fil}`, []), new Promise((ok) => setTimeout(() => ok(''), 8000))]) || ''); } catch (e) {}
+    if (ec.fil) try { baseFaltaPos = String(await Promise.race([respostaPronta(B, c, `quem falta positivar em ${ec.fil}`, []), new Promise((ok) => setTimeout(() => ok(''), 8000))]) || ''); } catch (e) { }
     const dossieExecutivo = [
       baseFaltaPos ? `=== CLIENTES DA CARTEIRA SEM COMPRA NO MÊS, POR VENDEDOR (roteiro do mês; é outra conta, não é a positivação do painel) ===\n${baseFaltaPos}` : '',
       `=== RESUMO DO MÊS (${escIA.nome}) ===\n${baseResumo}`,
@@ -1902,7 +1997,7 @@ ${dossieExecutivo}`;
       try {
         const row = await env.DB.prepare("SELECT valor FROM config_flags WHERE chave = 'gemini_api_key'").first();
         if (row && row.valor) apiKey = row.valor;
-      } catch (e) {}
+      } catch (e) { }
     }
     if (apiKey) {
       try {
@@ -1924,7 +2019,7 @@ ${dossieExecutivo}`;
           const txtG = (cand?.content?.parts || []).map((p) => p.text || '').join('');
           if (txtG && cand.finishReason !== 'MAX_TOKENS' && confereIA(txtG, fonteIA(dossieExecutivo)).ok) return txtG.trim().replace(/\*\*/g, '*').replace(/^#+\s*/gm, '');
         }
-      } catch (e) {}
+      } catch (e) { }
     }
 
     if (env?.AI) {
@@ -1936,7 +2031,7 @@ ${dossieExecutivo}`;
         });
         const s = String((r && (r.response || r.result)) || '').trim().replace(/\*\*/g, '*').replace(/^#+\s*/gm, '');
         if (s && confereIA(s, fonteIA(dossieExecutivo)).ok) return s;
-      } catch (e) {}
+      } catch (e) { }
     }
   }
 
