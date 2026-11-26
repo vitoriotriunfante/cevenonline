@@ -223,7 +223,7 @@ export async function onRequestPost({ request, env }) {
     // TRAVA POR FILIAL (auditoria 12/11/2026): a de 80% no mes todo recusava o caso real (1.654 chaves x 3.332 linhas velhas) e deixaria apagar uma filial inteira que
     // faltasse no Excel. Agora: so limpa a filial que VEIO na extracao com pelo menos 20 linhas; filial que nao veio fica intacta.
     const porFil = new Map(); for (const c of quer) { const fl = c.split('|')[0]; porFil.set(fl, (porFil.get(fl) || 0) + 1); }
-    const exFil = new Map(); for (const x of ex || []) exFil.set(x.filial, (exFil.get(x.filial) || 0) + 1);
+    const exFil = new Map(); for (const x of ex || []) if (!String(x.rca || '').includes('|')) exFil.set(x.filial, (exFil.get(x.filial) || 0) + 1);
     // o Excel do GEROT vem inteiro por filial (falha tira a filial toda, nao metade): filial presente com >= 20 linhas = extracao dela completa
     const limpa = new Set([...porFil].filter(([, n]) => n >= 20).map(([fl]) => fl));
     const sai = (ex || []).filter((x) => limpa.has(x.filial) && !quer.has(k(x)));
@@ -351,7 +351,7 @@ export async function onRequestPost({ request, env }) {
     const { results: ex } = await env.DB.prepare('SELECT filial, rca, cod_sup FROM gerot_vendedor_mes WHERE mes = ?').bind(mes).all();
     const k = (x) => `${x.filial}|${x.rca}|${x.cod_sup == null ? '' : x.cod_sup}`;
     const porFil = new Map(); for (const c of quer) { const fl = c.split('|')[0]; porFil.set(fl, (porFil.get(fl) || 0) + 1); }
-    const exFil = new Map(); for (const x of ex || []) exFil.set(x.filial, (exFil.get(x.filial) || 0) + 1);
+    const exFil = new Map(); for (const x of ex || []) if (!String(x.rca || '').includes('|')) exFil.set(x.filial, (exFil.get(x.filial) || 0) + 1);
     const limpa = new Set([...porFil].filter(([fl, n]) => n >= Math.max(10, Math.floor((exFil.get(fl) || 0) * 0.8))).map(([fl]) => fl));
     const sai = (ex || []).filter((x) => limpa.has(x.filial) && !quer.has(k(x)));
     for (let i = 0; i < sai.length; i += 80) await env.DB.batch(sai.slice(i, i + 80).map((x) => env.DB.prepare('DELETE FROM gerot_vendedor_mes WHERE mes = ? AND filial = ? AND rca = ? AND cod_sup = ?').bind(mes, x.filial, x.rca, x.cod_sup == null ? '' : x.cod_sup)));

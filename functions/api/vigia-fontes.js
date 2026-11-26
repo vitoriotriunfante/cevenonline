@@ -21,26 +21,36 @@ export async function onRequest({ request, env }) {
   const soSaude = u.searchParams.get('saude') === '1';   // 22/11/2026: painel de saude (public/saude.html) — so horas de leitura, sem dado de venda, sem chave
   if (!soSaude && !(await chaveAdminOk(env, request)) && !(env.MONITORIA_CRON_KEY && k === env.MONITORIA_CRON_KEY) && !(await chaveEvoValida(request, env))) return J({ erro: 'nao autorizado' }, 401);
   const db = env.DB, rel = R.relogioSP(), dia = rel.dia, h = rel.h, util = !ehFeriado(dia) && new Date(dia + 'T12:00:00Z').getUTCDay() >= 1 && new Date(dia + 'T12:00:00Z').getUTCDay() <= 5;
-  const um = async (sql, ...b) => { try { const r = await db.prepare(sql).bind(...b).first(); return r ? Object.values(r)[0] : null; } catch (e) { return null; } };
+  const um = async (sql, ...b) => { try { const r = await db.prepare(sql).bind(...b).first(); return { ok: true, v: r ? Object.values(r)[0] : null }; } catch (e) { return { ok: false, erro: String(e && e.message || e).slice(0, 80) }; } };
+  const clubeR = await um('SELECT MAX(lido_em) FROM clube_rodada WHERE dia = ?', dia);
+  const clubeRes = (clubeR.ok && !clubeR.v) ? await um('SELECT MAX(lido_em) FROM clube_venda_dia WHERE dia = ?', dia) : clubeR;
   const F = [];
-  F.push({ id: 'clube', nome: 'Clube da Venda', ult: await um('SELECT MAX(lido_em) FROM clube_rodada WHERE dia = ?', dia), lim: 60, vale: h >= 8 && h <= 20 });
-  F.push({ id: 'gerot', nome: 'GEROT', ult: await um('SELECT MAX(em) FROM gerot_coleta_status'), lim: 180, vale: h >= 9 && h <= 21 });
-  F.push({ id: 'ceven_sup', nome: 'CEVEN admin (compromisso e RET)', ult: await um('SELECT MAX(atualizado_em) FROM supervisores_dia WHERE data_ref = ?', dia), lim: 45, vale: h >= 7 && h <= 19 });
-  F.push({ id: 'liga', nome: 'Lances da Liga', ult: await um("SELECT MAX(visto_em) FROM tv_lances WHERE dia = ? AND nivel <> 'marker'", dia), lim: 90, vale: util && h >= 10 && h <= 19 });
-  F.push({ id: 'vigia', nome: 'Agendador (worker-cron)', ult: await um("SELECT valor FROM config_flags WHERE chave = 'vigia_ultima'"), lim: 40, vale: h >= 8 && h <= 20 });
-  F.push({ id: 'wa_inbound', nome: 'WhatsApp (entrada Evolution)', ult: await um("SELECT MAX(quando) FROM bot_msgs WHERE direcao = 'in'"), lim: 45, vale: util && h >= 8 && h <= 19 });
-  const quadro = F.map((f) => ({ fonte: f.nome, ultima: f.ult, minutos: Number.isFinite(minDesde(f.ult)) ? Math.round(minDesde(f.ult)) : null, limite: f.lim, vale_agora: f.vale, parada: f.vale && minDesde(f.ult) > f.lim }));
+  F.push({ id: 'clube', nome: 'Clube da Venda', r: clubeRes, lim: 60, vale: h >= 8 && h <= 20 });
+  F.push({ id: 'gerot', nome: 'GEROT', r: await um('SELECT MAX(em) FROM gerot_coleta_status'), lim: 180, vale: h >= 9 && h <= 21 });
+  F.push({ id: 'ceven_sup', nome: 'CEVEN admin (compromisso e RET)', r: await um('SELECT MAX(atualizado_em) FROM supervisores_dia WHERE data_ref = ?', dia), lim: 45, vale: h >= 7 && h <= 19 });
+  F.push({ id: 'liga', nome: 'Lances da Liga', r: await um("SELECT MAX(visto_em) FROM tv_lances WHERE dia = ? AND nivel <> 'marker'", dia), lim: 90, vale: util && h >= 10 && h <= 19 });
+  F.push({ id: 'vigia', nome: 'Agendador (worker-cron)', r: await um("SELECT valor FROM config_flags WHERE chave = 'vigia_ultima'"), lim: 40, vale: h >= 8 && h <= 20 });
+  F.push({ id: 'wa_inbound', nome: 'WhatsApp (entrada Evolution)', r: await um("SELECT MAX(quando) FROM bot_msgs WHERE direcao = 'in'"), lim: 45, vale: util && h >= 8 && h <= 19 });
+  const quadro = F.map((f) => {
+    const ult = f.r.ok ? f.r.v : null;
+    const min = f.r.ok && Number.isFinite(minDesde(ult)) ? Math.round(minDesde(ult)) : null;
+    return { fonte: f.nome, ultima: ult, minutos: min, limite: f.lim, vale_agora: f.vale, parada: f.r.ok && f.vale && minDesde(ult) > f.lim, erro_d1: !f.r.ok };
+  });
   if (u.searchParams.get('teste') === '1' || soSaude) return J({ dia, hora: rel.hm, quadro });
   const avisos = [], marcar = [];
   for (const f of F) {
-    const parada = f.vale && minDesde(f.ult) > f.lim && !(f.id === 'vigia' && !f.ult), chave = `vigia_${f.id}_${dia}`;
-    const ja = await um('SELECT valor FROM config_flags WHERE chave = ?', chave);
+    if (!f.r.ok) continue; // erro transitorio no D1 jamais dispara falso alarme de fonte parada
+    const ult = f.r.v;
+    const parada = f.vale && minDesde(ult) > f.lim && !(f.id === 'vigia' && !ult), chave = `vigia_${f.id}_${dia}`;
+    const jaRes = await um('SELECT valor FROM config_flags WHERE chave = ?', chave);
+    if (!jaRes.ok) continue;
+    const ja = jaRes.v;
     if (parada && ja !== 'parada') {
-      const m = minDesde(f.ult);
+      const m = minDesde(ult);
       avisos.push(`⚠️ *${f.nome} parou*: última leitura ${Number.isFinite(m) ? `há ${Math.round(m)} min` : 'nenhuma hoje'} (limite ${f.lim} min). As respostas e telas que dependem dela ficam com o último dado.`);
       marcar.push([chave, 'parada']);
     } else if (!parada && ja === 'parada') {
-      avisos.push(`✅ *${f.nome} voltou* (última leitura há ${Math.round(minDesde(f.ult))} min).`);
+      avisos.push(`✅ *${f.nome} voltou* (última leitura há ${Math.round(minDesde(ult))} min).`);
       marcar.push([chave, 'ok']);
     }
   }
