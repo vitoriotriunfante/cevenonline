@@ -1,0 +1,53 @@
+# FICHA DO ARQUIVO
+# O QUE E: Motor Unificado de Coleta do Clube da Venda (TradePro) — manual/dry-run na Onda 1.
+#   Log somente com contagens, somas financeiras do Accounting Gate e duracao (zero PII).
+name: Clube — motor unificado de coleta
+
+on:
+  workflow_dispatch:
+    inputs:
+      tier:
+        description: "Tier (1 = tempo real completo)"
+        required: false
+        default: "1"
+      dry_run:
+        description: "Simular sem gravar no D1 (true/false)"
+        type: boolean
+        required: false
+        default: true
+      dia_alvo:
+        description: "Data AAAAMMDD (vazio = hoje BRT)"
+        required: false
+        default: ""
+
+jobs:
+  coletar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Instalar dependencias e navegador
+        run: |
+          npm ci --no-audit --no-fund
+          for t in 1 2 3 4; do npx playwright install --with-deps chromium && break; sleep 20; done
+      - name: Executar Motor Unificado Clube
+        env:
+          TP_USER: ${{ secrets.TP_USER }}
+          TP_PASS: ${{ secrets.TP_PASS }}
+          EVO_KEY: ${{ secrets.EVO_KEY }}
+          CEVEN_SITE_URL: https://ceven-cftv-matrix.pages.dev
+        run: |
+          ARGS="--tier=${{ github.event.inputs.tier }}"
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            ARGS="$ARGS --dry-run"
+          else
+            ARGS="$ARGS --api"
+          fi
+          if [ -n "${{ github.event.inputs.dia_alvo }}" ]; then
+            node pipeline/clube_motor_coleta.mjs "${{ github.event.inputs.dia_alvo }}" $ARGS
+          else
+            node pipeline/clube_motor_coleta.mjs $ARGS
+          fi
