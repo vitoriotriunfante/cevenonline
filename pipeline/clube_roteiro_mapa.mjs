@@ -13,7 +13,7 @@ const browser = await chromium.launch({ headless: true });
 const ctx = await browser.newContext({ viewport: { width: 1600, height: 1000 }, acceptDownloads: true });
 const page = await ctx.newPage();
 await page.goto(BASE + 'login.xhtml', { waitUntil: 'domcontentloaded', timeout: 60000 }); await page.waitForTimeout(5000);
-await page.locator('[id="j_idt6:j_username"]').fill(process.env.TP_USER); await page.locator('[id="j_idt6:j_password"]').fill(process.env.TP_PASS); await page.locator('input[type=submit]').click({ noWaitAfter: true });
+await page.locator('input[id$=":j_username"], input[name$=":j_username"]').first().fill(process.env.TP_USER); await page.locator('input[id$=":j_password"], input[name$=":j_password"]').first().fill(process.env.TP_PASS); await page.locator('input[type=submit]').click({ noWaitAfter: true });
 for (let t = 0; t < 60; t++) { await page.waitForTimeout(1000); if (/Relat[oó]rio de Vendas|Filiais/.test(await page.evaluate(() => document.body.innerText).catch(() => ''))) break; }
 await page.goto(BASE + 'relatorioRoteiroConsolidadoGeral.xhtml', { waitUntil: 'domcontentloaded', timeout: 60000 }); await page.waitForTimeout(5000);
 // opcoes do combo Filial (so os rotulos; o 1o vira o alvo)

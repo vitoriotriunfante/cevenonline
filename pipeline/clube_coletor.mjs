@@ -36,7 +36,7 @@ async function entra(page) {
   await page.goto(BASE + 'login.xhtml', { waitUntil: 'domcontentloaded', timeout: 60000 });
   await page.waitForTimeout(5000);
   for (let t = 0; t < 3; t++) {
-    try { await page.locator('[id="j_idt6:j_username"]').fill(process.env.TP_USER, { timeout: 10000 }); await page.locator('[id="j_idt6:j_password"]').fill(process.env.TP_PASS, { timeout: 10000 }); await page.locator('input[type=submit]').click({ noWaitAfter: true, timeout: 10000 }); break; } catch { await page.waitForTimeout(3000); }
+    try { await page.locator('input[id$=":j_username"], input[name$=":j_username"]').first().fill(process.env.TP_USER, { timeout: 10000 }); await page.locator('input[id$=":j_password"], input[name$=":j_password"]').first().fill(process.env.TP_PASS, { timeout: 10000 }); await page.locator('input[type=submit]').click({ noWaitAfter: true, timeout: 10000 }); break; } catch { await page.waitForTimeout(3000); }
   }
   for (let t = 0; t < 60; t++) { await page.waitForTimeout(1000); const tx = await page.evaluate(() => document.body.innerText).catch(() => ''); if (/Relat[oó]rio de Vendas|Filiais/.test(tx)) return true; }
   throw new Error('login no Clube nao entrou');

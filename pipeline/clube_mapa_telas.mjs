@@ -94,8 +94,8 @@ async function garantirLogin(page) {
   }
   for (let t = 0; t < 3; t++) {
     try {
-      await page.locator('[id="j_idt6:j_username"]').fill(process.env.TP_USER, { timeout: 10000 });
-      await page.locator('[id="j_idt6:j_password"]').fill(process.env.TP_PASS, { timeout: 10000 });
+      await page.locator('input[id$=":j_username"], input[name$=":j_username"]').first().fill(process.env.TP_USER, { timeout: 10000 });
+      await page.locator('input[id$=":j_password"], input[name$=":j_password"]').first().fill(process.env.TP_PASS, { timeout: 10000 });
       await page.locator('input[type=submit]').click({ noWaitAfter: true, timeout: 10000 });
       break;
     } catch {
