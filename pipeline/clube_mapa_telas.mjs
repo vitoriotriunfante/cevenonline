@@ -42,9 +42,9 @@ const SHARD_IDX = Number(process.env.SHARD_IDX || 0);
 const SHARD_TOTAL = Math.max(1, Number(process.env.SHARD_TOTAL || 1));
 
 // Blacklist absoluta de escrita/mutacao
-const RE_BLACKLIST = /salvar|gravar|excluir|apagar|deletar|remover|novo|incluir|adicionar|editar|alterar|liberar|reativar|enviar|confirmar|aprovar|rejeitar|senha|calcular|processar|importar|limpar|estornar|cancelar|bloquear|desbloquear|finalizar|fechar rota/i;
+const RE_BLACKLIST = /salvar|gravar|excluir|apagar|deletar|remover|novo|incluir|adicionar|editar|alterar|liberar|reativar|enviar|confirmar|aprovar|rejeitar|senha|calcular|processar|importar|limpar|estornar|cancelar|bloquear|desbloquear|finalizar|fechar rota|duplicar|inativar|reiniciar/i;
 const RE_WHITELIST_CONSULTA = /^(Gerar|Gerar Relatório|Pesquisar|Buscar|Filtrar|Consultar|Exibir|Listar|Atualizar)$/i;
-const RE_WHITELIST_EXPORT = /^(Excel|Exportar Excel|Exportar|Gerar venda de todos RCAs)$/i;
+const RE_WHITELIST_EXPORT = /^(Excel|Exportar Excel|Exportar para Excel|Exportar|Gerar venda de todos RCAs)$/i;
 
 const TELAS_ESTRUTURA_APENAS = new Set([
   'reativaPedido.xhtml',
@@ -104,19 +104,21 @@ async function garantirLogin(page) {
   }
   for (let t = 0; t < 60; t++) {
     await page.waitForTimeout(1000);
-    const tx = await page.evaluate(() => document.body.innerText || '').catch(() => '');
+    const tx = await page.evaluate(() => (document.body && document.body.innerText) || '').catch(() => '');
     if (/Relat[oó]rio de Vendas|Filiais/.test(tx)) return true;
   }
   throw new Error('login no Clube nao entrou');
 }
 
 async function abrirTela(page, arquivo) {
-  await page.goto(BASE + arquivo, { waitUntil: 'domcontentloaded', timeout: 45000 });
+  const timeoutNav = arquivo === 'relatorioVenda.xhtml' ? 120000 : 60000;
+  const urlAlvo = arquivo === 'relatorioVenda.xhtml' ? `${BASE}relatorioVenda.xhtml?di=${diaCompacto}&df=${diaCompacto}&fo=-1&fi=4&n=PAUTA` : BASE + arquivo;
+  await page.goto(urlAlvo, { waitUntil: 'domcontentloaded', timeout: timeoutNav });
   await page.waitForTimeout(2500);
   if (/login\.xhtml/i.test(page.url())) {
     log(`Sessao caiu ao abrir ${arquivo}; re-logando...`);
     await garantirLogin(page);
-    await page.goto(BASE + arquivo, { waitUntil: 'domcontentloaded', timeout: 45000 });
+    await page.goto(urlAlvo, { waitUntil: 'domcontentloaded', timeout: timeoutNav });
     await page.waitForTimeout(2500);
   }
 }
@@ -182,7 +184,7 @@ async function descobrirMenu(page) {
   if (!mapa.has('relatorioClientesSemRoteiro.xhtml')) {
     mapa.set('relatorioClientesSemRoteiro.xhtml', { h: 'relatorioClientesSemRoteiro.xhtml', t: 'Clientes Sem Roteiro', menu: 'Relatório' });
   }
-  return [...mapa.values()];
+  return [...mapa.values()].sort((a, b) => a.h.localeCompare(b.h));
 }
 
 async function extrairEstruturaEstatica(page) {
@@ -262,57 +264,77 @@ async function preencherDatas(page) {
 }
 
 async function selecionarFiltrosSeguros(page, nivelObrigatorio = false) {
-  const info = await page.evaluate((nivelObr) => {
-    const escolhidos = [];
-    const selects = [...document.querySelectorAll('select')];
-
-    const disparaSelect = (sel, opt) => {
-      sel.value = opt.value;
-      sel.dispatchEvent(new Event('change', { bubbles: true }));
-      const baseId = sel.id ? sel.id.replace(/_input$/, '') : '';
-      return { id: sel.id || sel.name || '', baseId, texto: opt.text.trim() };
-    };
-
-    // 1. Filial -> TRIUNFANTE - TCV
-    for (const s of selects) {
-      const opts = [...s.options];
-      const tcv = opts.find((o) => /TRIUNFANTE\s*-\s*TCV/i.test(o.text));
-      if (tcv) {
-        if (s.value !== tcv.value) escolhidos.push({ tipo: 'filial', ...disparaSelect(s, tcv) });
-        else escolhidos.push({ tipo: 'filial_ja_set', id: s.id || '', baseId: '' });
-      }
-    }
-
-    // 2. Se nao tem Filial ou se estamos em retry por campo obrigatorio, selecionar Representante (352) / Coordenador / Fornecedor
-    const temFilial = escolhidos.some((e) => e.tipo.startsWith('filial'));
-    if (!temFilial || nivelObr) {
-      for (const s of selects) {
-        const id = (s.id || s.name || '').toLowerCase();
-        const opts = [...s.options];
-        if (opts.length <= 1) continue;
-        const jaTemFilialNesse = opts.some((o) => /TRIUNFANTE\s*-\s*TCV/i.test(o.text));
-        if (jaTemFilialNesse) continue;
-
-        const ehRep = /representante|vendedor|rca/i.test(id) || opts.some((o) => /^352\b|\b352\s*-/i.test(o.text.trim()));
-        if (ehRep) {
-          const opt352 = opts.find((o) => /\b352\b/.test(o.text)) || opts.find((o) => o.value && !/selecione|todos|^0$/i.test(o.text.trim()));
-          if (opt352 && s.value !== opt352.value) {
-            escolhidos.push({ tipo: 'representante', ...disparaSelect(s, opt352) });
+  const selecionaPasso = async (passo) => {
+    const res = await page.evaluate((p) => {
+      const selects = [...document.querySelectorAll('select')];
+      const dispara = (sel, opt) => {
+        sel.value = opt.value;
+        sel.dispatchEvent(new Event('change', { bubbles: true }));
+        return { id: sel.id || sel.name || '', texto: opt.text.trim() };
+      };
+      const out = [];
+      if (p === 'filial') {
+        for (const s of selects) {
+          const tcv = [...s.options].find((o) => /TRIUNFANTE\s*-\s*TCV/i.test(o.text));
+          if (tcv) {
+            if (s.value !== tcv.value) out.push({ tipo: 'filial', ...dispara(s, tcv) });
+            else out.push({ tipo: 'filial_ja_set', id: s.id || '' });
           }
-        } else if (nivelObr) {
-          const optVal = opts.find((o) => o.value && !/selecione|todos|^$/i.test(o.text.trim()));
-          if (optVal && (!s.value || /selecione/i.test(s.options[s.selectedIndex]?.text || ''))) {
-            escolhidos.push({ tipo: 'outro_select', ...disparaSelect(s, optVal) });
+        }
+      } else if (p === 'coord') {
+        for (const s of selects) {
+          const id = (s.id || s.name || '').toLowerCase();
+          const opts = [...s.options];
+          if (opts.length <= 1) continue;
+          if (/coordenador/i.test(id) || opts.some((o) => /coordenador/i.test(o.text))) {
+            const val = opts.find((o) => o.value && !/selecione|todos|^0?$/i.test(o.text.trim()));
+            if (val && s.value !== val.value) out.push({ tipo: 'coordenador', ...dispara(s, val) });
+          }
+        }
+      } else if (p === 'rep') {
+        for (const s of selects) {
+          const id = (s.id || s.name || '').toLowerCase();
+          const opts = [...s.options];
+          if (opts.length <= 1 || opts.some((o) => /TRIUNFANTE\s*-\s*TCV/i.test(o.text))) continue;
+          const ehRep = /representante|vendedor|rca/i.test(id) || opts.some((o) => /^352\b|\b352\s*-/i.test(o.text.trim()));
+          if (ehRep) {
+            const opt352 = opts.find((o) => /\b352\b/.test(o.text)) || opts.find((o) => o.value && !/selecione|todos|^0?$/i.test(o.text.trim()));
+            if (opt352 && s.value !== opt352.value) out.push({ tipo: 'representante', ...dispara(s, opt352) });
+          }
+        }
+      } else if (p === 'outro') {
+        for (const s of selects) {
+          const opts = [...s.options];
+          if (opts.length <= 1 || opts.some((o) => /TRIUNFANTE\s*-\s*TCV/i.test(o.text))) continue;
+          const curTxt = (s.options[s.selectedIndex]?.text || '').trim();
+          if (!s.value || /selecione/i.test(curTxt)) {
+            const optVal = opts.find((o) => o.value && !/selecione|todos|^$/i.test(o.text.trim()));
+            if (optVal) out.push({ tipo: 'outro_select', ...dispara(s, optVal) });
           }
         }
       }
-    }
-    return escolhidos;
-  }, nivelObrigatorio).catch(() => []);
+      return out;
+    }, passo).catch(() => []);
+    if (res.some((x) => !x.tipo.endsWith('_ja_set'))) await page.waitForTimeout(1800);
+    return res;
+  };
 
-  // Sincronizar widget visual do PrimeFaces se existir (via menu UI somente se select nao refletiu)
-  if (info.length > 0) await page.waitForTimeout(1500);
-  return info.map((x) => x.tipo);
+  const aplicados = [];
+  const f = await selecionaPasso('filial');
+  aplicados.push(...f.map((x) => x.tipo));
+
+  const temFilial = f.length > 0;
+  if (!temFilial || nivelObrigatorio) {
+    const c = await selecionaPasso('coord');
+    aplicados.push(...c.map((x) => x.tipo));
+    const r = await selecionaPasso('rep');
+    aplicados.push(...r.map((x) => x.tipo));
+    if (nivelObrigatorio) {
+      const o = await selecionaPasso('outro');
+      aplicados.push(...o.map((x) => x.tipo));
+    }
+  }
+  return aplicados;
 }
 
 async function clicarBotaoWhitelist(page, regex) {
@@ -352,7 +374,7 @@ async function aguardarResultado(page, timeoutMs = 30000) {
       const msgs = [...document.querySelectorAll('.ui-messages, .ui-growl-message, .ui-message-error, .ui-message-warn')]
         .map((m) => (m.innerText || '').trim())
         .filter(Boolean);
-      const body = document.body.innerText || '';
+      const body = (document.body && document.body.innerText) || '';
       const nenhum = /Nenhum registro|Nenhum dado|Nenhuma informa/i.test(body);
       const bloqueado = [...document.querySelectorAll('.ui-blockui, .ui-dialog-docking-zone, [id*="status" i] .ui-dialog')]
         .some((el) => el.offsetParent !== null && getComputedStyle(el).display !== 'none');
@@ -395,7 +417,7 @@ async function extrairResultadoTela(page) {
     )];
     const tem_mapa_ou_canvas = !!document.querySelector('.gm-style, canvas, svg');
     const rotulos_sem_digitos = [...new Set(
-      (document.body.innerText || '')
+      ((document.body && document.body.innerText) || '')
         .split('\n')
         .map((l) => l.trim().replace(/\s+/g, ' '))
         .filter((l) => l.length >= 3 && l.length <= 50 && !/\d/.test(l))
@@ -403,7 +425,7 @@ async function extrairResultadoTela(page) {
 
     const rowTogglers = document.querySelectorAll('.ui-row-toggler').length;
     return { tabelas, paginador, mensagens, tem_mapa_ou_canvas, rotulos_sem_digitos, rowTogglers };
-  });
+  }).catch(() => ({ tabelas: [], paginador: '', mensagens: [], tem_mapa_ou_canvas: false, rotulos_sem_digitos: [], rowTogglers: 0 }));
 }
 
 async function testarRowToggler(page) {
@@ -455,11 +477,22 @@ async function testarExports(page, tmpDir, prefixo) {
         const w = XLSX.readFile(arq);
         const abas = w.SheetNames.map((nm) => {
           const rows = XLSX.utils.sheet_to_json(w.Sheets[nm], { header: 1, defval: null });
-          const hi = rows.findIndex((r) => r && r.filter((c) => c != null && String(c).trim() !== '').length >= 3);
-          const colunas = hi >= 0 ? rows[hi].map((c) => sanitizaString(String(c || '').trim())).filter(Boolean) : [];
+          // Encontra a linha de cabecalho real (maior largura com >= 3 celulas preenchidas nas primeiras 25 linhas)
+          let bestIdx = -1;
+          let bestCnt = 0;
+          for (let ri = 0; ri < Math.min(25, rows.length); ri++) {
+            const r = rows[ri];
+            if (!r) continue;
+            const filled = r.filter((c) => c != null && String(c).trim() !== '');
+            if (filled.length >= 3 && filled.length > bestCnt) {
+              bestCnt = filled.length;
+              bestIdx = ri;
+            }
+          }
+          const colunas = bestIdx >= 0 ? rows[bestIdx].map((c) => sanitizaString(String(c || '').trim())).filter(Boolean) : [];
           return {
             nome: nm,
-            linhas: Math.max(0, rows.length - (hi >= 0 ? hi + 1 : 0)),
+            linhas: Math.max(0, rows.length - (bestIdx >= 0 ? bestIdx + 1 : 0)),
             colunas,
           };
         });
@@ -543,11 +576,12 @@ async function inspecionarTela(page, item, tmpDir) {
 async function sondaRelatorioVenda(page, tmpDir) {
   const niveis = [];
   const lerVenda = async (label, query) => {
-    await page.goto(BASE + `relatorioVenda.xhtml?di=${diaCompacto}&df=${diaCompacto}&fo=-1&${query}`, { waitUntil: 'domcontentloaded', timeout: 45000 });
+    const url = BASE + `relatorioVenda.xhtml?di=${diaCompacto}&df=${diaCompacto}&fo=-1&${query}`;
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 120000 });
     await page.waitForTimeout(3500);
     if (/login\.xhtml/i.test(page.url())) {
       await garantirLogin(page);
-      await page.goto(BASE + `relatorioVenda.xhtml?di=${diaCompacto}&df=${diaCompacto}&fo=-1&${query}`, { waitUntil: 'domcontentloaded', timeout: 45000 });
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 120000 });
       await page.waitForTimeout(3500);
     }
     const est = await extrairEstruturaEstatica(page);
@@ -569,9 +603,7 @@ async function sondaRelatorioVenda(page, tmpDir) {
   };
 
   try {
-    const n1 = await lerVenda('raiz_filiais', '');
-    niveis.push(n1);
-
+    // Comeca pelo nivel Filial (fi=4&n=PAUTA) que eh rapido e garantido, depois tenta a raiz
     const n2 = await lerVenda('filial_pauta', 'fi=4&n=PAUTA');
     niveis.push(n2);
 
@@ -583,6 +615,13 @@ async function sondaRelatorioVenda(page, tmpDir) {
         const n4 = await lerVenda('vendedor_forn', `fi=4&n=FORNECEDOR&co=${n2.primeiroCod}&re=${n3.primeiroCod}`);
         niveis.push(n4);
       }
+    }
+
+    try {
+      const n1 = await lerVenda('raiz_filiais', '');
+      niveis.unshift(n1);
+    } catch (eRaiz) {
+      niveis.unshift({ label: 'raiz_filiais', erro: String(eRaiz && eRaiz.message || eRaiz).slice(0, 140) });
     }
   } catch (e) {
     niveis.push({ erro: String(e && e.message || e).slice(0, 180) });
