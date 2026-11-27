@@ -1,20 +1,37 @@
 # FICHA DO ARQUIVO
-# O QUE E: mapa das telas do Clube da Venda (TradePro) procurando a rota do dia com os nomes (plano do JOTA, bloco D). SO LEITURA, so manual.
-#   Log so com nomes de tela, colunas e contagens (repositorio publico). Nada anexado, nada gravado.
+# O QUE E: Mapeamento 100% SOMENTE LEITURA das telas do Clube da Venda (TradePro), em paralelo (4 shards).
+#   Log so com nomes de tela, filtros, botoes, colunas e contagens (repositorio publico). Nada gravado no D1, zero PII.
 name: Clube — mapa das telas (so leitura)
 
 on:
   workflow_dispatch:
     inputs:
       paginas:
-        description: "telas .xhtml separadas por virgula (vazio = procura rota/cliente)"
+        description: "telas .xhtml separadas por virgula (vazio = todas as telas do menu)"
         required: false
         default: ""
+      dia_alvo:
+        description: "Data alvo AAAA-MM-DD (vazio = ultimo dia util cheio)"
+        required: false
+        default: ""
+      modo:
+        description: "Modo de execucao"
+        type: choice
+        required: false
+        default: "completo_4_shards"
+        options:
+          - completo_4_shards
+          - unico_shard
 
 jobs:
   mapear:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
+    if: ${{ (github.event.inputs.paginas == '' && github.event.inputs.modo != 'unico_shard') || matrix.shard == 0 }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -24,9 +41,16 @@ jobs:
         run: |
           npm ci --no-audit --no-fund
           for t in 1 2 3 4; do npx playwright install --with-deps chromium && break; sleep 20; done
-      - name: Mapear telas
+      - name: Mapear telas (Shard ${{ matrix.shard }})
         env:
           TP_USER: ${{ secrets.TP_USER }}
           TP_PASS: ${{ secrets.TP_PASS }}
           PAGINAS: ${{ github.event.inputs.paginas }}
-        run: node pipeline/clube_mapa_telas.mjs
+          DIA_ALVO: ${{ github.event.inputs.dia_alvo }}
+          SHARD_IDX: ${{ matrix.shard }}
+          SHARD_TOTAL: ${{ (github.event.inputs.paginas != '' || github.event.inputs.modo == 'unico_shard') && '1' || '4' }}
+        run: |
+          if [ "$SHARD_TOTAL" = "4" ] && [ "$SHARD_IDX" != "0" ]; then
+            sleep $((SHARD_IDX * 6))
+          fi
+          node pipeline/clube_mapa_telas.mjs
