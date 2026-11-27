@@ -30,8 +30,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [0, 1, 2, 3]
-    if: ${{ (github.event.inputs.paginas == '' && github.event.inputs.modo != 'unico_shard') || matrix.shard == 0 }}
+        shard: ${{ fromJSON((github.event.inputs.paginas == '' && github.event.inputs.modo != 'unico_shard') && '[0, 1, 2, 3]' || '[0]') }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
