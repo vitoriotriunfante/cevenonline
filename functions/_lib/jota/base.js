@@ -97,7 +97,8 @@ export async function enviar(env, numero, texto, opcoes = {}) {
   const s = String(numero || '').trim();
   const cfg = R.evoCfg(env);
   // reenvioAutorizado: so /api/jota-reenviar (chave interna) usa, quando o Vitorio autoriza reenviar a resposta certa a quem perguntou (17/11/2026)
-  if (!s.endsWith('@g.us') && !opcoes.reenvioAutorizado) { const q = await cotaEnvio(env, so(s)); if (!q.ok) return { ok: false, status: 429, erro: q.erro, teto: true }; }
+  // alertaOperacional: vigia/auditorias passam pela pausa proativa e cota antiban
+  if (!s.endsWith('@g.us') && !opcoes.reenvioAutorizado && !opcoes.alertaOperacional) { const q = await cotaEnvio(env, so(s)); if (!q.ok) return { ok: false, status: 429, erro: q.erro, teto: true }; }
   if (s.endsWith('@g.us')) {
     const rG = await R.enviarTexto(cfg, s, texto, opcoes);
     return { ok: rG.ok, status: rG.status, erro: rG.erro, resposta: rG.resposta };
@@ -125,7 +126,8 @@ export async function enviarImagem(env, numero, media, caption, opcoes = {}) {
   if (!env.EVO_URL || !env.EVO_KEY || !media) return { ok: false, erro: 'sem config ou midia' };
   const s = String(numero || '').trim(), cfg = R.evoCfg(env);
   // reenvioAutorizado: so /api/jota-reenviar (chave interna) usa, quando o Vitorio autoriza reenviar a resposta certa a quem perguntou (17/11/2026)
-  if (!s.endsWith('@g.us') && !opcoes.reenvioAutorizado) { const q = await cotaEnvio(env, so(s)); if (!q.ok) return { ok: false, status: 429, erro: q.erro, teto: true }; }
+  // alertaOperacional: vigia/auditorias passam pela pausa proativa e cota antiban
+  if (!s.endsWith('@g.us') && !opcoes.reenvioAutorizado && !opcoes.alertaOperacional) { const q = await cotaEnvio(env, so(s)); if (!q.ok) return { ok: false, status: 429, erro: q.erro, teto: true }; }
   const d = s.endsWith('@g.us') ? s : so(s);
   if (!d) return { ok: false, erro: 'numero invalido' };
   const rawMedia = String(media).replace(/^data:[^;]+;base64,/, '');

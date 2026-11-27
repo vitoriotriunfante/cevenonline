@@ -125,10 +125,17 @@ export default {
         await rodarTarefaTv(event.cron, { passos: [{ rota: '/api/vigia-fontes', ms: 60000, chaveEnv: 'MONITORIA_CRON_KEY' }] }, env);
       }
       // FECHAMENTO DA LIGA (22/11/2026, auditoria: 17, 18 e 19/11 nunca fecharam — o fechamento era chamado pelo cron-lances, desligado em 16/11).
-      //   22h17 BRT seg-sex, depois da coleta das 21h17 (que grava os lances do dia). Idempotente; fecha tambem dia util anterior ainda aberto.
-      if (dia >= 1 && dia <= 5 && h === 22 && mi >= 15 && mi < 30) {
-        // semana invicta (tambem era chamada pelo cron-lances desligado): idempotente; so grava quando o ultimo dia util da semana ja passou das 19h
+      //   22h17, 22h32, 22h47 e 23h02 BRT seg-sex (idempotente; fecha tambem dia util anterior ainda aberto).
+      if (dia >= 1 && dia <= 5 && ((h === 22 && mi >= 15) || (h === 23 && mi < 15))) {
         await rodarTarefaTv(event.cron, { passos: [{ rota: '/api/cron-fechamento-dia', ms: 280000 }, { rota: '/api/cron-semana-invicta', ms: 280000 }] }, env);
+      }
+      // LANCES DA LIGA DESACOPLADOS DO CLUBE (27/11/2026, Sprint 0): roda a cada 15 min em dias uteis (07h-21h45 BRT).
+      if (dia >= 1 && dia <= 5 && !FERIADOS_NACIONAIS.has(dataSp) && h >= 7 && h <= 21 && env.MONITORIA_CRON_KEY) {
+        await rodarTarefaTv(event.cron, { passos: [{ rota: '/api/liga-clube?grava=1', ms: 120000, chaveEnv: 'MONITORIA_CRON_KEY' }] }, env);
+      }
+      // BOLA CHEIA DO DIA + AS (27/11/2026, Sprint 0): congela as 18h BRT em dias uteis (tentativas 18:02, 18:17, 18:32; idempotente).
+      if (dia >= 1 && dia <= 5 && !FERIADOS_NACIONAIS.has(dataSp) && h === 18 && mi < 45) {
+        await rodarTarefaTv(event.cron, { passos: [{ rota: '/api/bola-cheia?rodar=1', ms: 120000 }] }, env);
       }
       // CEVEN DO ADMIN (22/11/2026, Vitorio: 'RETs, compromissos e tags... tem que vir do admin'): compromisso/RET a cada 15 min e TAGs 2x/dia (a funcao decide). Seg-sab 06h-20h.
       if (dia >= 1 && dia <= 6 && h >= 6 && h <= 20 && env.MONITORIA_CRON_KEY) {

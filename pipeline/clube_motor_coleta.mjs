@@ -390,6 +390,7 @@ if (!process.env.TP_USER || !process.env.TP_PASS) throw new Error('TP_USER / TP_
 if (TIER !== 1) throw new Error(`Tier ${TIER} sera implementado nas Ondas 2/3. Use --tier=1.`);
 
 const t0 = Date.now();
+let falhas_raiz_flag = false;
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'clube-motor-'));
 const browser = await chromium.launch({ headless: true });
 const ctx = await browser.newContext({ viewport: { width: 1600, height: 1000 }, acceptDownloads: true });
@@ -400,7 +401,13 @@ try {
   log(`Motor Clube TIER ${TIER} | Dia ${diaIso} | dry_run=${DRY_RUN}`);
 
   // 1) relatorioVenda: Raiz + 11 Filiais (Fornecedores ao vivo) + Supervisores + Vendedores
-  const raiz = await extrairTabelasVenda(pags[0], `${BASE}relatorioVenda.xhtml?di=${dia}&df=${dia}&fo=-1`);
+  // 27/11/2026 (dry-run 46053791238): a 1a leitura da raiz logo apos o login estourava 35s -> ate 3 tentativas
+  let raiz = null;
+  for (let tr = 0; tr < 3 && !raiz; tr++) {
+    raiz = await extrairTabelasVenda(pags[0], `${BASE}relatorioVenda.xhtml?di=${dia}&df=${dia}&fo=-1`);
+    if (!raiz) { log(`Raiz tentativa ${tr + 1} sem tabela; repetindo`); await pags[0].waitForTimeout(3000); }
+  }
+  if (!raiz) falhas_raiz_flag = true;
   const filiaisRaiz = new Map();
   const fornecedoresDia = [];
   if (raiz) {
@@ -413,6 +420,7 @@ try {
   }
 
   const tarefas = [], falhas = [];
+  if (falhas_raiz_flag) falhas.push('raiz');
   for (const [fi, sig] of Object.entries(UNIDADES)) {
     let rFil = await extrairTabelasVenda(pags[0], `${BASE}relatorioVenda.xhtml?di=${dia}&df=${dia}&fo=-1&fi=${fi}&n=PAUTA`);
     if (!rFil) rFil = await extrairTabelasVenda(pags[0], `${BASE}relatorioVenda.xhtml?di=${dia}&df=${dia}&fo=-1&fi=${fi}&n=PAUTA`);
@@ -422,17 +430,28 @@ try {
     log(sig, rFil.principal.length + ' sups |', rFil.fornecedores.length + ' fornecedores');
   }
 
-  const vendedores = [];
+  const vendedores = [], pendSup = [];
   let k = 0;
   await Promise.all(pags.map(async (pg) => {
     while (k < tarefas.length) {
       const x = tarefas[k++];
       let rV = await extrairTabelasVenda(pg, `${BASE}relatorioVenda.xhtml?di=${dia}&df=${dia}&fo=-1&fi=${x.fi}&n=REPRESENTANTE&co=${x.sup}`);
       if (!rV) rV = await extrairTabelasVenda(pg, `${BASE}relatorioVenda.xhtml?di=${dia}&df=${dia}&fo=-1&fi=${x.fi}&n=REPRESENTANTE&co=${x.sup}`);
-      if (!rV) { falhas.push(`${x.sig}:sup_${x.sup}`); continue; }
+      if (!rV) { pendSup.push(x); continue; }
       for (const l of rV.principal) vendedores.push({ filial: x.sig, sup_cod: x.sup, sup_nome: x.supNome, ...mapLinhaVenda(l), rca: l[0] });
     }
   }));
+  // 27/11/2026: repescagem sequencial (sem concorrencia) dos supervisores que falharam nas 2 tentativas paralelas
+  for (const x of pendSup) {
+    let rV = null;
+    for (let tr = 0; tr < 2 && !rV; tr++) {
+      await pags[0].waitForTimeout(2000);
+      rV = await extrairTabelasVenda(pags[0], `${BASE}relatorioVenda.xhtml?di=${dia}&df=${dia}&fo=-1&fi=${x.fi}&n=REPRESENTANTE&co=${x.sup}`);
+    }
+    if (!rV) { falhas.push(`${x.sig}:sup_${x.sup}`); continue; }
+    log(`${x.sig} sup_${x.sup} recuperado na repescagem`);
+    for (const l of rV.principal) vendedores.push({ filial: x.sig, sup_cod: x.sup, sup_nome: x.supNome, ...mapLinhaVenda(l), rca: l[0] });
+  }
 
   // 2) Pedidos (.xls por filial, 29 colunas) + Acompanhamento Diario (.csv por filial, 20 colunas) em 2 abas
   const pedidosRaw = [], acompMap = new Map();

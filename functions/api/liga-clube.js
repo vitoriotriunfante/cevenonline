@@ -259,8 +259,10 @@ export async function calculaLances(env, origin, dia, conferir = false) {
 
 export async function onRequestGet({ request, env }) {
   if (!env.DB) return resp({ erro: 'banco indisponivel' }, 503);
-  if (!(await chaveAdminOk(env, request)) && !(await chaveEvoValida(request, env))) return resp({ erro: 'nao autorizado' }, 401);
-  const u = new URL(request.url), hoje = R.relogioSP().dia, agora = R.relogioSP();
+  const u = new URL(request.url);
+  const k = request.headers.get('x-chave') || u.searchParams.get('chave') || '';
+  if (!(await chaveAdminOk(env, request)) && !(env.MONITORIA_CRON_KEY && k === env.MONITORIA_CRON_KEY) && !(await chaveEvoValida(request, env))) return resp({ erro: 'nao autorizado' }, 401);
+  const hoje = R.relogioSP().dia, agora = R.relogioSP();
   const dia = /^\d{4}-\d{2}-\d{2}$/.test(u.searchParams.get('dia') || '') ? u.searchParams.get('dia') : hoje;
   if (diaSemLance(dia)) return resp({ dia, status: 'fim de semana ou feriado: sem lance' });
   if (dia > hoje) return resp({ erro: 'dia futuro' }, 400);

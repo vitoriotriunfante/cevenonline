@@ -9,3 +9,4 @@
 // =========================================================================
 export { diasUteis, ehDiaUtil, hojeBRT } from './dias.js';
 export { CAMPO, kpisMes, carteira, linhasQueFecham, positivacaoPorGrupos, positivacaoRegra4, posicaoGerot, vendedoresGerot, filiaisGerot, supervisoresGerot, historicoFilialGerot, vendasFornecedorGerot } from './kpis.js';
+export { digitadoPorFilial, produtividadeDiaRede, metricasBolaCheiaDia, metricasBolaCheiaSemana } from './dia.js';

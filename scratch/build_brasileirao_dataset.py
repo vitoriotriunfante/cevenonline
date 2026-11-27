@@ -4,6 +4,8 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 import json
 import subprocess
+import time
+import urllib.error
 import urllib.request
 from datetime import datetime, timezone, date, timedelta
 
@@ -62,14 +64,28 @@ def _dias_desde(inicio):
     while d <= hoje:
         out.append(d.isoformat()); d += timedelta(days=1)
     return out
+def _fetch_json_retry(url, timeout=60, tentativas=4, label=''):
+    atrasos = [3, 8, 15]
+    ultimo_erro = None
+    for i in range(tentativas):
+        try:
+            req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                return json.loads(resp.read().decode('utf-8'))
+        except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, json.JSONDecodeError, OSError) as e:
+            ultimo_erro = e
+            if i + 1 < tentativas:
+                espera = atrasos[min(i, len(atrasos) - 1)]
+                print(f"  [retry {i+1}/{tentativas-1}] {label or url}: {e} -> aguardando {espera}s")
+                time.sleep(espera)
+    raise RuntimeError(f"falha apos {tentativas} tentativas ({label or url}): {ultimo_erro}")
+
 def carregar_lances_api():
     lances = []
     for dia in _dias_desde(INICIO_TEMPORADA):
         if date.fromisoformat(dia).weekday() >= 5 or dia in FERIADOS_2026:
             continue  # so dia util conta como jogo
-        req = urllib.request.Request(f'https://ceven-cftv-matrix.pages.dev/api/brasileirao-lances?dia={dia}', headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, timeout=60) as resp:
-            j = json.loads(resp.read().decode('utf-8'))
+        j = _fetch_json_retry(f'https://ceven-cftv-matrix.pages.dev/api/brasileirao-lances?dia={dia}', timeout=60, tentativas=4, label=f'lances {dia}')
         if 'lances' not in j:
             raise RuntimeError(f'resposta sem lances para {dia}: {str(j)[:120]}')
         for l in j['lances']:
@@ -136,9 +152,7 @@ ocultos_fora = 0
 # canal do SUPERVISOR = maioria de TODOS os vendedores dele na equipe (inclusive representantes, que nao disputam a Liga mas definem de qual liga o supervisor e)
 CANAL_EQUIPE_TODOS = {}   # (filial, supervisor) -> {'AS': n, 'VAREJO': n}
 try:
-    req = urllib.request.Request('https://ceven-cftv-matrix.pages.dev/api/tv-mostra', headers={'User-Agent': 'Mozilla/5.0'})
-    with urllib.request.urlopen(req, timeout=20) as resp:
-        mostra_json = json.loads(resp.read().decode('utf-8'))
+    mostra_json = _fetch_json_retry('https://ceven-cftv-matrix.pages.dev/api/tv-mostra', timeout=25, tentativas=3, label='tv-mostra')
     for fil, itens in mostra_json.get('filiais', {}).items():
         fil_canonica = fil.split('_')[0]  # SIGLA_GRUPO -> SIGLA (ver functions/_lib/xlsx_mostra.js)
         for item in itens:

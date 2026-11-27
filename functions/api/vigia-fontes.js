@@ -24,11 +24,13 @@ export async function onRequest({ request, env }) {
   const um = async (sql, ...b) => { try { const r = await db.prepare(sql).bind(...b).first(); return { ok: true, v: r ? Object.values(r)[0] : null }; } catch (e) { return { ok: false, erro: String(e && e.message || e).slice(0, 80) }; } };
   const clubeR = await um('SELECT MAX(lido_em) FROM clube_rodada WHERE dia = ?', dia);
   const clubeRes = (clubeR.ok && !clubeR.v) ? await um('SELECT MAX(lido_em) FROM clube_venda_dia WHERE dia = ?', dia) : clubeR;
+  const partnerRes = await um("SELECT MAX(ultimo_sync_em) FROM ceven_api_cursor WHERE status = 'ok'");
   const F = [];
-  F.push({ id: 'clube', nome: 'Clube da Venda', r: clubeRes, lim: 60, vale: h >= 8 && h <= 20 });
+  F.push({ id: 'clube', nome: 'Clube da Venda', r: clubeRes, lim: 45, vale: h >= 8 && h <= 20 });
+  F.push({ id: 'ceven_partner', nome: 'CEVEN Partner API', r: partnerRes, lim: 30, vale: partnerRes.ok && !!partnerRes.v && h >= 7 && h <= 21 });
   F.push({ id: 'gerot', nome: 'GEROT', r: await um('SELECT MAX(em) FROM gerot_coleta_status'), lim: 180, vale: h >= 9 && h <= 21 });
   F.push({ id: 'ceven_sup', nome: 'CEVEN admin (compromisso e RET)', r: await um('SELECT MAX(atualizado_em) FROM supervisores_dia WHERE data_ref = ?', dia), lim: 45, vale: h >= 7 && h <= 19 });
-  F.push({ id: 'liga', nome: 'Lances da Liga', r: await um("SELECT MAX(visto_em) FROM tv_lances WHERE dia = ? AND nivel <> 'marker'", dia), lim: 90, vale: util && h >= 10 && h <= 19 });
+  F.push({ id: 'liga', nome: 'Lances da Liga', r: await um("SELECT MAX(visto_em) FROM tv_lances WHERE dia = ? AND nivel <> 'marker'", dia), lim: 45, vale: util && h >= 10 && h <= 19 });
   F.push({ id: 'vigia', nome: 'Agendador (worker-cron)', r: await um("SELECT valor FROM config_flags WHERE chave = 'vigia_ultima'"), lim: 40, vale: h >= 8 && h <= 20 });
   F.push({ id: 'wa_inbound', nome: 'WhatsApp (entrada Evolution)', r: await um("SELECT MAX(quando) FROM bot_msgs WHERE direcao = 'in'"), lim: 45, vale: util && h >= 8 && h <= 19 });
   const quadro = F.map((f) => {
@@ -58,7 +60,7 @@ export async function onRequest({ request, env }) {
   if (u.searchParams.get('externo') !== '1') await db.prepare("INSERT INTO config_flags (chave, valor) VALUES ('vigia_ultima', ?) ON CONFLICT (chave) DO UPDATE SET valor = excluded.valor").bind(new Date().toISOString()).run();
   // so marca 'avisei' se a mensagem SAIU (inventario 22/11: marcava antes e nunca repetia)
   let envio = null;
-  if (avisos.length) { try { const { enviar } = await import('../_lib/jota/base.js'); envio = await enviar(env, VITORIO, `🛰️ *Vigia das fontes* · ${rel.hm}\n\n` + avisos.join('\n\n')); } catch (e) { envio = { ok: false, erro: String(e.message || e).slice(0, 80) }; } }
+  if (avisos.length) { try { const { enviar } = await import('../_lib/jota/base.js'); envio = await enviar(env, VITORIO, `🛰️ *Vigia das fontes* · ${rel.hm}\n\n` + avisos.join('\n\n'), { alertaOperacional: true }); } catch (e) { envio = { ok: false, erro: String(e.message || e).slice(0, 80) }; } }
   if (envio && envio.ok) for (const [ch, val] of marcar) await db.prepare('INSERT INTO config_flags (chave, valor) VALUES (?, ?) ON CONFLICT (chave) DO UPDATE SET valor = excluded.valor').bind(ch, val).run();
   return J({ dia, hora: rel.hm, avisos: avisos.length, envio, quadro });
 }
