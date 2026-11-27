@@ -51,24 +51,27 @@ const dataIso = (s) => {
 };
 
 async function garantirLogin(page) {
-  await page.goto(BASE + 'login.xhtml', { waitUntil: 'domcontentloaded', timeout: 60000 });
-  await page.waitForTimeout(3000);
-  if (!/login\.xhtml/i.test(page.url())) {
-    const ok = await page.evaluate(() => /Relat[oó]rio de Vendas|Filiais/i.test((document.body && document.body.innerText) || '')).catch(() => false);
-    if (ok) return true;
-  }
-  for (let t = 0; t < 3; t++) {
-    try {
-      await page.locator('[id="j_idt6:j_username"]').fill(process.env.TP_USER, { timeout: 10000 });
-      await page.locator('[id="j_idt6:j_password"]').fill(process.env.TP_PASS, { timeout: 10000 });
-      await page.locator('input[type=submit]').click({ noWaitAfter: true, timeout: 10000 });
-      break;
-    } catch { await page.waitForTimeout(2500); }
-  }
-  for (let t = 0; t < 60; t++) {
-    await page.waitForTimeout(1000);
-    const tx = await page.evaluate(() => (document.body && document.body.innerText) || '').catch(() => '');
-    if (/Relat[oó]rio de Vendas|Filiais/.test(tx)) return true;
+  for (let tentativa = 1; tentativa <= 2; tentativa++) {
+    await page.goto(BASE + 'login.xhtml', { waitUntil: 'domcontentloaded', timeout: 90000 }).catch(() => {});
+    await page.waitForTimeout(5000);
+    if (!/login\.xhtml/i.test(page.url())) {
+      const ok = await page.evaluate(() => /Relat[oó]rio de Vendas|Filiais/i.test((document.body && document.body.innerText) || '')).catch(() => false);
+      if (ok) return true;
+    }
+    for (let t = 0; t < 3; t++) {
+      try {
+        await page.locator('[id="j_idt6:j_username"]').fill(process.env.TP_USER, { timeout: 15000 });
+        await page.locator('[id="j_idt6:j_password"]').fill(process.env.TP_PASS, { timeout: 15000 });
+        await page.locator('input[type=submit]').click({ noWaitAfter: true, timeout: 15000 });
+        break;
+      } catch { await page.waitForTimeout(3000); }
+    }
+    for (let t = 0; t < 100; t++) {
+      await page.waitForTimeout(1000);
+      const tx = await page.evaluate(() => (document.body && document.body.innerText) || '').catch(() => '');
+      if (/Relat[oó]rio de Vendas|Filiais/.test(tx)) return true;
+    }
+    log(`garantirLogin tentativa ${tentativa} nao entrou (url=${page.url().slice(0, 60)}); retry...`);
   }
   throw new Error('login no Clube nao entrou');
 }
