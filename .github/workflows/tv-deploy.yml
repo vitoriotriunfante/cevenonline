@@ -32,7 +32,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  CLOUDFLARE_ACCOUNT_ID: 70c0b29be90046574ff5965b1f4b31a8
+  CLOUDFLARE_ACCOUNT_ID: bd949e0c32a033372ff64b74521e2fe1
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
 jobs:

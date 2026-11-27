@@ -16,10 +16,18 @@ const CASOS = JSON.parse(fs.readFileSync(new URL('./gabarito_perguntas.json', im
 // ---------- D1 ----------
 const npxDir = path.join(process.env.LOCALAPPDATA || '', 'npm-cache', '_npx');
 const WR = fs.readdirSync(npxDir).map((d) => path.join(npxDir, d, 'node_modules/wrangler/bin/wrangler.js')).find((x) => fs.existsSync(x));
+const CF_ENV = { ...process.env };
+try {
+  for (const linha of fs.readFileSync(new URL('../.env', import.meta.url), 'utf8').split(/\r?\n/)) {
+    const m = linha.match(/^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);
+    if (m && !process.env[m[1]]) CF_ENV[m[1]] = m[2].replace(/^(['"])(.*)\1$/, '$2').trim();
+  }
+} catch {}
+CF_ENV.CLOUDFLARE_ACCOUNT_ID = 'bd949e0c32a033372ff64b74521e2fe1';
 const cacheSql = new Map();
 function sql(q, semCache = false) {
   if (!semCache && cacheSql.has(q)) return cacheSql.get(q);
-  const r = spawnSync(process.execPath, [WR, 'd1', 'execute', 'ceven_noc_d1', '--remote', '--json', '--command', q], { encoding: 'utf8', maxBuffer: 1 << 28 });
+  const r = spawnSync(process.execPath, [WR, 'd1', 'execute', 'ceven_noc_d1', '--remote', '--json', '--command', q], { encoding: 'utf8', maxBuffer: 1 << 28, env: CF_ENV });
   const s = r.stdout || ''; let out;
   try { out = JSON.parse(s.slice(s.indexOf('[')))[0].results; } catch { throw new Error('D1 falhou: ' + q.slice(0, 120) + ' :: ' + (r.stderr || s).slice(0, 300)); }
   cacheSql.set(q, out); return out;

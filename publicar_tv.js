@@ -38,9 +38,18 @@ if (!/const RELEASE_VERSION = '[^']*';/.test(src)) { console.error('version.js f
 fs.writeFileSync(arq, src.replace(/const RELEASE_VERSION = '[^']*';/, `const RELEASE_VERSION = '${versao}';`));
 console.log('Versao:', versao);
 
+const cfEnv = { ...process.env };
+try {
+  for (const linha of fs.readFileSync(path.join(__dirname, '.env'), 'utf8').split(/\r?\n/)) {
+    const m = linha.match(/^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);
+    if (m && !process.env[m[1]]) cfEnv[m[1]] = m[2].replace(/^(['"])(.*)\1$/, '$2').trim();
+  }
+} catch {}
+cfEnv.CLOUDFLARE_ACCOUNT_ID = 'bd949e0c32a033372ff64b74521e2fe1';
+
 try { execSync('node gerar_mostra_tv.js', { stdio: 'inherit', cwd: __dirname }); } catch { console.warn('AVISO: nao consegui atualizar a lista MOSTRA (mantendo a anterior).'); }
 
-execSync(`npx wrangler pages deploy public --project-name ceven-cftv-matrix --branch main --commit-dirty=true --commit-message "${msg.replace(/"/g, "'")} (${versao})"`, { stdio: 'inherit', cwd: __dirname });
+execSync(`npx wrangler pages deploy public --project-name ceven-cftv-matrix --branch main --commit-dirty=true --commit-message "${msg.replace(/"/g, "'")} (${versao})"`, { stdio: 'inherit', cwd: __dirname, env: cfEnv });
 
 (async () => {
   for (let i = 0; i < 12; i++) {
@@ -51,12 +60,12 @@ execSync(`npx wrangler pages deploy public --project-name ceven-cftv-matrix --br
         console.log('NO AR:', d.version, '- as TVs abertas recarregam sozinhas em ate 30s.');
         // REGUA DEPOIS DE PUBLICAR (17/11/2026, plano do JOTA bloco A): auditoria por papel no JOTA ja publicado; se piorar em relacao a ultima, avisa em destaque
         // 21/11/2026: a regua nunca rodava (JOTA_CHAVE so existia no arquivo local da chave admin) -> le de la quando nao vier no ambiente
-        if (!process.env.JOTA_CHAVE && !process.env.EVO_KEY) { try { const k = fs.readFileSync(path.join(require('os').tmpdir(), '.tk'), 'utf8').trim(); if (k) process.env.JOTA_CHAVE = k; } catch {} }
-        if ((process.env.JOTA_CHAVE || process.env.EVO_KEY) && fs.existsSync(path.join(__dirname, 'testes', 'gabarito.mjs'))) {
-          try { execSync('node testes/gabarito.mjs', { stdio: 'inherit', cwd: __dirname, env: { ...process.env, CI: '1' } }); }
+        if (!cfEnv.JOTA_CHAVE && !cfEnv.EVO_KEY) { try { const k = fs.readFileSync(path.join(require('os').tmpdir(), '.tk'), 'utf8').trim(); if (k) cfEnv.JOTA_CHAVE = k; } catch {} }
+        if ((cfEnv.JOTA_CHAVE || cfEnv.EVO_KEY) && fs.existsSync(path.join(__dirname, 'testes', 'gabarito.mjs'))) {
+          try { execSync('node testes/gabarito.mjs', { stdio: 'inherit', cwd: __dirname, env: { ...cfEnv, CI: '1' } }); }
           catch (e) { console.log('\n!!!!! GABARITO DO JOTA FALHOU DEPOIS DESTA PUBLICACAO — corrigir ou voltar a versao anterior !!!!!\n'); process.exitCode = 2; }
-        } else if ((process.env.JOTA_CHAVE || process.env.EVO_KEY) && fs.existsSync(path.join(__dirname, 'testes', 'auditoria_papeis.mjs'))) {
-          try { execSync('node testes/auditoria_papeis.mjs', { stdio: 'inherit', cwd: __dirname, env: { ...process.env, CI: '1' } }); }
+        } else if ((cfEnv.JOTA_CHAVE || cfEnv.EVO_KEY) && fs.existsSync(path.join(__dirname, 'testes', 'auditoria_papeis.mjs'))) {
+          try { execSync('node testes/auditoria_papeis.mjs', { stdio: 'inherit', cwd: __dirname, env: { ...cfEnv, CI: '1' } }); }
           catch (e) { console.log('\n!!!!! AUDITORIA DO JOTA PIOROU DEPOIS DESTA PUBLICACAO — conferir /api/jota-auditoria e corrigir ou voltar a versao anterior !!!!!\n'); process.exitCode = 2; }
         }
         return;
