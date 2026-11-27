@@ -1528,7 +1528,7 @@ _Devolução do mês no GEROT (${E.nome}): *${R$(tot)}*. Os motivos acima cobrem
   if (/\bPMI\b|POTENCIAL DE MERCADO/.test(t)) { const { respPmi } = await import('./respostas/gerot_estrategico.js'); return respPmi(B, E, c, t); }
   if (/CADASTRO DE CLIENTES|NOVOS CADASTROS|SALDO DE CADASTRO/.test(t)) { const { respCadastroClientes } = await import('./respostas/gerot_estrategico.js'); return respCadastroClientes(B, E, c, t); }
   if (/\bCLIVEN\b|APROVEITAMENTO DE CARTEIRA/.test(t)) { const { respCliven } = await import('./respostas/gerot_estrategico.js'); return respCliven(B, E, c, t); }
-  if (/VISAO CAMPO|TEMPO DE VISITA|TEMPO DE ROTA|PEDIDOS? APOS 18H/.test(t)) { const { respCampoGerot } = await import('./respostas/gerot_estrategico.js'); return respCampoGerot(B, E, c, t); }
+  if (/VISAO CAMPO|EFICIENCIA DE CAMPO|EFICACIA DE CAMPO|TEMPO DE VISITA|TEMPO DE ROTA|PEDIDOS? APOS 18H|PRIMEIRO CHECK.?IN|1.? CHECK.?IN|VENDA SEM VISITA|COBERTURA DE PDV|CARTEIRA VISITADA/.test(t)) { const { respCampoGerot } = await import('./respostas/gerot_estrategico.js'); return respCampoGerot(B, E, c, t); }
   if (/\bJBP\b/.test(t)) { const { respJbpSku } = await import('./respostas/gerot_estrategico.js'); return respJbpSku(B, E, c, t); }
   if (/\bTMF\b|TEMPO MEDIO DE FATURAMENTO/.test(t)) { const { respTmf } = await import('./respostas/gerot_estrategico.js'); return respTmf(B, E, c, t); }
   if (/DESVIO DO MES|DESVIO MES|ARVORE DE DESVIO|DECOMPOSICAO DA META/.test(t)) { const { respDesvioMes } = await import('./respostas/gerot_estrategico.js'); return respDesvioMes(B, E, c, t); }

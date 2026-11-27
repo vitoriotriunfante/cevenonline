@@ -462,33 +462,97 @@ export async function respCliven(B, E, c, t = '') {
   ].join('\n');
 }
 
-// 9) VISÃO CAMPO GEROT
+// 9) VISÃO CAMPO GEROT (07_ICs — 13 telas: eficiência, eficácia, 1º ck-in/out, tempos, 1º ped, após 18h, venda s/ visita, cobertura PDV, carteira visitada)
 export async function respCampoGerot(B, E, c) {
   const db = B && B.env && B.env.DB;
   if (!db) return null;
   const mes = await mesOuUltimo(db, 'gerot_campo_mes');
   const esc = escopoWhere(E, c, { temRca: false });
   const onde = E.nacional ? 'Brasil' : esc.fils.join(', ');
-  let rows = [];
+  const fPct = (v) => (v == null || !Number.isFinite(Number(v)) ? '—' : `${Number(v).toFixed(1).replace('.', ',')}%`);
+  const fMin = (v) => (v == null || !Number.isFinite(Number(v)) ? '—' : `${Math.round(Number(v))}m`);
+  const cols = 'filial, nivel, cod, nome, sup_cod, eficiencia_pct, eficacia_pct, hora_checkin, hora_checkout, min_visita, min_rota, hora_ped1, pct_ped18, venda_captada, pedidos_captados, venda_sem_visita, pct_sem_visita, cobertura_pdv_pct, carteira_visitada_pct';
+
+  const cardResumo = (x, rotulo) => [
+    `*${rotulo}:*`,
+    `• Eficiência (visitas): *${fPct(x.eficiencia_pct)}* · Eficácia (c/ ped.): *${fPct(x.eficacia_pct)}*`,
+    `• 1º check-in: *${x.hora_checkin || '—'}* · Últ. checkout: *${x.hora_checkout || '—'}*`,
+    `• Tempo visita: *${fMin(x.min_visita)}* · Tempo em rota: *${fMin(x.min_rota)}*`,
+    `• 1º pedido: *${x.hora_ped1 || '—'}* · Após 18h: *${fPct(x.pct_ped18)}* · Venda s/ visita: *${fPct(x.pct_sem_visita)}*`,
+    `• Cobertura PDV: *${fPct(x.cobertura_pdv_pct)}* · Carteira visitada: *${fPct(x.carteira_visitada_pct)}*`
+  ];
+
   try {
-    const nivel = E.nacional ? 'filial' : (ehVendedor(c, E) ? 'vendedor' : 'filial');
-    const extraSql = ehVendedor(c, E) ? ` AND cod = ?` : '';
-    const bind = ehVendedor(c, E) ? [mes, nivel, ...esc.bind, String(c.rca)] : [mes, nivel, ...esc.bind];
-    rows = (await db.prepare(`SELECT filial, cod, nome, eficiencia_pct, eficacia_pct, hora_checkin, hora_checkout, min_visita, min_rota, hora_ped1, cobertura_pdv_pct, carteira_visitada_pct, gerado_em FROM gerot_campo_mes WHERE mes = ? AND nivel = ? AND ${esc.sql}${extraSql} ORDER BY eficacia_pct DESC LIMIT 12`).bind(...bind).all()).results || [];
-  } catch { rows = []; }
-  if (!rows.length) {
-    return [
-      `🚗 *Visão Campo (GEROT · Synapse) — ${onde}* (${mes})`,
-      'O bloco *Visão Campo* não estava conectado dentro do arquivo atual do painel GEROT.',
-      '👉 Para check-in e visitas em tempo real hoje, peça *"visitas"* ou *"gestão de campo"*!'
-    ].join('\n');
-  }
-  const fPct = (v) => (v == null ? '—' : `${((Number(v) <= 2 ? Number(v) * 100 : Number(v))).toFixed(1).replace('.', ',')}%`);
+    if (ehVendedor(c, E)) {
+      const rcaRaw = String((c && c.rca) || (E && E.rca) || '').trim();
+      const rcaInt = /^\d+$/.test(rcaRaw) ? String(Number(rcaRaw)) : rcaRaw;
+      const rows = (await db.prepare(`SELECT ${cols} FROM gerot_campo_mes WHERE mes = ? AND nivel = 'vendedor' AND ${esc.sql} AND cod IN (?,?) LIMIT 2`).bind(mes, ...esc.bind, rcaInt, rcaRaw).all()).results || [];
+      if (rows.length) {
+        return [`🚗 *Visão Campo (GEROT · 07_ICs) — ${rows[0].nome || rcaInt} (${rows[0].filial})* (${mes})`, ...cardResumo(rows[0], 'Seus indicadores de campo no mês'), '', await posFooter(db, mes)].join('\n');
+      }
+    } else if (E.nacional) {
+      const [brRow, filRows] = await Promise.all([
+        db.prepare(`SELECT ${cols} FROM gerot_campo_mes WHERE mes = ? AND nivel = 'brasil' LIMIT 1`).bind(mes).first().catch(() => null),
+        db.prepare(`SELECT ${cols} FROM gerot_campo_mes WHERE mes = ? AND nivel = 'filial' ORDER BY eficiencia_pct DESC`).bind(mes).all().then((r) => r.results || []).catch(() => [])
+      ]);
+      if (brRow || filRows.length) {
+        const L = [`🚗 *Visão Campo (GEROT · 07_ICs) — Brasil* (${mes})`];
+        if (brRow) L.push(...cardResumo(brRow, 'Triunfante (consolidado)'), '');
+        if (filRows.length) {
+          L.push('*Por filial (eficiência · eficácia · 1º ck · visita · cob. PDV):*');
+          for (const f of filRows) L.push(`• *${f.filial}*: Efic. *${fPct(f.eficiencia_pct)}* · Eficác. *${fPct(f.eficacia_pct)}* · 1º ck ${f.hora_checkin || '—'} · Vis ${fMin(f.min_visita)} · Cob. ${fPct(f.cobertura_pdv_pct)}`);
+        }
+        L.push('', await posFooter(db, mes));
+        return L.join('\n');
+      }
+    } else if (E.supervisor) {
+      const sups = [...new Set((E.vend || []).map((v) => String(v.sup_cod || v.supCod || '')).filter(Boolean))];
+      const rcas = [...new Set((E.vend || []).map((v) => (/^\d+$/.test(String(v.rca)) ? String(Number(v.rca)) : String(v.rca))).filter(Boolean))];
+      let supRow = null;
+      if (sups.length) {
+        const litS = inLit('cod', sups);
+        supRow = await db.prepare(`SELECT ${cols} FROM gerot_campo_mes WHERE mes = ? AND nivel = 'supervisor' AND ${esc.sql} AND ${litS.sql} LIMIT 1`).bind(mes, ...esc.bind, ...litS.bind).first().catch(() => null);
+      }
+      let vendRows = [];
+      if (rcas.length) {
+        const litR = inLit('cod', rcas);
+        vendRows = (await db.prepare(`SELECT ${cols} FROM gerot_campo_mes WHERE mes = ? AND nivel = 'vendedor' AND ${esc.sql} AND ${litR.sql} ORDER BY eficiencia_pct ASC`).bind(mes, ...esc.bind, ...litR.bind).all()).results || [];
+      }
+      if (supRow || vendRows.length) {
+        const L = [`🚗 *Visão Campo (GEROT · 07_ICs) — ${E.nome || onde}* (${mes})`];
+        if (supRow) L.push(...cardResumo(supRow, 'Resumo da equipe'), '');
+        if (vendRows.length) {
+          L.push('*Por vendedor (pior eficiência primeiro):*');
+          for (const v of vendRows.slice(0, 12)) L.push(`• *${v.cod} - ${nome2(v.nome || '')}*: Efic. *${fPct(v.eficiencia_pct)}* · Eficác. *${fPct(v.eficacia_pct)}* · 1º ck ${v.hora_checkin || '—'} · Vis ${fMin(v.min_visita)} · Cob. ${fPct(v.cobertura_pdv_pct)}`);
+          if (vendRows.length > 12) L.push(`_… e mais ${vendRows.length - 12} vendedores._`);
+        }
+        L.push('', await posFooter(db, mes));
+        return L.join('\n');
+      }
+    } else {
+      const sups = E.grupo ? [...new Set((E.vend || []).map((v) => String(v.sup_cod || v.supCod || '')).filter(Boolean))] : [];
+      const supLit = sups.length ? inLit('cod', sups) : null;
+      const [filRows, supRows] = await Promise.all([
+        db.prepare(`SELECT ${cols} FROM gerot_campo_mes WHERE mes = ? AND nivel = 'filial' AND ${esc.sql} ORDER BY eficiencia_pct DESC`).bind(mes, ...esc.bind).all().then((r) => r.results || []).catch(() => []),
+        db.prepare(`SELECT ${cols} FROM gerot_campo_mes WHERE mes = ? AND nivel = 'supervisor' AND ${esc.sql}${supLit ? ` AND ${supLit.sql}` : ''} ORDER BY eficiencia_pct ASC`).bind(mes, ...esc.bind, ...(supLit ? supLit.bind : [])).all().then((r) => r.results || []).catch(() => [])
+      ]);
+      if (filRows.length || supRows.length) {
+        const L = [`🚗 *Visão Campo (GEROT · 07_ICs) — ${E.nome || onde}* (${mes})`];
+        if (filRows[0] && !E.grupo) L.push(...cardResumo(filRows[0], `Filial ${filRows[0].filial}`), '');
+        if (supRows.length) {
+          L.push('*Por supervisor (pior eficiência primeiro):*');
+          for (const s of supRows.slice(0, 10)) L.push(`• *${s.cod} - ${nome2(s.nome || '')}*: Efic. *${fPct(s.eficiencia_pct)}* · Eficác. *${fPct(s.eficacia_pct)}* · 1º ck ${s.hora_checkin || '—'} · Vis ${fMin(s.min_visita)} · Cob. ${fPct(s.cobertura_pdv_pct)}`);
+        }
+        L.push('', await posFooter(db, mes));
+        return L.join('\n');
+      }
+    }
+  } catch { /* fallback abaixo */ }
+
   return [
-    `🚗 *Visão Campo (GEROT · Synapse) — ${onde}* (${mes})`,
-    ...rows.slice(0, 8).map((x) => `• *${x.nome || x.filial}*: Efic. ${fPct(x.eficacia_pct)} · Efic.rota ${fPct(x.eficiencia_pct)} · 1º ck ${x.hora_checkin || '—'} · Visita ${x.min_visita || '—'}m`),
-    '',
-    await posFooter(db, mes)
+    `🚗 *Visão Campo (GEROT · 07_ICs) — ${onde}* (${mes})`,
+    'O bloco *Visão Campo* ainda não tem leitura gravada para esse recorte.',
+    '👉 Para check-in e visitas em tempo real hoje, peça *"visitas"* ou *"gestão de campo"*!'
   ].join('\n');
 }
 

@@ -4561,6 +4561,15 @@
    "assunto": "juliana|1221",
    "proibido": "outro supervisor",
    "checagens": [{ "id": "fat_liq_vendedor_mes", "p": { "filial": "TBL", "rca": "1221" } }]
+  },
+  {
+   "id": "G252",
+   "linha": "4.campo_gerot",
+   "contato": { "nome": "VITORIO", "papel": "diretoria", "filial": null, "rca": null, "grupo": null },
+   "pergunta": "Visão campo",
+   "assunto": "vis[ãa]o campo|efic",
+   "proibido": "n[ãa]o estava conectado|ainda n[ãa]o tem leitura",
+   "checagens": []
   }
  ]
 }

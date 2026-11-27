@@ -1844,37 +1844,104 @@ async function processarMes(mes, { cubo, motor, meta }, tiers, posicao, loteId) 
       } catch (e) { log('AVISO est_winthor:', e.message); }
     }
 
-    // Visao Campo (cubo.campo ou cubo.visaoCampo)
+    // Visao Campo (cubo.campo - 07_ICs, 13 telas)
     try {
-      const C = cubo.campo || cubo.visaoCampo;
-      const cLinhas = (C && (Array.isArray(C.linhas) ? C.linhas : (Array.isArray(C.dados) ? C.dados : null))) || null;
-      if (C && cLinhas && cLinhas.length && (!Array.isArray(C.meses) || C.meses.includes(mes))) {
-        const cRows = cLinhas
-          .filter((l) => String(l.mes || l[0] || mes) === mes)
-          .map((l) => ({
+      const C = cubo.campo;
+      if (C && C.campos && C.dim && (!Array.isArray(C.meses) || C.meses.includes(mes))) {
+        const campos = C.campos;
+        const idx = Object.fromEntries(campos.map((nm, i) => [nm, i]));
+        const minHora = (m) => {
+          if (m == null || !Number.isFinite(m) || m <= 0) return null;
+          const tot = Math.round(m);
+          return `${String(Math.floor(tot / 60)).padStart(2, '0')}:${String(tot % 60).padStart(2, '0')}`;
+        };
+        const supFilMap = new Map(), supNomeMap = new Map();
+        for (const s of supRows) {
+          supFilMap.set(String(s.cod_sup), s.filial);
+          if (s.supervisor) supNomeMap.set(String(s.cod_sup), s.supervisor);
+        }
+        const vendFilMap = new Map();
+        for (const v of vendRows) {
+          const rN = /^\d+$/.test(String(v.rca)) ? String(Number(v.rca)) : String(v.rca);
+          vendFilMap.set(rN, v);
+        }
+        const dic = C.dic || {};
+        const arv = C.arvore || {};
+        const filByCod = (raw) => {
+          if (raw == null || raw === '') return '';
+          const sRaw = String(raw).trim();
+          const nomeDic = dic.filial && dic.filial[sRaw];
+          if (nomeDic) {
+            const sg = H.paraSigla(nomeDic);
+            if (/^[A-Z]{3}$/.test(sg) && !/^\d+$/.test(sg)) return sg;
+          }
+          const sg2 = H.paraSigla(sRaw);
+          return /^[A-Z]{3}$/.test(sg2) && !/^\d+$/.test(sg2) ? sg2 : '';
+        };
+        const monta = (arr, off, meta) => {
+          const g = (k) => { const j = idx[k]; return j != null ? Number(arr[j + off]) || 0 : 0; };
+          const plan = g('plan'), real = g('real'), comPed = g('comPedido');
+          const nCkIn = g('nCkIn'), nCkOut = g('nCkOut'), nVis = g('nVisita'), nRota = g('nRota'), nPed1 = g('nPed1');
+          const pedTot = g('pedTotal'), vTot = g('vendaTotal'), fora = g('foraRota');
+          const cartPdv = g('carteiraPdv'), pdvVis = g('pdvVisitado'), pdvPos = g('pdvPositiv');
+          return {
             mes,
-            filial: H.paraSigla(l.filial || l[1] || 'BRASIL'),
-            nivel: String(l.nivel || 'filial'),
-            cod: String(l.cod || l.rca || l[1] || ''),
-            nome: String(l.nome || ''),
-            sup_cod: String(l.sup_cod || ''),
-            eficiencia_pct: l.eficiencia ?? l.eficiencia_pct ?? null,
-            eficacia_pct: l.eficacia ?? l.eficacia_pct ?? null,
-            hora_checkin: l.horaCkIn || l.hora_checkin || null,
-            hora_checkout: l.horaCkOut || l.hora_checkout || null,
-            min_visita: l.minVisita ?? l.min_visita ?? null,
-            min_rota: l.minRota ?? l.min_rota ?? null,
-            hora_ped1: l.horaPed1 || l.hora_ped1 || null,
-            pct_ped18: l.pctPed18 ?? l.pct_ped18 ?? null,
-            venda_captada: l.vendaCaptada ?? l.venda_captada ?? null,
-            pedidos_captados: l.pedCaptados ?? l.pedidos_captados ?? null,
-            venda_sem_visita: l.vendaSemVisita ?? l.venda_sem_visita ?? null,
-            pct_sem_visita: l.pctSemVisita ?? l.pct_sem_visita ?? null,
-            cobertura_pdv_pct: l.coberturaPdv ?? l.cobertura_pdv_pct ?? null,
-            carteira_visitada_pct: l.carteiraVisitada ?? l.carteira_visitada_pct ?? null,
+            filial: meta.filial,
+            nivel: meta.nivel,
+            cod: String(meta.cod),
+            nome: String(meta.nome || ''),
+            sup_cod: String(meta.sup_cod || ''),
+            eficiencia_pct: plan > 0 ? R2(real / plan * 100) : null,
+            eficacia_pct: real > 0 ? R2(comPed / real * 100) : null,
+            hora_checkin: nCkIn > 0 ? minHora(g('somaCkIn') / nCkIn) : null,
+            hora_checkout: nCkOut > 0 ? minHora(g('somaCkOut') / nCkOut) : null,
+            min_visita: nVis > 0 ? Math.round((g('somaVisita') / nVis) * 10) / 10 : null,
+            min_rota: nRota > 0 ? Math.round((g('somaRota') / nRota) * 10) / 10 : null,
+            hora_ped1: nPed1 > 0 ? minHora(g('somaPed1') / nPed1) : null,
+            pct_ped18: pedTot > 0 ? R2(g('ped18') / pedTot * 100) : null,
+            venda_captada: R2(vTot),
+            pedidos_captados: Math.round(pedTot),
+            venda_sem_visita: R2(fora),
+            pct_sem_visita: vTot > 0 ? R2(fora / vTot * 100) : null,
+            cobertura_pdv_pct: cartPdv > 0 ? R2(pdvPos / cartPdv * 100) : null,
+            carteira_visitada_pct: cartPdv > 0 ? R2(pdvVis / cartPdv * 100) : null,
             gerado_em: C.geradoEm || ''
-          }));
-        if (cRows.length) await enviaEmLotes('campo_mes', cRows, 300, { campo_limpar_mes: mes });
+          };
+        };
+        const cMap = new Map();
+        const addC = (row) => {
+          if (!row.filial || !row.cod) return;
+          cMap.set(`${row.mes}|${row.filial}|${row.nivel}|${row.cod}|${row.sup_cod}`, row);
+        };
+        if (Array.isArray(C.empresa && C.empresa[mes])) {
+          addC(monta(C.empresa[mes], 0, { filial: 'BRASIL', nivel: 'brasil', cod: 'BRASIL', nome: 'Triunfante', sup_cod: '' }));
+        }
+        for (const r of (C.dim.filial && C.dim.filial[mes]) || []) {
+          const cod = String(r[0] || '');
+          const fil = filByCod(cod);
+          if (fil) addC(monta(r, 1, { filial: fil, nivel: 'filial', cod: fil, nome: fil, sup_cod: '' }));
+        }
+        for (const r of (C.dim.supervisor && C.dim.supervisor[mes]) || []) {
+          const supCod = String(r[0] || '');
+          const fil = filByCod(arv.supervisor && arv.supervisor[supCod]) || supFilMap.get(supCod) || '';
+          const nome = (dic.supervisor && dic.supervisor[supCod]) || supNomeMap.get(supCod) || supCod;
+          if (fil && supCod) addC(monta(r, 1, { filial: fil, nivel: 'supervisor', cod: supCod, nome, sup_cod: supCod }));
+        }
+        for (const r of (C.dim.vendedor && C.dim.vendedor[mes]) || []) {
+          const rca = String(r[0] || '');
+          const rN = /^\d+$/.test(rca) ? String(Number(rca)) : rca;
+          const vInf = vendFilMap.get(rN);
+          const supCod = String((arv.vendedor && arv.vendedor[rca]) || (vInf && vInf.cod_sup) || '');
+          const fil = filByCod(arv.supervisor && arv.supervisor[supCod]) || (vInf && vInf.filial) || supFilMap.get(supCod) || '';
+          const nome = (dic.vendedor && dic.vendedor[rca]) || (vInf && vInf.vendedor) || ('RCA ' + rca);
+          if (fil && rca) addC(monta(r, 1, { filial: fil, nivel: 'vendedor', cod: rN, nome, sup_cod: supCod }));
+        }
+        const cRows = [...cMap.values()];
+        if (cRows.length) {
+          await enviaEmLotes('campo_mes', cRows, 250, { campo_limpar_mes: mes });
+          await api('POST', '', { controle: { lote_id: loteId, mes, etapa: 'campo_mes', status: 'OK', linhas: cRows.length, gravadas: cRows.length, posicao } });
+        }
+        log(`${mes} campo_mes: ${cRows.length} linhas (brasil/filial/sup/vend)`);
       }
     } catch (e) { log(`AVISO campo ${mes}:`, e.message); }
   }
@@ -2006,48 +2073,6 @@ async function main() {
     dimRede: cubo && cubo.dim && cubo.dim.rede ? (cubo.dim.rede.cod || []).length : 0,
     redes: cubo && cubo.redes ? (Array.isArray(cubo.redes) ? `arr[${cubo.redes.length}]` : Object.keys(cubo.redes).slice(0, 8)) : null
   }));
-  if (cubo && cubo.campo) {
-    const c = cubo.campo;
-    const descVal = (v, depth = 0) => {
-      if (v == null) return null;
-      if (typeof v !== 'object') return typeof v;
-      if (Array.isArray(v)) {
-        if (!v.length) return 'arr[0]';
-        const f = v[0];
-        return `arr[${v.length}]:${Array.isArray(f) ? `arr[${f.length}](${f.slice(0, 7).map((z) => typeof z).join(',')})` : (f && typeof f === 'object' ? `obj{${Object.keys(f).slice(0, 6).join(',')}}` : typeof f)}`;
-      }
-      const ks = Object.keys(v);
-      if (depth >= 2) return `obj{${ks.slice(0, 6).join(',')}}`;
-      return { n: ks.length, keys: ks.slice(0, 4), sample: ks.length ? descVal(v[ks[0]], depth + 1) : null };
-    };
-    const mesRef = meses[0] || (c.meses && c.meses[c.meses.length - 1]);
-    const emp = c.empresa && c.empresa[mesRef];
-    const unitCheck = Array.isArray(emp) ? {
-      mesRef,
-      ef: emp[0] ? +(emp[1] / emp[0] * 100).toFixed(1) : null,
-      efic: emp[1] ? +(emp[2] / emp[1] * 100).toFixed(1) : null,
-      ckIn: emp[4] ? +(emp[3] / emp[4]).toFixed(2) : null,
-      ckOut: emp[6] ? +(emp[5] / emp[6]).toFixed(2) : null,
-      vis: emp[8] ? +(emp[7] / emp[8]).toFixed(2) : null,
-      rota: emp[10] ? +(emp[9] / emp[10]).toFixed(2) : null,
-      ped1: emp[12] ? +(emp[11] / emp[12]).toFixed(2) : null,
-      pct18: emp[14] ? +(emp[13] / emp[14] * 100).toFixed(1) : null,
-      vendaMag: emp[15] ? Math.floor(Math.log10(Math.abs(emp[15]))) : null,
-      cartPdvNonZero: !!(emp[17] > 0), pdvVisNonZero: !!(emp[18] > 0), pdvPosNonZero: !!(emp[19] > 0)
-    } : null;
-    log('CAMPO_DETAIL:', JSON.stringify({
-      dim: { filial: descVal(c.dim && c.dim.filial), supervisor: descVal(c.dim && c.dim.supervisor), vendedor: descVal(c.dim && c.dim.vendedor) },
-      dic: {
-        filial: c.dic && c.dic.filial ? (Array.isArray(c.dic.filial) ? c.dic.filial : Object.keys(c.dic.filial)) : null,
-        supervisor: descVal(c.dic && c.dic.supervisor),
-        vendedor: descVal(c.dic && c.dic.vendedor)
-      },
-      arvore: { supervisor: descVal(c.arvore && c.arvore.supervisor), vendedor: descVal(c.arvore && c.arvore.vendedor) },
-      cobertura: descVal(c.cobertura && c.cobertura[mesRef]),
-      diarioAc: c.diarioAc,
-      unitCheck
-    }));
-  }
 
   for (const m of meses) {
     await processarMes(m, loaded, tiers, posicao, loteId);
