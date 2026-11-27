@@ -44,7 +44,7 @@ const SHARD_TOTAL = Math.max(1, Number(process.env.SHARD_TOTAL || 1));
 // Blacklist absoluta de escrita/mutacao
 const RE_BLACKLIST = /salvar|gravar|excluir|apagar|deletar|remover|novo|incluir|adicionar|editar|alterar|liberar|reativar|enviar|confirmar|aprovar|rejeitar|senha|calcular|processar|importar|limpar|estornar|cancelar|bloquear|desbloquear|finalizar|fechar rota|duplicar|inativar|reiniciar/i;
 const RE_WHITELIST_CONSULTA = /^(Gerar|Gerar Relatório|Pesquisar|Buscar|Filtrar|Consultar|Exibir|Listar|Atualizar)$/i;
-const RE_WHITELIST_EXPORT = /^(Excel|Exportar Excel|Exportar para Excel|Exportar|Gerar venda de todos RCAs)$/i;
+const RE_WHITELIST_EXPORT = /^(Excel|Exportar Excel|Exportar para Excel|Exportar para CSV|Exportar|Gerar venda de todos RCAs)$/i;
 
 const TELAS_ESTRUTURA_APENAS = new Set([
   'reativaPedido.xhtml',
@@ -264,6 +264,53 @@ async function preencherDatas(page) {
 }
 
 async function selecionarFiltrosSeguros(page, nivelObrigatorio = false) {
+  const selecionaPrime = async (labelTexto, preferidoRegex) => {
+    // Tenta clicar no widget PrimeFaces ui-selectonemenu associado ao label e escolher o item
+    const selInfo = await page.evaluate((lab) => {
+      const labels = [...document.querySelectorAll('label')];
+      const lbl = labels.find((l) => (l.innerText || '').trim().replace(/\*/g, '').toLowerCase() === lab.toLowerCase());
+      if (!lbl) return null;
+      const td = lbl.closest('td, div');
+      const scope = (td && td.parentElement) || lbl.parentElement || document;
+      const widget = scope.querySelector('.ui-selectonemenu') || lbl.nextElementSibling?.querySelector?.('.ui-selectonemenu');
+      if (!widget || !widget.id) return null;
+      return { widgetId: widget.id };
+    }, labelTexto).catch(() => null);
+    if (!selInfo) return false;
+    try {
+      const w = page.locator(`[id="${selInfo.widgetId}"]`).first();
+      await w.click({ timeout: 4000 });
+      await page.waitForTimeout(500);
+      const painelId = selInfo.widgetId + '_panel';
+      const itens = page.locator(`[id="${painelId}"] li.ui-selectonemenu-item`);
+      const n = await itens.count();
+      if (n <= 1) {
+        await page.keyboard.press('Escape').catch(() => {});
+        return false;
+      }
+      let alvo = null;
+      if (preferidoRegex) {
+        for (let i = 0; i < n; i++) {
+          const tx = (await itens.nth(i).innerText().catch(() => '')).trim();
+          if (preferidoRegex.test(tx)) { alvo = itens.nth(i); break; }
+        }
+      }
+      if (!alvo) {
+        for (let i = 0; i < n; i++) {
+          const tx = (await itens.nth(i).innerText().catch(() => '')).trim();
+          if (tx && !/selecione|todos/i.test(tx)) { alvo = itens.nth(i); break; }
+        }
+      }
+      if (alvo) {
+        await alvo.click({ timeout: 4000 });
+        await page.waitForTimeout(1800);
+        return true;
+      }
+      await page.keyboard.press('Escape').catch(() => {});
+    } catch {}
+    return false;
+  };
+
   const selecionaPasso = async (passo) => {
     const res = await page.evaluate((p) => {
       const selects = [...document.querySelectorAll('select')];
@@ -325,10 +372,16 @@ async function selecionarFiltrosSeguros(page, nivelObrigatorio = false) {
 
   const temFilial = f.length > 0;
   if (!temFilial || nivelObrigatorio) {
+    let okCoord = await selecionaPrime('Coordenador', null);
+    if (okCoord) aplicados.push('coordenador_prime');
     const c = await selecionaPasso('coord');
     aplicados.push(...c.map((x) => x.tipo));
+
+    let okRep = await selecionaPrime('Representante', /\b352\b/);
+    if (okRep) aplicados.push('representante_prime');
     const r = await selecionaPasso('rep');
     aplicados.push(...r.map((x) => x.tipo));
+
     if (nivelObrigatorio) {
       const o = await selecionaPasso('outro');
       aplicados.push(...o.map((x) => x.tipo));
