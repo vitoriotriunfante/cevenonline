@@ -448,10 +448,15 @@ secao('8. Lances do Brasileirao contados uma vez so');
 }
 
 // ---------------------------------------------------------------- 8b. conta do Plus de Lideranca (sem rede)
+// 27/11/2026: no Windows o atalho da Microsoft Store (WindowsApps\python.exe) existe mas nao e Python: sai com 9009 -> conta como "sem Python"
+function semPython(r) {
+  if (r.error && r.error.code === 'ENOENT') return true;
+  return r.status === 9009 || /Microsoft Store|Python n.o foi encontrado|Python was not found/i.test(String(r.stderr || '') + String(r.stdout || ''));
+}
 secao('8b. Plus de Lideranca do supervisor: +5 compromisso (ate 10:00), +5 RET, sem punicao');
 {
   const r = spawnSync('python', [join(RAIZ, 'testes', 't_plus.py')], { encoding: 'utf8', env: { ...process.env, PYTHONIOENCODING: 'utf-8' } });
-  if (r.error && r.error.code === 'ENOENT') {
+  if (semPython(r)) {
     console.log('  pulado - Python nao encontrado neste computador');
   } else {
     (r.stdout || '').split('\n').filter(l => /^\s+(ok|FALHOU)/.test(l)).forEach(l => ok(/ok\s+-/.test(l), l.replace(/^\s+(ok|FALHOU)\s+-\s+/, '')));
@@ -662,7 +667,7 @@ secao('8v. Nivel do gol vale para TODOS os gols (menos Campeao da Rodada); sem "
 secao('9. Prospects do Data Lake: aciona, espera 1 minuto e busca de novo');
 {
   const r = spawnSync('python', [join(RAIZ, 'testes', 't_prospects.py')], { encoding: 'utf8', env: { ...process.env, PYTHONIOENCODING: 'utf-8' } });
-  if (r.error && r.error.code === 'ENOENT') {
+  if (semPython(r)) {
     console.log('  pulado - Python nao encontrado neste computador');
   } else {
     (r.stdout || '').split('\n').filter(l => /^\s+(ok|FALHOU)/.test(l)).forEach(l => ok(/ok\s+-/.test(l), l.replace(/^\s+(ok|FALHOU)\s+-\s+/, '')));
